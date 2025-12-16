@@ -2,8 +2,24 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PlateVault",
-  description: "Spot. Tag. Archive.",
+  metadataBase: new URL("https://www.platevault.app"),
+
+  title: "PlateVault — Spot. Tag. Archive.",
+  description: "A modern license plate archive. Spot. Tag. Archive.",
+
+  openGraph: {
+    type: "website",
+    url: "https://www.platevault.app",
+    siteName: "PlateVault",
+    title: "PlateVault — Spot. Tag. Archive.",
+    description: "A modern license plate archive. Spot. Tag. Archive.",
+  },
+
+  twitter: {
+    card: "summary",
+    title: "PlateVault — Spot. Tag. Archive.",
+    description: "A modern license plate archive. Spot. Tag. Archive.",
+  },
 };
 
 export default function RootLayout({
