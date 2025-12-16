@@ -45,10 +45,6 @@ export default function ComingSoon() {
             </a>
           </div>
         </div>
-
-        <p className="mt-8 text-xs text-zinc-600">
-          © {new Date().getFullYear()} PlateVault
-        </p>
       </div>
     </main>
   );
