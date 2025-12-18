@@ -8,12 +8,19 @@ generator client {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  username  String    @unique
-  email     String    @unique
-  password  String
-  createdAt DateTime  @default(now())
-  sessions  Session[]
+  id        String   @id @default(cuid())
+  username  String   @unique @db.VarChar(20)   // <= username limit
+  email     String   @unique @db.VarChar(254)
+  password  String   @db.VarChar(255)
+  createdAt DateTime @default(now())
+
+  bio       String?  @db.VarChar(280)
+  avatarUrl String?
+
+  sessions      Session[]
+  uploads       Upload[]
+  likes         Like[]
+  notifications Notification[]
 }
 
 model Session {
@@ -23,4 +30,46 @@ model Session {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   expiresAt DateTime
+}
+
+model Upload {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  country   String   @db.VarChar(60)
+  plateText String   @db.VarChar(32)
+  plateType String?  @db.VarChar(60)
+  imageUrl  String   @db.VarChar(500)
+
+  createdAt DateTime @default(now())
+
+  likes     Like[]
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  uploadId  String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  upload    Upload   @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, uploadId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   @db.VarChar(32)
+  title     String   @db.VarChar(120)
+  message   String?  @db.VarChar(280)
+  url       String?  @db.VarChar(500)
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }

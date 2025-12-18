@@ -3,6 +3,11 @@ import bcrypt from "bcrypt";
 import { randomBytes } from "crypto";
 import { prisma } from "@/app/lib/prisma";
 
+const USERNAME_MIN = 3;
+const USERNAME_MAX = 20;
+const PASSWORD_MIN = 8;
+const PASSWORD_MAX = 72; // bcrypt-safe practical max
+
 function isValidUsername(username: string) {
   // 3–20 chars, letters/numbers/underscore/dot
   return /^[a-zA-Z0-9._]{3,20}$/.test(username);
@@ -15,7 +20,8 @@ function isValidEmail(email: string) {
 function isStrongPassword(password: string) {
   // min 8, needs upper/lower/number/special
   return (
-    password.length >= 8 &&
+    password.length >= PASSWORD_MIN &&
+    password.length <= PASSWORD_MAX &&
     /[a-z]/.test(password) &&
     /[A-Z]/.test(password) &&
     /[0-9]/.test(password) &&
@@ -26,11 +32,16 @@ function isStrongPassword(password: string) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const username = String(body.username || "").trim();
-    const email = String(body.email || "").trim().toLowerCase();
-    const password = String(body.password || "");
 
-    if (!isValidUsername(username)) {
+    const username = String(body.username ?? "").trim();
+    const email = String(body.email ?? "").trim().toLowerCase();
+    const password = String(body.password ?? "");
+
+    if (
+      username.length < USERNAME_MIN ||
+      username.length > USERNAME_MAX ||
+      !isValidUsername(username)
+    ) {
       return NextResponse.json(
         { error: "Username must be 3–20 chars (letters, numbers, . or _)." },
         { status: 400 }
@@ -45,7 +56,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           error:
-            "Password must be 8+ chars and include uppercase, lowercase, number, and special character.",
+            "Password must be 8–72 chars and include uppercase, lowercase, number, and special character.",
         },
         { status: 400 }
       );
@@ -91,7 +102,9 @@ export async function POST(req: Request) {
     });
 
     return res;
-  } catch {
+  } catch (err) {
+    // Optional while developing: helps debug Neon/Prisma issues
+    console.error("Signup error:", err);
     return NextResponse.json({ error: "Signup failed." }, { status: 500 });
   }
 }
