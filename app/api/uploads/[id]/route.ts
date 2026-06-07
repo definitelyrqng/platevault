@@ -58,10 +58,7 @@ export async function DELETE(
 
   const { id } = await params;
 
-  await prisma.upload.update({
-    where: { id },
-    data: { deletedAt: new Date() },
-  });
+  await prisma.upload.delete({ where: { id } });
 
   return NextResponse.json({ ok: true });
 }

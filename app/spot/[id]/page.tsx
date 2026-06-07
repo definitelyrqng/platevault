@@ -35,8 +35,8 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
   if (!Number.isInteger(numericId) || numericId < 1) return notFound();
 
   const [upload, currentUser] = await Promise.all([
-    prisma.upload.findUnique({
-      where: { numericId },
+    prisma.upload.findFirst({
+      where: { numericId, deletedAt: null },
       select: {
         id: true,
         numericId: true,

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { BRANDS, getModels, getGenerations, getTrims, getColors } from "@/app/lib/carData";
 
 export default function AdminPanel({
   uploadId,
@@ -30,10 +31,23 @@ export default function AdminPanel({
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
 
+  const models     = brand                    ? getModels(brand)                  : [];
+  const generations = brand && model          ? getGenerations(brand, model)      : [];
+  const trims      = brand && model && generation ? getTrims(brand, model, generation)  : [];
+  const colors     = brand && model && generation ? getColors(brand, model, generation) : ["Custom color", "Custom wrap"];
+
+  function onBrandChange(v: string) {
+    setBrand(v); setModel(""); setGeneration(""); setTrim(""); setColor("");
+  }
+  function onModelChange(v: string) {
+    setModel(v); setGeneration(""); setTrim(""); setColor("");
+  }
+  function onGenerationChange(v: string) {
+    setGeneration(v); setTrim(""); setColor("");
+  }
+
   async function saveDetails() {
-    setSaving(true);
-    setError("");
-    setSaved(false);
+    setSaving(true); setError(""); setSaved(false);
     try {
       const res = await fetch(`/api/uploads/${uploadId}`, {
         method: "PATCH",
@@ -49,7 +63,7 @@ export default function AdminPanel({
   }
 
   async function deletePost() {
-    if (!confirm("Delete this spot? This can't be undone.")) return;
+    if (!confirm("Delete this spot permanently? This cannot be undone.")) return;
     setDeleting(true);
     try {
       const res = await fetch(`/api/uploads/${uploadId}`, { method: "DELETE" });
@@ -59,6 +73,8 @@ export default function AdminPanel({
       setDeleting(false);
     }
   }
+
+  const selectCls = "w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600 disabled:opacity-40";
 
   return (
     <div className="rounded-2xl border border-amber-900/40 bg-amber-950/10 p-4">
@@ -72,25 +88,51 @@ export default function AdminPanel({
 
       {open && (
         <div className="mt-4 space-y-3">
-          {/* Car detail fields */}
-          {[
-            { label: "Brand", value: brand, set: setBrand },
-            { label: "Model", value: model, set: setModel },
-            { label: "Generation", value: generation, set: setGeneration },
-            { label: "Trim", value: trim, set: setTrim },
-            { label: "Color", value: color, set: setColor },
-          ].map(({ label, value, set }) => (
-            <div key={label}>
-              <label className="block text-xs text-zinc-500 mb-1">{label}</label>
-              <input
-                value={value}
-                onChange={(e) => set(e.target.value)}
-                placeholder={`Enter ${label.toLowerCase()}…`}
-                maxLength={60}
-                className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600"
-              />
-            </div>
-          ))}
+
+          {/* Brand */}
+          <div>
+            <label className="block text-xs text-zinc-500 mb-1">Brand</label>
+            <select value={brand} onChange={(e) => onBrandChange(e.target.value)} className={selectCls}>
+              <option value="">— select brand —</option>
+              {BRANDS.map((b) => <option key={b} value={b}>{b}</option>)}
+            </select>
+          </div>
+
+          {/* Model */}
+          <div>
+            <label className="block text-xs text-zinc-500 mb-1">Model</label>
+            <select value={model} onChange={(e) => onModelChange(e.target.value)} disabled={!brand} className={selectCls}>
+              <option value="">— select model —</option>
+              {models.map((m) => <option key={m} value={m}>{m}</option>)}
+            </select>
+          </div>
+
+          {/* Generation */}
+          <div>
+            <label className="block text-xs text-zinc-500 mb-1">Generation</label>
+            <select value={generation} onChange={(e) => onGenerationChange(e.target.value)} disabled={!model} className={selectCls}>
+              <option value="">— select generation —</option>
+              {generations.map((g) => <option key={g} value={g}>{g}</option>)}
+            </select>
+          </div>
+
+          {/* Trim */}
+          <div>
+            <label className="block text-xs text-zinc-500 mb-1">Trim</label>
+            <select value={trim} onChange={(e) => setTrim(e.target.value)} disabled={!generation} className={selectCls}>
+              <option value="">— select trim —</option>
+              {trims.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+
+          {/* Color */}
+          <div>
+            <label className="block text-xs text-zinc-500 mb-1">Color</label>
+            <select value={color} onChange={(e) => setColor(e.target.value)} disabled={!generation} className={selectCls}>
+              <option value="">— select color —</option>
+              {colors.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
 
           {error && <p className="text-xs text-red-400">{error}</p>}
           {saved && <p className="text-xs text-emerald-400">Saved!</p>}
