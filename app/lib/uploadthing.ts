@@ -18,6 +18,7 @@ function getTokenFromReq(req: Request): string | null {
 
 async function getSessionUser(req: Request) {
   const token = getTokenFromReq(req);
+  console.log("[UT] getSessionUser - token found:", !!token);
   if (!token) return null;
 
   const session = await prisma.session.findUnique({
@@ -29,6 +30,7 @@ async function getSessionUser(req: Request) {
   });
 
   if (!session || session.expiresAt < new Date()) return null;
+  console.log("[UT] session valid, user:", session.user.username);
   return session.user;
 }
 
@@ -44,6 +46,7 @@ export const ourFileRouter = {
       return { userId: user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
+      console.log("[UT] plateImageUploader complete, userId:", metadata.userId);
       return { uploadedBy: metadata.userId, url: file.ufsUrl };
     }),
 
@@ -56,9 +59,11 @@ export const ourFileRouter = {
     .middleware(async ({ req }) => {
       const user = await getSessionUser(req);
       if (!user) throw new Error("Unauthorized");
+      console.log("[UT] avatarUploader middleware ok, userId:", user.id);
       return { userId: user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
+      console.log("[UT] avatarUploader complete, url:", file.ufsUrl);
       await prisma.user.update({
         where: { id: metadata.userId },
         data: { avatarUrl: file.ufsUrl },
@@ -75,9 +80,11 @@ export const ourFileRouter = {
     .middleware(async ({ req }) => {
       const user = await getSessionUser(req);
       if (!user) throw new Error("Unauthorized");
+      console.log("[UT] bannerUploader middleware ok, userId:", user.id);
       return { userId: user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
+      console.log("[UT] bannerUploader complete, url:", file.ufsUrl);
       await prisma.$executeRaw`UPDATE "User" SET "bannerUrl" = ${file.ufsUrl} WHERE id = ${metadata.userId}`;
       return { url: file.ufsUrl };
     }),
