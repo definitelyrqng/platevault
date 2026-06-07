@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import SpotActions from "./SpotActions";
 import CommentSection from "./CommentSection";
+import AdminPanel from "./AdminPanel";
 
 const COUNTRY_META: Record<string, { flag: string; name: string }> = {
   albania: { flag: "🇦🇱", name: "Albania" },
@@ -22,7 +23,7 @@ async function getCurrentUser() {
   if (!token) return null;
   const session = await prisma.session.findUnique({
     where: { token },
-    select: { expiresAt: true, user: { select: { id: true, username: true } } },
+    select: { expiresAt: true, user: { select: { id: true, username: true, role: true } } },
   });
   if (!session || session.expiresAt < new Date()) return null;
   return session.user;
@@ -73,6 +74,8 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
   const meta = COUNTRY_META[upload.country] ?? { flag: "🏳️", name: upload.country };
   const isOwner = currentUser?.id === upload.userId;
   const hasLiked = upload.likes.some((l) => l.userId === currentUser?.id);
+  const isAdmin = currentUser?.role === "SUPERADMIN" || currentUser?.role === "ADMIN";
+  const isMod = isAdmin || currentUser?.role === "MOD";
 
   const carLabel = [upload.brand, upload.model, upload.generation].filter(Boolean).join(" ");
 
@@ -138,6 +141,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 isOwn: c.user.id === currentUser?.id,
               }))}
               isLoggedIn={!!currentUser}
+              isMod={isMod}
             />
           </div>
 
@@ -174,10 +178,22 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
               </div>
             </div>
 
-            {/* Missing car info nudge */}
-            {!upload.brand && !upload.model && (
+            {/* Admin panel */}
+            {isAdmin && (
+              <AdminPanel
+                uploadId={upload.id}
+                initialBrand={upload.brand ?? ""}
+                initialModel={upload.model ?? ""}
+                initialGeneration={upload.generation ?? ""}
+                initialTrim={upload.trim ?? ""}
+                initialColor={upload.color ?? ""}
+              />
+            )}
+
+            {/* Missing car info nudge (non-admins) */}
+            {!isAdmin && !upload.brand && !upload.model && (
               <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/20 p-4 text-xs text-zinc-500">
-                Car details not filled in yet. Admins can add brand, model, generation & trim.
+                Car details not filled in yet. Admins can add brand, model, generation &amp; trim.
               </div>
             )}
           </aside>

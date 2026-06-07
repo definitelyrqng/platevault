@@ -50,7 +50,12 @@ export default function SiteHeader() {
           Upload
         </Link>
 
-        {!loading && me.user ? (
+        {loading ? (
+          <>
+            <div className="h-9 w-24 rounded-xl bg-zinc-900 animate-pulse" />
+            <div className="h-9 w-20 rounded-xl bg-zinc-900 animate-pulse" />
+          </>
+        ) : me.user ? (
           <>
             <Link
               href={`/u/${me.user.numericId}`}
@@ -58,7 +63,6 @@ export default function SiteHeader() {
             >
               @{me.user.username}
             </Link>
-
             <button
               onClick={logout}
               className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-900"

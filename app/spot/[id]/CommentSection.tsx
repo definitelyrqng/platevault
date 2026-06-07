@@ -27,10 +27,12 @@ export default function CommentSection({
   uploadId,
   initialComments,
   isLoggedIn,
+  isMod = false,
 }: {
   uploadId: string;
   initialComments: Comment[];
   isLoggedIn: boolean;
+  isMod?: boolean;
 }) {
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [text, setText] = useState("");
@@ -57,20 +59,24 @@ export default function CommentSection({
     }
   }
 
+  async function deleteComment(id: string) {
+    if (!confirm("Delete this comment?")) return;
+    const res = await fetch(`/api/comments?id=${id}`, { method: "DELETE" });
+    if (res.ok) setComments((prev) => prev.filter((c) => c.id !== id));
+  }
+
   return (
     <section className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5">
       <h2 className="text-sm font-semibold text-zinc-200 mb-4">
         Comments ({comments.length})
       </h2>
 
-      {/* Comment list */}
       {comments.length === 0 ? (
         <p className="text-sm text-zinc-500 mb-5">No comments yet — be the first!</p>
       ) : (
         <div className="space-y-4 mb-5">
           {comments.map((c) => (
-            <div key={c.id} className="flex gap-3">
-              {/* Avatar */}
+            <div key={c.id} className="flex gap-3 group/comment">
               <div className="shrink-0 grid h-8 w-8 place-items-center rounded-xl bg-zinc-800 text-xs font-bold text-zinc-300">
                 {c.username.slice(0, 2).toUpperCase()}
               </div>
@@ -80,6 +86,14 @@ export default function CommentSection({
                     @{c.username}
                   </a>
                   <span className="text-xs text-zinc-600">{relativeTime(c.createdAt)}</span>
+                  {isMod && (
+                    <button
+                      onClick={() => deleteComment(c.id)}
+                      className="ml-auto opacity-0 group-hover/comment:opacity-100 text-xs text-red-500 hover:text-red-400 transition-opacity"
+                    >
+                      delete
+                    </button>
+                  )}
                 </div>
                 <p className="mt-0.5 text-sm text-zinc-300 leading-relaxed break-words">{c.content}</p>
               </div>
@@ -88,7 +102,6 @@ export default function CommentSection({
         </div>
       )}
 
-      {/* Input */}
       {isLoggedIn ? (
         <form onSubmit={submit} className="flex gap-2">
           <input

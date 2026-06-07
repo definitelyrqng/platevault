@@ -8,10 +8,14 @@ async function getSessionUser() {
   if (!token) return null;
   const session = await prisma.session.findUnique({
     where: { token },
-    select: { expiresAt: true, user: { select: { id: true, username: true, numericId: true } } },
+    select: { expiresAt: true, user: { select: { id: true, username: true, numericId: true, role: true } } },
   });
   if (!session || session.expiresAt < new Date()) return null;
   return session.user;
+}
+
+function canModerate(role: string) {
+  return role === "SUPERADMIN" || role === "ADMIN" || role === "MOD";
 }
 
 export async function POST(req: Request) {
@@ -44,4 +48,20 @@ export async function POST(req: Request) {
       numericId: comment.user.numericId,
     },
   }, { status: 201 });
+}
+
+export async function DELETE(req: Request) {
+  const user = await getSessionUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!canModerate(user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "Missing comment id" }, { status: 400 });
+
+  const comment = await prisma.comment.findUnique({ where: { id }, select: { id: true } });
+  if (!comment) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  await prisma.comment.delete({ where: { id } });
+  return NextResponse.json({ ok: true });
 }

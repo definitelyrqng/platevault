@@ -24,3 +24,18 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes superadmin-rgb {
+  0%   { color: #ff6ec7; border-color: #ff6ec7; box-shadow: 0 0 8px #ff6ec740; }
+  16%  { color: #ff9a3c; border-color: #ff9a3c; box-shadow: 0 0 8px #ff9a3c40; }
+  33%  { color: #f9f871; border-color: #f9f871; box-shadow: 0 0 8px #f9f87140; }
+  50%  { color: #43e97b; border-color: #43e97b; box-shadow: 0 0 8px #43e97b40; }
+  66%  { color: #38f9d7; border-color: #38f9d7; box-shadow: 0 0 8px #38f9d740; }
+  83%  { color: #667eea; border-color: #667eea; box-shadow: 0 0 8px #667eea40; }
+  100% { color: #ff6ec7; border-color: #ff6ec7; box-shadow: 0 0 8px #ff6ec740; }
+}
+
+.badge-superadmin {
+  animation: superadmin-rgb 3s linear infinite;
+  background: transparent;
+}

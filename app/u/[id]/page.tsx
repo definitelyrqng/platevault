@@ -29,7 +29,7 @@ function relativeDays(d: Date) {
 
 function roleBadge(role: string) {
   const map: Record<string, { label: string; cls: string }> = {
-    SUPERADMIN: { label: "super admin", cls: "text-purple-400 border-purple-800 bg-purple-950/40" },
+    SUPERADMIN: { label: "Super Admin", cls: "badge-superadmin border" },
     ADMIN:      { label: "admin",       cls: "text-amber-400 border-amber-800 bg-amber-950/40" },
     MOD:        { label: "mod",         cls: "text-blue-400 border-blue-800 bg-blue-950/40" },
     USER:       { label: "",            cls: "" },
