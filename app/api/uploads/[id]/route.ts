@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { UTApi } from "uploadthing/server";
 import { prisma } from "@/app/lib/prisma";
 
 async function getSessionUser() {
@@ -47,9 +48,9 @@ export async function PATCH(
   return NextResponse.json({ upload });
 }
 
-// DELETE — soft-delete (admin only)
+// DELETE — hard delete with UT cleanup + notification (admin only)
 export async function DELETE(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await getSessionUser();
@@ -57,7 +58,45 @@ export async function DELETE(
   if (!canAdmin(user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await params;
+  const body = await req.json().catch(() => ({}));
+  const reason = typeof body.reason === "string" && body.reason.trim()
+    ? body.reason.trim().slice(0, 280)
+    : null;
 
+  // Fetch upload before deleting so we have imageUrl + owner
+  const upload = await prisma.upload.findUnique({
+    where: { id },
+    select: { userId: true, imageUrl: true, plateText: true, country: true },
+  });
+  if (!upload) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  // Delete image from UploadThing
+  try {
+    const utapi = new UTApi({ token: process.env.UPLOADTHING_TOKEN });
+    const match = upload.imageUrl.match(/\/f\/([^/?#]+)/);
+    if (match) {
+      await utapi.deleteFiles([match[1]]);
+      console.log("[DELETE] UT file deleted:", match[1]);
+    }
+  } catch (e) {
+    // Don't block deletion if UT cleanup fails
+    console.error("[DELETE] UT delete failed:", e);
+  }
+
+  // Notify the original uploader (skip if admin is deleting their own post)
+  if (upload.userId !== user.id) {
+    const plate = upload.plateText.toUpperCase();
+    await prisma.notification.create({
+      data: {
+        userId:  upload.userId,
+        type:    "UPLOAD_DELETED",
+        title:   `Your spot ${plate} was removed`,
+        message: reason ?? "Your spot was removed by a moderator.",
+      },
+    });
+  }
+
+  // Hard delete — cascades to likes & comments via schema
   await prisma.upload.delete({ where: { id } });
 
   return NextResponse.json({ ok: true });

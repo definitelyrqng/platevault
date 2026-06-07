@@ -48,10 +48,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid image URL" }, { status: 400 });
     }
 
+    // Check for existing spot before saving (multi-spot detection)
+    const existingSpot = await prisma.upload.findFirst({
+      where: { plateText, country, deletedAt: null },
+      orderBy: { createdAt: "asc" },
+      select: { id: true, numericId: true, userId: true, plateText: true },
+    });
+
     const upload = await prisma.upload.create({
       data: { userId: user.id, country, plateText, plateType, imageUrl, brand, model, generation, trim, color },
-      select: { id: true, country: true, plateText: true, plateType: true, imageUrl: true, createdAt: true },
+      select: { id: true, numericId: true, country: true, plateText: true, plateType: true, imageUrl: true, createdAt: true },
     });
+
+    // If another user already spotted this plate, notify them
+    if (existingSpot && existingSpot.userId !== user.id) {
+      await prisma.notification.create({
+        data: {
+          userId:  existingSpot.userId,
+          type:    "MULTISPOT",
+          title:   `${plateText} was spotted again!`,
+          message: `@${user.username} also spotted ${plateText} in ${country.charAt(0).toUpperCase() + country.slice(1)}.`,
+          url:     `/spot/${upload.numericId}`,
+        },
+      });
+    }
 
     return NextResponse.json({ upload }, { status: 201 });
   } catch (err) {

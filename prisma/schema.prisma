@@ -9,8 +9,10 @@ generator client {
 
 enum NotificationType {
   LIKE
+  COMMENT
   UPLOAD_DELETED
   UPLOAD_FLAGGED
+  MULTISPOT
   SYSTEM
 }
 

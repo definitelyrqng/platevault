@@ -75,6 +75,10 @@ export default function AlbaniaUploadPage() {
   const [status, setStatus] = useState<"idle" | "uploading" | "saving" | "done" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
+  // Multi-spot warning
+  type ExistingSpot = { numericId: number; plateText: string; username: string; userNumericId: number };
+  const [multiSpotWarning, setMultiSpotWarning] = useState<ExistingSpot | null>(null);
+
   const plateTypes = PLATE_TYPES_BY_CATEGORY[category];
   const selectedType = plateTypes.find((p) => p.id === plateTypeId) ?? plateTypes[0];
 
@@ -113,10 +117,9 @@ export default function AlbaniaUploadPage() {
 
   const { startUpload } = useUploadThing("plateImageUploader");
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!canSubmit || !file) return;
-
+  async function doUpload() {
+    if (!file) return;
+    setMultiSpotWarning(null);
     setStatus("uploading");
     setErrorMsg("");
 
@@ -154,6 +157,30 @@ export default function AlbaniaUploadPage() {
     }
   }
 
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!canSubmit || !file) return;
+    setErrorMsg("");
+
+    // Check for existing spot (multi-spot detection)
+    try {
+      const checkRes = await fetch(
+        `/api/uploads/check?plateText=${encodeURIComponent(plateText.trim())}&country=albania`
+      );
+      if (checkRes.ok) {
+        const checkData = await checkRes.json();
+        if (checkData.exists) {
+          setMultiSpotWarning(checkData.spot);
+          return; // show warning, wait for user confirmation
+        }
+      }
+    } catch {
+      // if check fails, proceed anyway
+    }
+
+    await doUpload();
+  }
+
   function onCategoryChange(c: VehicleCategory) {
     setCategory(c);
     setPlateTypeId(PLATE_TYPES_BY_CATEGORY[c][0].id);
@@ -187,6 +214,42 @@ export default function AlbaniaUploadPage() {
           <div className="mt-6 rounded-2xl border border-red-800 bg-red-950/40 px-5 py-4 text-sm text-red-300">
             ✗ {errorMsg}
             <button onClick={() => setStatus("idle")} className="ml-3 underline hover:no-underline">Try again</button>
+          </div>
+        )}
+
+        {/* Multi-spot warning */}
+        {multiSpotWarning && (
+          <div className="mt-6 rounded-2xl border border-amber-800 bg-amber-950/30 px-5 py-4 space-y-3">
+            <div className="flex items-start gap-3">
+              <span className="text-xl shrink-0">📍</span>
+              <div>
+                <p className="text-sm font-semibold text-amber-300">This plate has already been spotted!</p>
+                <p className="mt-1 text-sm text-amber-200/70">
+                  <a href={`/spot/${multiSpotWarning.numericId}`} className="underline hover:text-amber-200" target="_blank" rel="noreferrer">
+                    {multiSpotWarning.plateText}
+                  </a>{" "}
+                  was first spotted by{" "}
+                  <a href={`/u/${multiSpotWarning.userNumericId}`} className="underline hover:text-amber-200" target="_blank" rel="noreferrer">
+                    @{multiSpotWarning.username}
+                  </a>.
+                  This will count as a Multi Spot — they'll be notified.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setMultiSpotWarning(null)}
+                className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 py-2 text-sm font-medium text-zinc-300 hover:bg-zinc-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={doUpload}
+                className="flex-1 rounded-xl border border-amber-800 bg-amber-950/60 py-2 text-sm font-medium text-amber-300 hover:bg-amber-950"
+              >
+                Yes, upload as Multi Spot
+              </button>
+            </div>
           </div>
         )}
 

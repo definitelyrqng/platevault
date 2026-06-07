@@ -27,14 +27,18 @@ export default function AdminPanel({
   const [trim, setTrim] = useState(initialTrim);
   const [color, setColor] = useState(initialColor);
   const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
 
-  const models     = brand                    ? getModels(brand)                  : [];
-  const generations = brand && model          ? getGenerations(brand, model)      : [];
-  const trims      = brand && model && generation ? getTrims(brand, model, generation)  : [];
-  const colors     = brand && model && generation ? getColors(brand, model, generation) : ["Custom color", "Custom wrap"];
+  // Delete confirmation state
+  const [deleteMode, setDeleteMode] = useState(false);
+  const [reason, setReason] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  const models      = brand                         ? getModels(brand)                       : [];
+  const generations = brand && model                ? getGenerations(brand, model)           : [];
+  const trims       = brand && model && generation  ? getTrims(brand, model, generation)    : [];
+  const colors      = brand && model && generation  ? getColors(brand, model, generation)   : ["Custom color", "Custom wrap"];
 
   function onBrandChange(v: string) {
     setBrand(v); setModel(""); setGeneration(""); setTrim(""); setColor("");
@@ -62,11 +66,14 @@ export default function AdminPanel({
     }
   }
 
-  async function deletePost() {
-    if (!confirm("Delete this spot permanently? This cannot be undone.")) return;
+  async function confirmDelete() {
     setDeleting(true);
     try {
-      const res = await fetch(`/api/uploads/${uploadId}`, { method: "DELETE" });
+      const res = await fetch(`/api/uploads/${uploadId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: reason.trim() || null }),
+      });
       if (!res.ok) { setError("Failed to delete."); return; }
       window.location.href = "/home";
     } finally {
@@ -86,9 +93,8 @@ export default function AdminPanel({
         <span>{open ? "▲" : "▼"}</span>
       </button>
 
-      {open && (
+      {open && !deleteMode && (
         <div className="mt-4 space-y-3">
-
           {/* Brand */}
           <div>
             <label className="block text-xs text-zinc-500 mb-1">Brand</label>
@@ -146,11 +152,51 @@ export default function AdminPanel({
               {saving ? "Saving…" : "Save details"}
             </button>
             <button
-              onClick={deletePost}
-              disabled={deleting}
-              className="rounded-xl border border-red-900/50 bg-red-950/30 px-4 py-2 text-xs font-medium text-red-400 hover:bg-red-950/60 disabled:opacity-50"
+              onClick={() => { setDeleteMode(true); setError(""); }}
+              className="rounded-xl border border-red-900/50 bg-red-950/30 px-4 py-2 text-xs font-medium text-red-400 hover:bg-red-950/60"
             >
-              {deleting ? "…" : "Delete post"}
+              Delete post
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation panel */}
+      {open && deleteMode && (
+        <div className="mt-4 space-y-3">
+          <p className="text-xs text-red-300 font-medium">
+            This will permanently delete the spot and remove the image from storage. The user will be notified.
+          </p>
+          <div>
+            <label className="block text-xs text-zinc-500 mb-1">
+              Reason <span className="text-zinc-600">(shown to user — leave blank for generic message)</span>
+            </label>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="e.g. Duplicate spot, blurry image, violates rules…"
+              maxLength={280}
+              rows={3}
+              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600 resize-none"
+            />
+            <div className="text-right text-[10px] text-zinc-600 mt-0.5">{reason.length}/280</div>
+          </div>
+
+          {error && <p className="text-xs text-red-400">{error}</p>}
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => { setDeleteMode(false); setReason(""); setError(""); }}
+              className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 py-2 text-xs font-medium text-zinc-300 hover:bg-zinc-800"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmDelete}
+              disabled={deleting}
+              className="flex-1 rounded-xl border border-red-900/50 bg-red-950/60 py-2 text-xs font-medium text-red-300 hover:bg-red-950 disabled:opacity-50"
+            >
+              {deleting ? "Deleting…" : "Yes, delete permanently"}
             </button>
           </div>
         </div>
