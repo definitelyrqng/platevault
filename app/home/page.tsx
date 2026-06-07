@@ -120,7 +120,9 @@ export default async function HomePage() {
             {recentUploads.map((u) => {
               const meta = COUNTRY_META[u.country] ?? { flag: "🏳️", name: u.country };
               return (
-                <a key={u.id} href={`/spot/${u.numericId}`} className="group rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-zinc-700 transition-colors">
+                <div key={u.id} className="group relative rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-zinc-700 transition-colors">
+                  {/* Full-card link (behind everything) */}
+                  <a href={`/spot/${u.numericId}`} className="absolute inset-0 z-0" aria-label={u.plateText} />
                   <div className="aspect-video bg-zinc-950 overflow-hidden">
                     <img
                       src={u.imageUrl}
@@ -137,7 +139,7 @@ export default async function HomePage() {
                       <span className="text-base">{meta.flag}</span>
                     </div>
                     <div className="mt-2 flex items-center justify-between text-xs text-zinc-500">
-                      <a href={`/u/${u.user.numericId}`} className="hover:text-zinc-300" onClick={(e) => e.stopPropagation()}>
+                      <a href={`/u/${u.user.numericId}`} className="relative z-10 hover:text-zinc-300">
                         @{u.user.username}
                       </a>
                       <div className="flex items-center gap-2">
@@ -146,7 +148,7 @@ export default async function HomePage() {
                       </div>
                     </div>
                   </div>
-                </a>
+                </div>
               );
             })}
           </div>
