@@ -31,8 +31,10 @@ export async function GET(req: Request) {
       {
         user: {
           id: session.user.id,
+          numericId: session.user.numericId,
           username: session.user.username,
           email: session.user.email,
+          role: session.user.role,
         },
       },
       { status: 200 }

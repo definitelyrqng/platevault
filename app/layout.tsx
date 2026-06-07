@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import SiteHeader from "./components/SiteHeader";
+import HeaderGate from "./components/HeaderGate";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.platevault.app"),
@@ -25,20 +25,20 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <html lang="en">
       <body className="min-h-screen bg-zinc-950 text-zinc-100">
         <div className="min-h-screen flex flex-col">
-          {/* Header (shows login / user info automatically) */}
-          <SiteHeader />
+          {/* Header (hidden on /coming-soon + /status) */}
+          <HeaderGate />
 
           {/* Page content */}
           <main className="flex-1">{children}</main>
 
-          {/* Footer */}
+          {/* Footer on ALL pages */}
           <footer className="py-8 text-center text-xs text-zinc-600">
             © {new Date().getFullYear()} PlateVault
           </footer>

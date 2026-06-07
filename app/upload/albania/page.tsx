@@ -1,216 +1,332 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { generateReactHelpers } from "@uploadthing/react";
+import type { OurFileRouter } from "@/app/lib/uploadthing";
 
-const VEHICLE_CATEGORIES = ["Cars (2011)", "Motorcycles (2011)", "Trailers (2011)"] as const;
+const { useUploadThing } = generateReactHelpers<OurFileRouter>();
+
+/* ─── Constants ─── */
+
+const VEHICLE_CATEGORIES = [
+  "Cars (2011–present)",
+  "Motorcycles (2011–present)",
+  "Trailers (2011–present)",
+  "Cars (1993–2010)",
+] as const;
+
 type VehicleCategory = (typeof VEHICLE_CATEGORIES)[number];
 
-const PLATE_TYPES = [
-  { id: "car-modern", name: "Modern car plate", example: "AA 123 AB" },
-  { id: "motorcycle", name: "Motorcycle plate", example: "AA 123" },
-  { id: "trailer", name: "Trailer plate", example: "TR 1234 A" },
-  { id: "unknown", name: "I don’t know", example: "—" },
-] as const;
-type PlateTypeId = (typeof PLATE_TYPES)[number]["id"];
+const PLATE_TYPES_BY_CATEGORY: Record<VehicleCategory, { id: string; name: string; example: string }[]> = {
+  "Cars (2011–present)": [
+    { id: "car-2011-standard", name: "Standard (single row)", example: "AA 123 AB" },
+    { id: "car-2011-double", name: "Double row", example: "AA 123 / AB" },
+    { id: "car-2011-us", name: "US-size single row", example: "AA 123 AB" },
+  ],
+  "Motorcycles (2011–present)": [
+    { id: "moto-2011", name: "Motorcycle plate", example: "AA 1234" },
+  ],
+  "Trailers (2011–present)": [
+    { id: "trailer-2011-single", name: "Trailer (single row)", example: "TR R 1234" },
+    { id: "trailer-2011-double", name: "Trailer (double row)", example: "TR R / 1234" },
+  ],
+  "Cars (1993–2010)": [
+    { id: "car-1993-single", name: "Old format (single row)", example: "BC 1234 AA" },
+    { id: "car-1993-double", name: "Old format (double row)", example: "BC 1234 / AA" },
+  ],
+};
 
-function looksTooExact(location: string) {
-  const t = location.toLowerCase();
-  const streetWords = ["straße", "str.", "strasse", "street", "st.", "road", "rd.", "allee", "weg", "gasse"];
-  const hasStreetWord = streetWords.some((w) => t.includes(w));
-  const hasNumber = /\b\d{1,4}[a-z]?\b/.test(t);
-  return hasStreetWord && hasNumber;
+const MAX_SIZE_MB = 8;
+const ALLOWED_TYPES = ["image/jpeg", "image/png"];
+
+function locationTooExact(loc: string) {
+  const t = loc.toLowerCase();
+  const streetWords = ["straße", "str.", "strasse", "street", "st.", "road", "rd.", "allee", "weg", "gasse", "rruga", "blvd", "avenue", "ave."];
+  return streetWords.some((w) => t.includes(w)) && /\b\d{1,4}[a-z]?\b/.test(t);
 }
 
+function validateFile(f: File): string | null {
+  if (!ALLOWED_TYPES.includes(f.type)) return "Only JPG and PNG files are allowed.";
+  if (f.size > MAX_SIZE_MB * 1024 * 1024) return `File too large — max ${MAX_SIZE_MB} MB.`;
+  return null;
+}
+
+/* ─── Component ─── */
+
 export default function AlbaniaUploadPage() {
-  const [category, setCategory] = useState<VehicleCategory>("Cars (2011)");
-  const [plateType, setPlateType] = useState<PlateTypeId>("car-modern");
+  const router = useRouter();
+
+  const [category, setCategory] = useState<VehicleCategory>("Cars (2011–present)");
+  const [plateTypeId, setPlateTypeId] = useState("car-2011-standard");
   const [plateText, setPlateText] = useState("");
   const [location, setLocation] = useState("");
-  const [photo, setPhoto] = useState<File | null>(null);
-  const [notes, setNotes] = useState("");
+  const [brand, setBrand] = useState("");
+  const [model, setModel] = useState("");
+  const [generation, setGeneration] = useState("");
+  const [trim, setTrim] = useState("");
+  const [color, setColor] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [fileError, setFileError] = useState("");
 
-  const warning = useMemo(() => {
+  const [status, setStatus] = useState<"idle" | "uploading" | "saving" | "done" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const plateTypes = PLATE_TYPES_BY_CATEGORY[category];
+  const selectedType = plateTypes.find((p) => p.id === plateTypeId) ?? plateTypes[0];
+
+  const locationWarning = useMemo(() => {
     if (!location.trim()) return "";
-    return looksTooExact(location) ? "Keep it broad (city / area). No street + house number." : "";
+    return locationTooExact(location) ? "Keep it broad — city or area only, no street + number." : "";
   }, [location]);
 
   const canSubmit =
-    !!photo && plateText.trim().length >= 2 && location.trim().length >= 3 && !warning;
+    !!file &&
+    !fileError &&
+    plateText.trim().length >= 2 &&
+    location.trim().length >= 2 &&
+    !locationWarning &&
+    status === "idle";
 
-  const selected = PLATE_TYPES.find((p) => p.id === plateType);
+  /* ─── File input ─── */
 
-  function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!canSubmit) return;
-
-    // Demo submit for now (no backend yet)
-    console.log({
-      country: "Albania",
-      category,
-      plateType,
-      plateText: plateText.trim(),
-      location: location.trim(),
-      notes: notes.trim(),
-      photoName: photo?.name,
-    });
-
-    alert("Saved (demo). Next step: store locally on your PC.");
+  function handleFileSelect(f: File | null) {
+    setFileError("");
+    if (!f) { setFile(null); setPreview(null); return; }
+    const err = validateFile(f);
+    if (err) { setFileError(err); setFile(null); setPreview(null); return; }
+    setFile(f);
+    setPreview(URL.createObjectURL(f));
   }
 
+  const onDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const dropped = e.dataTransfer.files[0];
+    if (dropped) handleFileSelect(dropped);
+  }, []);
+
+  /* ─── Upload ─── */
+
+  const { startUpload } = useUploadThing("plateImageUploader");
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!canSubmit || !file) return;
+
+    setStatus("uploading");
+    setErrorMsg("");
+
+    try {
+      const uploaded = await startUpload([file]);
+      if (!uploaded || !uploaded[0]?.ufsUrl) throw new Error("Image upload failed — please try again.");
+      const imageUrl = uploaded[0].ufsUrl;
+
+      setStatus("saving");
+      const res = await fetch("/api/uploads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          country: "albania",
+          plateText: plateText.trim().toUpperCase(),
+          plateType: selectedType.id,
+          imageUrl,
+          location: location.trim(),
+          brand: brand.trim(),
+          model: model.trim(),
+          generation: generation.trim(),
+          trim: trim.trim(),
+          color: color.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Could not save upload.");
+
+      setStatus("done");
+      setTimeout(() => router.push("/c/albania"), 1500);
+    } catch (err) {
+      setStatus("error");
+      setErrorMsg(err instanceof Error ? err.message : "Something went wrong.");
+    }
+  }
+
+  function onCategoryChange(c: VehicleCategory) {
+    setCategory(c);
+    setPlateTypeId(PLATE_TYPES_BY_CATEGORY[c][0].id);
+  }
+
+  /* ─── Render ─── */
+
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-100 px-6 py-10">
+    <main className="min-h-screen bg-zinc-950 text-zinc-100 px-4 py-10">
       <div className="mx-auto max-w-5xl">
-        <div className="flex items-end justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold">Upload — Albania</h1>
-            <p className="mt-2 text-sm text-zinc-400">
-              Simple Albania-specific upload. Keep location broad (e.g. “Tirana”, “Durrës”, “City center”).
-            </p>
+        {/* Header */}
+        <div>
+          <div className="flex items-center gap-2 text-xs text-zinc-500">
+            <a href="/upload" className="hover:text-zinc-300">Upload</a>
+            <span>›</span>
+            <span className="text-zinc-300">Albania 🇦🇱</span>
           </div>
-          <a href="/upload" className="text-sm text-zinc-300 hover:text-white">
-            ← Back to countries
-          </a>
+          <h1 className="mt-2 text-2xl font-semibold">Upload — Albania</h1>
+          <p className="mt-1 text-sm text-zinc-400">Photo · plate text · broad location. Done in seconds.</p>
         </div>
 
-        <div className="mt-6 grid gap-6 md:grid-cols-[1fr_360px]">
-          {/* Form */}
-          <form onSubmit={onSubmit} className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="grid gap-2">
-                <span className="text-sm text-zinc-300">Vehicle category</span>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value as VehicleCategory)}
-                  className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600"
-                >
-                  {VEHICLE_CATEGORIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </label>
+        {/* Success banner */}
+        {status === "done" && (
+          <div className="mt-6 rounded-2xl border border-emerald-800 bg-emerald-950/40 px-5 py-4 text-sm text-emerald-300">
+            ✓ Uploaded! Redirecting to the Albania gallery…
+          </div>
+        )}
 
-              <label className="grid gap-2">
-                <span className="text-sm text-zinc-300">Plate type</span>
-                <select
-                  value={plateType}
-                  onChange={(e) => setPlateType(e.target.value as PlateTypeId)}
-                  className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600"
-                >
-                  {PLATE_TYPES.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+        {/* Error banner */}
+        {status === "error" && (
+          <div className="mt-6 rounded-2xl border border-red-800 bg-red-950/40 px-5 py-4 text-sm text-red-300">
+            ✗ {errorMsg}
+            <button onClick={() => setStatus("idle")} className="ml-3 underline hover:no-underline">Try again</button>
+          </div>
+        )}
 
-              <label className="grid gap-2 md:col-span-2">
-                <span className="text-sm text-zinc-300">Photo</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
-                  className="block w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-300 file:mr-4 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-zinc-950 hover:file:bg-white"
-                />
-              </label>
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
+          {/* ─── Form ─── */}
+          <form onSubmit={handleSubmit} className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-5">
 
-              <label className="grid gap-2">
-                <span className="text-sm text-zinc-300">Plate text</span>
-                <input
-                  value={plateText}
-                  onChange={(e) => setPlateText(e.target.value.toUpperCase())}
-                  placeholder="AA 123 AB"
-                  className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600"
-                />
-              </label>
-
-              <label className="grid gap-2">
-                <span className="text-sm text-zinc-300">Location (broad)</span>
-                <input
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="Tirana"
-                  className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600"
-                />
-                {warning ? (
-                  <span className="text-xs text-amber-300">{warning}</span>
+            {/* Photo drop zone */}
+            <div>
+              <span className="block text-sm text-zinc-300 mb-2">Photo <span className="text-zinc-600 text-xs">(JPG or PNG, max 8 MB)</span></span>
+              <label
+                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={onDrop}
+                className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden
+                  ${isDragging ? "border-zinc-400 bg-zinc-800/60" : fileError ? "border-red-800 bg-red-950/20" : "border-zinc-700 bg-zinc-950/40 hover:border-zinc-500"}`}
+                style={{ minHeight: preview ? "auto" : "150px" }}
+              >
+                {preview ? (
+                  <div className="relative w-full group">
+                    <img src={preview} alt="Preview" className="w-full object-contain max-h-64 rounded-xl" />
+                    <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/0 group-hover:bg-zinc-950/50 transition-colors rounded-xl">
+                      <span className="opacity-0 group-hover:opacity-100 text-xs text-zinc-200 transition-opacity">Click to change</span>
+                    </div>
+                  </div>
                 ) : (
-                  <span className="text-xs text-zinc-500">No street names + house numbers.</span>
+                  <div className="py-8 text-center px-4">
+                    <div className="text-2xl mb-2">📷</div>
+                    <div className="text-sm text-zinc-400">
+                      Drag & drop or <span className="text-zinc-200 underline">browse</span>
+                    </div>
+                  </div>
                 )}
+                <input type="file" accept="image/jpeg,image/png" className="sr-only" onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)} />
               </label>
-
-              <label className="grid gap-2 md:col-span-2">
-                <span className="text-sm text-zinc-300">Notes (optional)</span>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Anything extra (rarity, story, car color, etc.)"
-                  rows={3}
-                  className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600"
-                />
-              </label>
+              {fileError && <p className="mt-1.5 text-xs text-red-400">{fileError}</p>}
             </div>
 
-            <div className="mt-6 flex items-center gap-3">
-              <button
-                type="submit"
-                disabled={!canSubmit}
-                className="rounded-xl bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                Upload
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="grid gap-1.5">
+                <span className="text-sm text-zinc-300">Vehicle category</span>
+                <select value={category} onChange={(e) => onCategoryChange(e.target.value as VehicleCategory)} className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600">
+                  {VEHICLE_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </label>
+
+              <label className="grid gap-1.5">
+                <span className="text-sm text-zinc-300">Plate type</span>
+                <select value={plateTypeId} onChange={(e) => setPlateTypeId(e.target.value)} className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600">
+                  {plateTypes.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </label>
+
+              <label className="grid gap-1.5">
+                <span className="text-sm text-zinc-300">Plate text</span>
+                <input value={plateText} onChange={(e) => setPlateText(e.target.value.toUpperCase())} placeholder={selectedType.example} maxLength={32} className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono tracking-widest outline-none focus:border-zinc-600 placeholder:text-zinc-700 placeholder:tracking-normal" />
+              </label>
+
+              <label className="grid gap-1.5">
+                <span className="text-sm text-zinc-300">Location (broad)</span>
+                <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Tirana, Durrës" className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600" />
+                {locationWarning
+                  ? <span className="text-xs text-amber-400">{locationWarning}</span>
+                  : <span className="text-xs text-zinc-600">City or area only — no street + number.</span>
+                }
+              </label>
+
+              {/* Car details — all optional */}
+              <div className="md:col-span-2 pt-2 border-t border-zinc-800">
+                <div className="text-xs uppercase tracking-wider text-zinc-500 mb-3">Car details <span className="normal-case text-zinc-600">(all optional — admins can fill in later)</span></div>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <label className="grid gap-1.5">
+                    <span className="text-sm text-zinc-300">Brand</span>
+                    <input value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="e.g. Toyota" maxLength={60} className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600" />
+                  </label>
+                  <label className="grid gap-1.5">
+                    <span className="text-sm text-zinc-300">Model</span>
+                    <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="e.g. Supra" maxLength={60} className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600" />
+                  </label>
+                  <label className="grid gap-1.5">
+                    <span className="text-sm text-zinc-300">Generation</span>
+                    <input value={generation} onChange={(e) => setGeneration(e.target.value)} placeholder="e.g. A80 (1993–2002)" maxLength={60} className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600" />
+                  </label>
+                  <label className="grid gap-1.5">
+                    <span className="text-sm text-zinc-300">Trim</span>
+                    <input value={trim} onChange={(e) => setTrim(e.target.value)} placeholder="e.g. RZ, SZ, Sport" maxLength={60} className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600" />
+                  </label>
+                  <label className="grid gap-1.5">
+                    <span className="text-sm text-zinc-300">Color</span>
+                    <input value={color} onChange={(e) => setColor(e.target.value)} placeholder="e.g. Bianco Divino" maxLength={60} className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600" />
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 pt-1">
+              <button type="submit" disabled={!canSubmit} className="rounded-xl bg-zinc-100 px-5 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-opacity">
+                {status === "uploading" ? "Uploading image…" : status === "saving" ? "Saving…" : "Upload spot"}
               </button>
-              <span className="text-xs text-zinc-500">
-                {canSubmit ? "Ready (demo submit)" : "Add photo + plate + location to enable upload"}
-              </span>
+              {status === "idle" && (
+                <span className="text-xs text-zinc-500">
+                  {!file ? "Add a photo" : plateText.trim().length < 2 ? "Enter plate text" : location.trim().length < 2 ? "Enter a location" : "Ready ✓"}
+                </span>
+              )}
             </div>
           </form>
 
-          {/* Side preview */}
-          <aside className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6">
-            <div className="text-sm text-zinc-400">Preview</div>
-            <div className="mt-1 text-lg font-semibold">Plate type example</div>
-
-            <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
-              <div className="text-xs text-zinc-500">Example</div>
-              <div className="mt-2 rounded-xl bg-zinc-900 px-4 py-3 text-center text-lg font-semibold tracking-wide">
-                {selected?.example ?? "—"}
-              </div>
-              <div className="mt-3 text-xs text-zinc-500">
-                Later: replace with real example images.
+          {/* ─── Sidebar ─── */}
+          <aside className="space-y-4">
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5">
+              <div className="text-xs uppercase tracking-wider text-zinc-500 mb-3">Live preview</div>
+              <div className="rounded-xl bg-zinc-950 border border-zinc-800 px-4 py-5 text-center">
+                <div className="font-mono text-xl font-bold tracking-widest text-zinc-100">
+                  {plateText.trim() || selectedType.example}
+                </div>
+                <div className="mt-2 text-xs text-zinc-500">{selectedType.name} · Albania 🇦🇱</div>
               </div>
             </div>
 
-            <div className="mt-6">
-              <div className="text-sm font-medium">Location rule</div>
-              <p className="mt-2 text-sm text-zinc-400">
-                “Karlsplatz, Munich” is fine. Avoid exact addresses. Keep it broad.
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/20 p-5">
+              <div className="text-sm font-medium text-zinc-200 mb-2">📍 Privacy rule</div>
+              <p className="text-sm text-zinc-400 leading-relaxed">
+                Use broad locations like <span className="text-zinc-300">"Tirana"</span> or <span className="text-zinc-300">"Durrës"</span>. No exact addresses or street + house number combos.
               </p>
+            </div>
+
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/20 p-5">
+              <div className="text-xs uppercase tracking-wider text-zinc-500 mb-3">Formats</div>
+              <div className="space-y-1.5">
+                {plateTypes.map((p) => (
+                  <button key={p.id} type="button" onClick={() => setPlateTypeId(p.id)}
+                    className={`w-full flex items-center justify-between rounded-xl px-3 py-2 text-sm transition-colors
+                      ${plateTypeId === p.id ? "bg-zinc-800 text-zinc-100" : "text-zinc-400 hover:bg-zinc-900/60"}`}>
+                    <span>{p.name}</span>
+                    <span className="font-mono text-xs opacity-70">{p.example}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </aside>
         </div>
-
-        {/* Examples section */}
-        <section className="mt-10">
-          <div className="flex items-baseline justify-between gap-4">
-            <h2 className="text-lg font-semibold">Plate type examples</h2>
-            <span className="text-sm text-zinc-500">Placeholders for now</span>
-          </div>
-
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {PLATE_TYPES.filter((p) => p.id !== "unknown").map((p) => (
-              <div key={p.id} className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4">
-                <div className="text-sm font-medium">{p.name}</div>
-                <div className="mt-3 rounded-xl border border-zinc-800 bg-zinc-950 p-4">
-                  <div className="rounded-lg bg-zinc-900 px-3 py-2 text-center font-semibold tracking-wide">
-                    {p.example}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
       </div>
     </main>
   );

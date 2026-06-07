@@ -7,29 +7,53 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum NotificationType {
+  LIKE
+  UPLOAD_DELETED
+  UPLOAD_FLAGGED
+  SYSTEM
+}
+
+enum UserRole {
+  SUPERADMIN  // user #0 only — created via CLI
+  ADMIN
+  MOD
+  USER
+}
+
 model User {
   id        String   @id @default(cuid())
-  username  String   @unique @db.VarChar(20)   // <= username limit
+  numericId Int      @unique @default(autoincrement())
+  role      UserRole @default(USER)
+
+  username  String   @unique @db.VarChar(20)
   email     String   @unique @db.VarChar(254)
   password  String   @db.VarChar(255)
   createdAt DateTime @default(now())
 
   bio       String?  @db.VarChar(280)
-  avatarUrl String?
+  avatarUrl String?  @db.VarChar(500)
 
   sessions      Session[]
   uploads       Upload[]
   likes         Like[]
+  comments      Comment[]
   notifications Notification[]
+
+  @@index([createdAt])
 }
 
 model Session {
   id        String   @id @default(cuid())
-  token     String   @unique
+  token     String   @unique @db.VarChar(128)
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
   expiresAt DateTime
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model Upload {
@@ -40,11 +64,24 @@ model Upload {
   country   String   @db.VarChar(60)
   plateText String   @db.VarChar(32)
   plateType String?  @db.VarChar(60)
+
+  brand      String? @db.VarChar(60)
+  model      String? @db.VarChar(60)
+  generation String? @db.VarChar(60)
+  trim       String? @db.VarChar(60)
+  color      String? @db.VarChar(60)
+
   imageUrl  String   @db.VarChar(500)
 
+  deletedAt DateTime?
   createdAt DateTime @default(now())
 
-  likes     Like[]
+  likes    Like[]
+  comments Comment[]
+
+  @@index([userId, createdAt])
+  @@index([country, createdAt])
+  @@index([plateText])
 }
 
 model Like {
@@ -57,19 +94,37 @@ model Like {
   upload    Upload   @relation(fields: [uploadId], references: [id], onDelete: Cascade)
 
   @@unique([userId, uploadId])
+  @@index([uploadId])
+  @@index([userId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  uploadId  String
+  userId    String
+  content   String   @db.VarChar(1000)
+  createdAt DateTime @default(now())
+
+  upload    Upload   @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([uploadId, createdAt])
+  @@index([userId])
 }
 
 model Notification {
-  id        String   @id @default(cuid())
+  id        String           @id @default(cuid())
   userId    String
-  type      String   @db.VarChar(32)
-  title     String   @db.VarChar(120)
-  message   String?  @db.VarChar(280)
-  url       String?  @db.VarChar(500)
-  readAt    DateTime?
-  createdAt DateTime @default(now())
+  type      NotificationType
+  title     String           @db.VarChar(120)
+  message   String?          @db.VarChar(280)
+  url       String?          @db.VarChar(500)
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+  @@index([userId, readAt])
 }
