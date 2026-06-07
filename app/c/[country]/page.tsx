@@ -99,11 +99,13 @@ export default async function CountryPage({
             const isOwner = currentUser?.id === u.userId;
             const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
             return (
-              <a
+              <div
                 key={u.id}
-                href={`/spot/${u.numericId}`}
-                className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-zinc-600 transition-colors"
+                className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-zinc-600 transition-colors"
               >
+                {/* Stretched link covers the whole card */}
+                <a href={`/spot/${u.numericId}`} className="absolute inset-0 z-0" aria-label={u.plateText} />
+
                 <div className="relative bg-zinc-950 aspect-video overflow-hidden">
                   <img
                     src={u.imageUrl}
@@ -125,14 +127,14 @@ export default async function CountryPage({
                     )}
                   </div>
                   <div className="mt-auto flex items-center justify-between pt-2 border-t border-zinc-800">
+                    {/* Profile link sits above the stretched card link */}
                     <a
                       href={`/u/${u.user.numericId}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-xs text-zinc-500 hover:text-zinc-300"
+                      className="relative z-10 text-xs text-zinc-500 hover:text-zinc-300"
                     >
                       @{u.user.username}
                     </a>
-                    <div className="flex items-center gap-2">
+                    <div className="relative z-10 flex items-center gap-2">
                       <span className="text-xs text-zinc-600">{relativeDays(u.createdAt)}</span>
                       <LikeButton
                         uploadId={u.id}
@@ -143,7 +145,7 @@ export default async function CountryPage({
                     </div>
                   </div>
                 </div>
-              </a>
+              </div>
             );
           })}
         </div>
