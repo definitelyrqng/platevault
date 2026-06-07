@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { generateReactHelpers } from "@uploadthing/react";
 import type { OurFileRouter } from "@/app/lib/uploadthing";
@@ -78,6 +78,13 @@ export default function AlbaniaUploadPage() {
   // Multi-spot warning
   type ExistingSpot = { numericId: number; plateText: string; username: string; userNumericId: number };
   const [multiSpotWarning, setMultiSpotWarning] = useState<ExistingSpot | null>(null);
+  const warningRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (multiSpotWarning && warningRef.current) {
+      warningRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [multiSpotWarning]);
 
   const plateTypes = PLATE_TYPES_BY_CATEGORY[category];
   const selectedType = plateTypes.find((p) => p.id === plateTypeId) ?? plateTypes[0];
@@ -219,7 +226,17 @@ export default function AlbaniaUploadPage() {
 
         {/* Multi-spot warning */}
         {multiSpotWarning && (
-          <div className="mt-6 rounded-2xl border border-amber-800 bg-amber-950/30 px-5 py-4 space-y-3">
+          <div
+            ref={warningRef}
+            className="mt-6 rounded-2xl border border-amber-800 bg-amber-950/30 px-5 py-4 space-y-3 animate-[multispot-flash_0.6s_ease-in-out_3]"
+            style={{ animationName: "multispot-flash" }}
+          >
+            <style>{`
+              @keyframes multispot-flash {
+                0%, 100% { background-color: rgb(120 53 15 / 0.3); }
+                50%       { background-color: rgb(120 53 15 / 0.7); border-color: rgb(217 119 6); }
+              }
+            `}</style>
             <div className="flex items-start gap-3">
               <span className="text-xl shrink-0">📍</span>
               <div>
