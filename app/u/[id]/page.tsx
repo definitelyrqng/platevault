@@ -120,10 +120,10 @@ export default async function UserProfilePage({
         )}
 
         <div className="px-6 pb-8 pt-0 sm:px-8">
-          <div className="-mt-12 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div className="flex items-end gap-5">
-              {/* Avatar */}
-              <div className="relative shrink-0">
+              {/* Avatar — only the avatar overlaps the banner */}
+              <div className="relative shrink-0 -mt-12">
                 {user.avatarUrl ? (
                   <img
                     src={user.avatarUrl}
