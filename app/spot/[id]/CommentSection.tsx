@@ -8,6 +8,7 @@ type Comment = {
   createdAt: string;
   username: string;
   numericId: number;
+  avatarUrl: string | null;
   isOwn: boolean;
 };
 
@@ -77,9 +78,15 @@ export default function CommentSection({
         <div className="space-y-4 mb-5">
           {comments.map((c) => (
             <div key={c.id} className="flex gap-3 group/comment">
-              <div className="shrink-0 grid h-8 w-8 place-items-center rounded-xl bg-zinc-800 text-xs font-bold text-zinc-300">
-                {c.username.slice(0, 2).toUpperCase()}
-              </div>
+              <a href={`/u/${c.numericId}`} className="shrink-0">
+                {c.avatarUrl ? (
+                  <img src={c.avatarUrl} alt={c.username} className="h-8 w-8 rounded-xl object-cover" />
+                ) : (
+                  <div className="grid h-8 w-8 place-items-center rounded-xl bg-zinc-800 text-xs font-bold text-zinc-300">
+                    {c.username.slice(0, 2).toUpperCase()}
+                  </div>
+                )}
+              </a>
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2">
                   <a href={`/u/${c.numericId}`} className="text-sm font-medium text-zinc-200 hover:text-white">

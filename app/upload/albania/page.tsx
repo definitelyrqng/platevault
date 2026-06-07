@@ -4,6 +4,7 @@ import { useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { generateReactHelpers } from "@uploadthing/react";
 import type { OurFileRouter } from "@/app/lib/uploadthing";
+import CarDetailsFields from "@/app/upload/CarDetailsFields";
 
 const { useUploadThing } = generateReactHelpers<OurFileRouter>();
 
@@ -253,31 +254,17 @@ export default function AlbaniaUploadPage() {
                 }
               </label>
 
-              {/* Car details — all optional */}
+              {/* Car details — cascading dropdowns */}
               <div className="md:col-span-2 pt-2 border-t border-zinc-800">
-                <div className="text-xs uppercase tracking-wider text-zinc-500 mb-3">Car details <span className="normal-case text-zinc-600">(all optional — admins can fill in later)</span></div>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  <label className="grid gap-1.5">
-                    <span className="text-sm text-zinc-300">Brand</span>
-                    <input value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="e.g. Toyota" maxLength={60} className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600" />
-                  </label>
-                  <label className="grid gap-1.5">
-                    <span className="text-sm text-zinc-300">Model</span>
-                    <input value={model} onChange={(e) => setModel(e.target.value)} placeholder="e.g. Supra" maxLength={60} className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600" />
-                  </label>
-                  <label className="grid gap-1.5">
-                    <span className="text-sm text-zinc-300">Generation</span>
-                    <input value={generation} onChange={(e) => setGeneration(e.target.value)} placeholder="e.g. A80 (1993–2002)" maxLength={60} className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600" />
-                  </label>
-                  <label className="grid gap-1.5">
-                    <span className="text-sm text-zinc-300">Trim</span>
-                    <input value={trim} onChange={(e) => setTrim(e.target.value)} placeholder="e.g. RZ, SZ, Sport" maxLength={60} className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600" />
-                  </label>
-                  <label className="grid gap-1.5">
-                    <span className="text-sm text-zinc-300">Color</span>
-                    <input value={color} onChange={(e) => setColor(e.target.value)} placeholder="e.g. Bianco Divino" maxLength={60} className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600" />
-                  </label>
-                </div>
+                <CarDetailsFields
+                  onChange={useCallback((d) => {
+                    setBrand(d.brand);
+                    setModel(d.model);
+                    setGeneration(d.generation);
+                    setTrim(d.trim);
+                    setColor(d.color);
+                  }, [])}
+                />
               </div>
             </div>
 

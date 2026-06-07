@@ -61,7 +61,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
             id: true,
             content: true,
             createdAt: true,
-            user: { select: { username: true, id: true, numericId: true } },
+            user: { select: { username: true, id: true, numericId: true, avatarUrl: true } },
           },
         },
       },
@@ -138,6 +138,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 createdAt: c.createdAt.toISOString(),
                 username: c.user.username,
                 numericId: c.user.numericId,
+                avatarUrl: c.user.avatarUrl ?? null,
                 isOwn: c.user.id === currentUser?.id,
               }))}
               isLoggedIn={!!currentUser}

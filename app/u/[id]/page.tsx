@@ -1,5 +1,8 @@
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
+
+export const dynamic = "force-dynamic";
 
 const COUNTRY_META: Record<string, { flag: string; name: string }> = {
   albania: { flag: "🇦🇱", name: "Albania" },
@@ -37,6 +40,18 @@ function roleBadge(role: string) {
   return map[role] ?? map.USER;
 }
 
+async function getCurrentUserId(): Promise<string | null> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("pv_session")?.value;
+  if (!token) return null;
+  const session = await prisma.session.findUnique({
+    where: { token },
+    select: { expiresAt: true, user: { select: { id: true } } },
+  });
+  if (!session || session.expiresAt < new Date()) return null;
+  return session.user.id;
+}
+
 export default async function UserProfilePage({
   params,
 }: {
@@ -46,13 +61,18 @@ export default async function UserProfilePage({
   const numericId = Number(id);
   if (!Number.isInteger(numericId) || numericId < 0) return notFound();
 
+  const [sessionUserId] = await Promise.all([getCurrentUserId()]);
+
   const user = await prisma.user.findUnique({
     where: { numericId },
     select: {
+      id: true,
       numericId: true,
       username: true,
       role: true,
       bio: true,
+      avatarUrl: true,
+      bannerUrl: true,
       createdAt: true,
       uploads: {
         select: {
@@ -81,6 +101,7 @@ export default async function UserProfilePage({
     _count: { _all: true },
   });
 
+  const isOwnProfile = sessionUserId === user.id;
   const initials = user.username.slice(0, 2).toUpperCase();
   const memberSince = fmtMonthYear(user.createdAt);
   const badge = roleBadge(user.role);
@@ -88,18 +109,36 @@ export default async function UserProfilePage({
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-10">
       <section className="relative overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900/40">
-        <div className="h-32 bg-gradient-to-br from-indigo-900/40 via-zinc-900 to-zinc-900" />
+        {/* Banner */}
+        {user.bannerUrl ? (
+          <div className="h-36 sm:h-44 overflow-hidden">
+            <img src={user.bannerUrl} alt="Profile banner" className="w-full h-full object-cover" />
+          </div>
+        ) : (
+          <div className="h-32 bg-gradient-to-br from-indigo-900/40 via-zinc-900 to-zinc-900" />
+        )}
+
         <div className="px-6 pb-8 pt-0 sm:px-8">
           <div className="-mt-12 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
             <div className="flex items-end gap-5">
-              <div className="relative">
-                <div className="grid h-24 w-24 place-items-center rounded-3xl bg-gradient-to-br from-zinc-700 to-zinc-900 ring-4 ring-zinc-950">
-                  <span className="text-2xl font-bold text-zinc-100">{initials}</span>
-                </div>
+              {/* Avatar */}
+              <div className="relative shrink-0">
+                {user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.username}
+                    className="h-24 w-24 rounded-3xl object-cover ring-4 ring-zinc-950"
+                  />
+                ) : (
+                  <div className="grid h-24 w-24 place-items-center rounded-3xl bg-gradient-to-br from-zinc-700 to-zinc-900 ring-4 ring-zinc-950">
+                    <span className="text-2xl font-bold text-zinc-100">{initials}</span>
+                  </div>
+                )}
                 <div className="absolute -bottom-1 -right-1 grid h-7 w-7 place-items-center rounded-full bg-zinc-950 ring-2 ring-zinc-700">
                   <span className="text-xs font-mono text-zinc-400">#{user.numericId}</span>
                 </div>
               </div>
+
               <div className="pb-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <div className="text-2xl font-semibold text-zinc-50 sm:text-3xl">@{user.username}</div>
@@ -110,10 +149,31 @@ export default async function UserProfilePage({
                 <div className="mt-1 text-sm text-zinc-400">#{user.numericId} · Spotting since {memberSince}</div>
               </div>
             </div>
+
+            {/* Edit profile button — only shown to the profile owner */}
+            {isOwnProfile && (
+              <a
+                href="/settings/profile"
+                className="shrink-0 self-end rounded-xl border border-zinc-700 bg-zinc-900/60 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-800 transition-colors"
+              >
+                Edit profile
+              </a>
+            )}
           </div>
-          <div className="mt-6 max-w-2xl rounded-2xl border border-zinc-800 bg-zinc-950/40 p-4 text-sm leading-relaxed text-zinc-300">
-            {user.bio ?? <span className="text-zinc-500">No bio yet.</span>}
-          </div>
+
+          {/* Bio */}
+          {user.bio ? (
+            <p className="mt-5 max-w-2xl text-sm leading-relaxed text-zinc-300">{user.bio}</p>
+          ) : isOwnProfile ? (
+            <a
+              href="/settings/profile"
+              className="mt-5 block max-w-2xl rounded-2xl border border-dashed border-zinc-700 bg-zinc-950/20 px-4 py-3 text-sm text-zinc-500 hover:border-zinc-600 hover:text-zinc-400 transition-colors"
+            >
+              + Add a bio
+            </a>
+          ) : (
+            <p className="mt-5 text-sm text-zinc-500">No bio yet.</p>
+          )}
         </div>
       </section>
 

@@ -8,7 +8,7 @@ async function getSessionUser() {
   if (!token) return null;
   const session = await prisma.session.findUnique({
     where: { token },
-    select: { expiresAt: true, user: { select: { id: true, username: true, numericId: true, role: true } } },
+    select: { expiresAt: true, user: { select: { id: true, username: true, numericId: true, role: true, avatarUrl: true } } },
   });
   if (!session || session.expiresAt < new Date()) return null;
   return session.user;
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 
   const comment = await prisma.comment.create({
     data: { uploadId, userId: user.id, content: trimmed },
-    select: { id: true, content: true, createdAt: true, user: { select: { username: true, numericId: true } } },
+    select: { id: true, content: true, createdAt: true, user: { select: { username: true, numericId: true, avatarUrl: true } } },
   });
 
   return NextResponse.json({
@@ -46,6 +46,7 @@ export async function POST(req: Request) {
       createdAt: comment.createdAt.toISOString(),
       username: comment.user.username,
       numericId: comment.user.numericId,
+      avatarUrl: comment.user.avatarUrl ?? null,
     },
   }, { status: 201 });
 }

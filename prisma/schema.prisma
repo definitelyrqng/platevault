@@ -33,6 +33,7 @@ model User {
 
   bio       String?  @db.VarChar(280)
   avatarUrl String?  @db.VarChar(500)
+  bannerUrl String?  @db.VarChar(500)
 
   sessions      Session[]
   uploads       Upload[]
