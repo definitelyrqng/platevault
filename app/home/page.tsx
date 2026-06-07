@@ -1,5 +1,7 @@
 import { prisma } from "@/app/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 const COUNTRY_META: Record<string, { flag: string; name: string }> = {
   albania: { flag: "🇦🇱", name: "Albania" },
   germany: { flag: "🇩🇪", name: "Germany" },
