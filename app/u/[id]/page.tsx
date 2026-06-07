@@ -72,6 +72,7 @@ export default async function UserProfilePage({
       role: true,
       bio: true,
       avatarUrl: true,
+      bannerUrl: true,
       createdAt: true,
       uploads: {
         select: {
@@ -89,20 +90,12 @@ export default async function UserProfilePage({
         orderBy: { createdAt: "desc" },
         take: 12,
       },
-      _count: { select: { uploads: true } },
+      // filtered count — only non-deleted uploads
+      _count: { select: { uploads: { where: { deletedAt: null } } } },
     },
   });
 
   if (!user) return notFound();
-
-  // bannerUrl lives in a later migration — fetch it safely so old deploys don't 500
-  let bannerUrl: string | null = null;
-  try {
-    const rows = await prisma.$queryRaw<{ bannerUrl: string | null }[]>`
-      SELECT "bannerUrl" FROM "User" WHERE id = ${user.id} LIMIT 1
-    `;
-    bannerUrl = rows[0]?.bannerUrl ?? null;
-  } catch { /* column not yet created */ }
 
   const likesAgg = await prisma.like.aggregate({
     where: { upload: { user: { numericId }, deletedAt: null } },
@@ -118,9 +111,9 @@ export default async function UserProfilePage({
     <main className="mx-auto w-full max-w-6xl px-6 py-10">
       <section className="relative overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900/40">
         {/* Banner */}
-        {bannerUrl ? (
+        {user.bannerUrl ? (
           <div className="h-36 sm:h-44 overflow-hidden">
-            <img src={bannerUrl} alt="Profile banner" className="w-full h-full object-cover" />
+            <img src={user.bannerUrl} alt="Profile banner" className="w-full h-full object-cover" />
           </div>
         ) : (
           <div className="h-32 bg-gradient-to-br from-indigo-900/40 via-zinc-900 to-zinc-900" />
@@ -186,8 +179,12 @@ export default async function UserProfilePage({
       </section>
 
       <section className="mt-6 grid gap-4 sm:grid-cols-3">
+        <a href="#spots" className="rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900/60 to-zinc-900/20 p-5 hover:border-zinc-600 transition-colors group">
+          <div className="text-xs uppercase tracking-wider text-zinc-500">Uploads</div>
+          <div className="mt-1.5 text-3xl font-semibold text-zinc-50">{user._count.uploads}</div>
+          <div className="mt-1 text-xs text-zinc-500 group-hover:text-zinc-400">View all spots ↓</div>
+        </a>
         {[
-          { label: "Uploads", value: user._count.uploads, hint: "spots archived" },
           { label: "Likes received", value: likesAgg._count._all, hint: "from the community" },
           { label: "Member since", value: memberSince, hint: `Joined ${relativeDays(user.createdAt)}` },
         ].map((s) => (
@@ -199,10 +196,10 @@ export default async function UserProfilePage({
         ))}
       </section>
 
-      <section className="mt-10">
+      <section id="spots" className="mt-10">
         <div className="mb-4 flex items-baseline justify-between gap-4">
-          <h2 className="text-lg font-semibold text-zinc-100">Recent spots</h2>
-          <span className="text-xs text-zinc-500">Latest {user.uploads.length}</span>
+          <h2 className="text-lg font-semibold text-zinc-100">Spots</h2>
+          <span className="text-xs text-zinc-500">{user._count.uploads} total</span>
         </div>
         {user.uploads.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/30 px-6 py-10 text-center">

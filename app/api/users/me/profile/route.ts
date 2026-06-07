@@ -19,6 +19,7 @@ export async function GET() {
             username: true,
             bio: true,
             avatarUrl: true,
+            bannerUrl: true,
           },
         },
       },
@@ -28,18 +29,7 @@ export async function GET() {
       return NextResponse.json({ user: null }, { status: 200 });
     }
 
-    // bannerUrl added in a later migration — fetch separately so old deploys don't break
-    let bannerUrl: string | null = null;
-    try {
-      const extra = await prisma.$queryRaw<{ bannerUrl: string | null }[]>`
-        SELECT "bannerUrl" FROM "User" WHERE id = ${session.user.id} LIMIT 1
-      `;
-      bannerUrl = extra[0]?.bannerUrl ?? null;
-    } catch {
-      // column may not exist yet — ignore until migration runs
-    }
-
-    return NextResponse.json({ user: { ...session.user, bannerUrl } });
+    return NextResponse.json({ user: session.user });
   } catch {
     return NextResponse.json({ user: null }, { status: 200 });
   }
