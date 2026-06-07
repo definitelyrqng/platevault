@@ -33,8 +33,8 @@ export default function SiteHeader() {
   return (
     <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
       <Link href="/home" className="flex items-center gap-3">
-        <div className="grid h-9 w-9 place-items-center rounded-xl bg-zinc-900 ring-1 ring-zinc-800">
-          <span className="text-sm font-semibold">PV</span>
+        <div className="grid h-9 w-9 place-items-center rounded-xl overflow-hidden bg-zinc-900 ring-1 ring-zinc-800">
+          <img src="/logo.png" alt="PlateVault" className="h-7 w-7 object-contain" />
         </div>
         <div>
           <div className="text-lg font-semibold leading-none">PlateVault</div>

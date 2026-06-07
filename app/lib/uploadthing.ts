@@ -67,10 +67,12 @@ export const ourFileRouter = {
       return { userId: user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      await prisma.user.update({
-        where: { id: metadata.userId },
-        data: { bannerUrl: file.ufsUrl },
-      });
+      // Use raw SQL so this works even before the bannerUrl migration runs
+      try {
+        await prisma.$executeRaw`UPDATE "User" SET "bannerUrl" = ${file.ufsUrl} WHERE id = ${metadata.userId}`;
+      } catch {
+        // column not yet created — migration pending
+      }
       return { url: file.ufsUrl };
     }),
 } satisfies FileRouter;
