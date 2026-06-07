@@ -3,4 +3,8 @@ import { ourFileRouter } from "@/app/lib/uploadthing";
 
 export const { GET, POST } = createRouteHandler({
   router: ourFileRouter,
+  config: {
+    token: process.env.UPLOADTHING_TOKEN,
+    logLevel: "debug",
+  },
 });
