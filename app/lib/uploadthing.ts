@@ -1,12 +1,23 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
-import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
 
 const f = createUploadthing();
 
-async function getSessionUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("pv_session")?.value;
+// Read the pv_session cookie directly from the request header.
+// We cannot use cookies() from next/headers here because uploadthing runs
+// the middleware inside an Effect fiber, which does not inherit Next.js's
+// AsyncLocalStorage request context.
+function getTokenFromReq(req: Request): string | null {
+  const cookieHeader = req.headers.get("cookie") ?? "";
+  const match = cookieHeader
+    .split(";")
+    .map((c) => c.trim())
+    .find((c) => c.startsWith("pv_session="));
+  return match ? match.split("=").slice(1).join("=") : null;
+}
+
+async function getSessionUser(req: Request) {
+  const token = getTokenFromReq(req);
   if (!token) return null;
 
   const session = await prisma.session.findUnique({
@@ -27,8 +38,8 @@ export const ourFileRouter = {
     "image/jpeg": { maxFileSize: "8MB", maxFileCount: 1 },
     "image/png":  { maxFileSize: "8MB", maxFileCount: 1 },
   })
-    .middleware(async () => {
-      const user = await getSessionUser();
+    .middleware(async ({ req }) => {
+      const user = await getSessionUser(req);
       if (!user) throw new Error("Unauthorized");
       return { userId: user.id };
     })
@@ -42,8 +53,8 @@ export const ourFileRouter = {
     "image/png":  { maxFileSize: "2MB", maxFileCount: 1 },
     "image/webp": { maxFileSize: "2MB", maxFileCount: 1 },
   })
-    .middleware(async () => {
-      const user = await getSessionUser();
+    .middleware(async ({ req }) => {
+      const user = await getSessionUser(req);
       if (!user) throw new Error("Unauthorized");
       return { userId: user.id };
     })
@@ -61,18 +72,13 @@ export const ourFileRouter = {
     "image/png":  { maxFileSize: "4MB", maxFileCount: 1 },
     "image/webp": { maxFileSize: "4MB", maxFileCount: 1 },
   })
-    .middleware(async () => {
-      const user = await getSessionUser();
+    .middleware(async ({ req }) => {
+      const user = await getSessionUser(req);
       if (!user) throw new Error("Unauthorized");
       return { userId: user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      // Use raw SQL so this works even before the bannerUrl migration runs
-      try {
-        await prisma.$executeRaw`UPDATE "User" SET "bannerUrl" = ${file.ufsUrl} WHERE id = ${metadata.userId}`;
-      } catch {
-        // column not yet created — migration pending
-      }
+      await prisma.$executeRaw`UPDATE "User" SET "bannerUrl" = ${file.ufsUrl} WHERE id = ${metadata.userId}`;
       return { url: file.ufsUrl };
     }),
 } satisfies FileRouter;
