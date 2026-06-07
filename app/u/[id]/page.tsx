@@ -72,7 +72,6 @@ export default async function UserProfilePage({
       role: true,
       bio: true,
       avatarUrl: true,
-      bannerUrl: true,
       createdAt: true,
       uploads: {
         select: {
@@ -96,6 +95,15 @@ export default async function UserProfilePage({
 
   if (!user) return notFound();
 
+  // bannerUrl lives in a later migration — fetch it safely so old deploys don't 500
+  let bannerUrl: string | null = null;
+  try {
+    const rows = await prisma.$queryRaw<{ bannerUrl: string | null }[]>`
+      SELECT "bannerUrl" FROM "User" WHERE id = ${user.id} LIMIT 1
+    `;
+    bannerUrl = rows[0]?.bannerUrl ?? null;
+  } catch { /* column not yet created */ }
+
   const likesAgg = await prisma.like.aggregate({
     where: { upload: { user: { numericId }, deletedAt: null } },
     _count: { _all: true },
@@ -110,9 +118,9 @@ export default async function UserProfilePage({
     <main className="mx-auto w-full max-w-6xl px-6 py-10">
       <section className="relative overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900/40">
         {/* Banner */}
-        {user.bannerUrl ? (
+        {bannerUrl ? (
           <div className="h-36 sm:h-44 overflow-hidden">
-            <img src={user.bannerUrl} alt="Profile banner" className="w-full h-full object-cover" />
+            <img src={bannerUrl} alt="Profile banner" className="w-full h-full object-cover" />
           </div>
         ) : (
           <div className="h-32 bg-gradient-to-br from-indigo-900/40 via-zinc-900 to-zinc-900" />
