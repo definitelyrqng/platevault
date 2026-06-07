@@ -57,6 +57,7 @@ export default async function UserProfilePage({
       uploads: {
         select: {
           id: true,
+          numericId: true,
           country: true,
           plateText: true,
           imageUrl: true,
@@ -146,7 +147,7 @@ export default async function UserProfilePage({
               const meta = countryMeta(u.country);
               const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
               return (
-                <a key={u.id} href={`/spot/${u.id}`} className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-zinc-700 transition-colors">
+                <a key={u.id} href={`/spot/${u.numericId}`} className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-zinc-700 transition-colors">
                   <div className="aspect-video bg-zinc-950 overflow-hidden">
                     <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
                   </div>

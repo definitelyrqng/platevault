@@ -28,11 +28,12 @@ async function getStats() {
       take: 6,
       select: {
         id: true,
+        numericId: true,
         plateText: true,
         country: true,
         imageUrl: true,
         createdAt: true,
-        user: { select: { username: true } },
+        user: { select: { username: true, numericId: true } },
         _count: { select: { likes: true } },
       },
     }),
@@ -117,7 +118,7 @@ export default async function HomePage() {
             {recentUploads.map((u) => {
               const meta = COUNTRY_META[u.country] ?? { flag: "🏳️", name: u.country };
               return (
-                <article key={u.id} className="group rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-zinc-700 transition-colors">
+                <a key={u.id} href={`/spot/${u.numericId}`} className="group rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-zinc-700 transition-colors">
                   <div className="aspect-video bg-zinc-950 overflow-hidden">
                     <img
                       src={u.imageUrl}
@@ -134,7 +135,7 @@ export default async function HomePage() {
                       <span className="text-base">{meta.flag}</span>
                     </div>
                     <div className="mt-2 flex items-center justify-between text-xs text-zinc-500">
-                      <a href={`/u/${u.user.username}`} className="hover:text-zinc-300">
+                      <a href={`/u/${u.user.numericId}`} className="hover:text-zinc-300" onClick={(e) => e.stopPropagation()}>
                         @{u.user.username}
                       </a>
                       <div className="flex items-center gap-2">
@@ -143,7 +144,7 @@ export default async function HomePage() {
                       </div>
                     </div>
                   </div>
-                </article>
+                </a>
               );
             })}
           </div>

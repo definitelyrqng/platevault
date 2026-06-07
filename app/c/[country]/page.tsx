@@ -50,6 +50,7 @@ export default async function CountryPage({
       take: 60,
       select: {
         id: true,
+        numericId: true,
         plateText: true,
         plateType: true,
         imageUrl: true,
@@ -100,7 +101,7 @@ export default async function CountryPage({
             return (
               <a
                 key={u.id}
-                href={`/spot/${u.id}`}
+                href={`/spot/${u.numericId}`}
                 className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-zinc-600 transition-colors"
               >
                 <div className="relative bg-zinc-950 aspect-video overflow-hidden">

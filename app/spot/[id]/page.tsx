@@ -30,12 +30,15 @@ async function getCurrentUser() {
 
 export default async function SpotPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const numericId = Number(id);
+  if (!Number.isInteger(numericId) || numericId < 1) return notFound();
 
   const [upload, currentUser] = await Promise.all([
     prisma.upload.findUnique({
-      where: { id, deletedAt: null },
+      where: { numericId },
       select: {
         id: true,
+        numericId: true,
         plateText: true,
         plateType: true,
         country: true,

@@ -58,6 +58,7 @@ model Session {
 
 model Upload {
   id        String   @id @default(cuid())
+  numericId Int      @unique @default(autoincrement())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
