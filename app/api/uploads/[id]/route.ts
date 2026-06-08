@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { UTApi } from "uploadthing/server";
 import { prisma } from "@/app/lib/prisma";
+import { logUploadDelete } from "@/app/lib/discord";
 
 async function getSessionUser() {
   const cookieStore = await cookies();
@@ -9,7 +10,7 @@ async function getSessionUser() {
   if (!token) return null;
   const session = await prisma.session.findUnique({
     where: { token },
-    select: { expiresAt: true, user: { select: { id: true, role: true } } },
+    select: { expiresAt: true, user: { select: { id: true, role: true, username: true } } },
   });
   if (!session || session.expiresAt < new Date()) return null;
   return session.user;
@@ -66,7 +67,7 @@ export async function DELETE(
   // Fetch upload before deleting so we have imageUrl + owner
   const upload = await prisma.upload.findUnique({
     where: { id },
-    select: { userId: true, imageUrl: true, plateText: true, country: true },
+    select: { userId: true, imageUrl: true, plateText: true, country: true, user: { select: { username: true } } },
   });
   if (!upload) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
@@ -98,6 +99,13 @@ export async function DELETE(
 
   // Hard delete — cascades to likes & comments via schema
   await prisma.upload.delete({ where: { id } });
+
+  logUploadDelete({
+    actorUsername: user.username,
+    plateText:     upload.plateText,
+    ownerUsername: upload.user.username,
+    reason,
+  });
 
   return NextResponse.json({ ok: true });
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
 import { getSessionUserWithBanCheck } from "@/app/lib/banCheck";
+import { logNewUpload } from "@/app/lib/discord";
 
 function optStr(val: unknown, max: number): string | null {
   const s = String(val ?? "").trim();
@@ -62,6 +63,15 @@ export async function POST(req: Request) {
         },
       });
     }
+
+    logNewUpload({
+      username:  user.username,
+      plateText: upload.plateText,
+      country:   upload.country,
+      location,
+      imageUrl:  upload.imageUrl,
+      numericId: upload.numericId,
+    });
 
     return NextResponse.json({ upload }, { status: 201 });
   } catch (err) {

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
+import { logVisibilityChange } from "@/app/lib/discord";
 
 async function getSessionUser() {
   const cookieStore = await cookies();
@@ -8,7 +9,7 @@ async function getSessionUser() {
   if (!token) return null;
   const session = await prisma.session.findUnique({
     where: { token },
-    select: { expiresAt: true, user: { select: { id: true, role: true } } },
+    select: { expiresAt: true, user: { select: { id: true, role: true, username: true } } },
   });
   if (!session || session.expiresAt < new Date()) return null;
   return session.user;
@@ -35,7 +36,7 @@ export async function PATCH(
 
   const upload = await prisma.upload.findUnique({
     where: { id },
-    select: { id: true, userId: true, plateText: true },
+    select: { id: true, numericId: true, userId: true, plateText: true },
   });
   if (!upload) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
@@ -53,6 +54,14 @@ export async function PATCH(
       },
     });
   }
+
+  logVisibilityChange({
+    actorUsername: actor.username,
+    plateText:     upload.plateText,
+    hidden,
+    reason,
+    numericId:     upload.numericId,
+  });
 
   return NextResponse.json({ ok: true, hidden });
 }

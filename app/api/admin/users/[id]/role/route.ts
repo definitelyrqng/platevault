@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
+import { logRoleChange } from "@/app/lib/discord";
 
 async function getSessionUser() {
   const cookieStore = await cookies();
@@ -8,7 +9,7 @@ async function getSessionUser() {
   if (!token) return null;
   const session = await prisma.session.findUnique({
     where: { token },
-    select: { expiresAt: true, user: { select: { id: true, role: true } } },
+    select: { expiresAt: true, user: { select: { id: true, role: true, username: true } } },
   });
   if (!session || session.expiresAt < new Date()) return null;
   return session.user;
@@ -64,6 +65,13 @@ export async function PATCH(
       title: `Your role has been updated to ${roleLabel[newRole]}`,
       message: "Your PlateVault rank has been changed by an administrator.",
     },
+  });
+
+  logRoleChange({
+    actorUsername:  actor.username,
+    targetUsername: target.username,
+    oldRole:        target.role,
+    newRole,
   });
 
   return NextResponse.json({ ok: true, role: newRole });

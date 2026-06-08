@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
+import { logBan, logUnban } from "@/app/lib/discord";
 
 async function getSessionUser() {
   const cookieStore = await cookies();
@@ -8,7 +9,7 @@ async function getSessionUser() {
   if (!token) return null;
   const session = await prisma.session.findUnique({
     where: { token },
-    select: { expiresAt: true, user: { select: { id: true, role: true } } },
+    select: { expiresAt: true, user: { select: { id: true, role: true, username: true } } },
   });
   if (!session || session.expiresAt < new Date()) return null;
   return session.user;
@@ -64,6 +65,8 @@ export async function POST(
     },
   });
 
+  logBan({ actorUsername: actor.username, targetUsername: target.username, reason, days });
+
   return NextResponse.json({ ok: true });
 }
 
@@ -78,6 +81,11 @@ export async function DELETE(
 
   const { id: targetId } = await params;
 
+  const target = await prisma.user.findUnique({
+    where: { id: targetId },
+    select: { username: true },
+  });
+
   await prisma.user.update({
     where: { id: targetId },
     data: { bannedAt: null, banExpiresAt: null, banReason: null },
@@ -91,6 +99,8 @@ export async function DELETE(
       message: "Your account has been restored. Welcome back.",
     },
   });
+
+  logUnban({ actorUsername: actor.username, targetUsername: target?.username ?? targetId });
 
   return NextResponse.json({ ok: true });
 }

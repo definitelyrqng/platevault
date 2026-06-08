@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { randomBytes } from "crypto";
 import { prisma } from "@/app/lib/prisma";
+import { logNewUser } from "@/app/lib/discord";
 
 const USERNAME_MIN = 3;
 const USERNAME_MAX = 20;
@@ -88,6 +89,8 @@ export async function POST(req: Request) {
     await prisma.session.create({
       data: { token, userId: user.id, expiresAt },
     });
+
+    logNewUser({ username: user.username, email: user.email });
 
     const res = NextResponse.json({ user }, { status: 201 });
 
