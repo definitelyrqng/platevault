@@ -30,6 +30,7 @@ const TYPE_ICON: Record<string, string> = {
   UPLOAD_FLAGGED: "⚑",
   MULTISPOT: "📍",
   SYSTEM: "📣",
+  POLL: "🗳️",
 };
 
 export default function NotificationsPage() {

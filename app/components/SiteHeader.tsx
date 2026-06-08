@@ -121,6 +121,13 @@ export default function SiteHeader() {
             </Link>
 
             <Link
+              href="/polls"
+              className="hidden sm:block rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-900"
+            >
+              🗳️ Polls
+            </Link>
+
+            <Link
               href={`/u/${me.user.numericId}`}
               className="rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-900"
             >

@@ -13,7 +13,13 @@ enum NotificationType {
   UPLOAD_DELETED
   UPLOAD_FLAGGED
   MULTISPOT
+  POLL
   SYSTEM
+}
+
+enum PollType {
+  MONTHLY
+  YEARLY
 }
 
 enum UserRole {
@@ -47,6 +53,7 @@ model User {
   likes         Like[]
   comments      Comment[]
   notifications Notification[]
+  pollVotes     PollVote[]
 
   @@index([createdAt])
 }
@@ -88,8 +95,9 @@ model Upload {
   deletedAt DateTime?
   createdAt DateTime @default(now())
 
-  likes    Like[]
-  comments Comment[]
+  likes         Like[]
+  comments      Comment[]
+  pollNominees  PollNominee[]
 
   @@index([userId, createdAt])
   @@index([country, createdAt])
@@ -139,4 +147,51 @@ model Notification {
 
   @@index([userId, createdAt])
   @@index([userId, readAt])
+}
+
+model Poll {
+  id        String   @id @default(cuid())
+  numericId Int      @unique @default(autoincrement())
+  country   String   @db.VarChar(60)
+  type      PollType
+  year      Int
+  month     Int      @default(0)  // 1-12 for MONTHLY, 0 for YEARLY
+  opensAt   DateTime
+  closesAt  DateTime
+  createdAt DateTime @default(now())
+
+  nominees  PollNominee[]
+  votes     PollVote[]
+
+  @@unique([country, type, year, month])
+  @@index([closesAt])
+}
+
+model PollNominee {
+  id       String @id @default(cuid())
+  pollId   String
+  uploadId String
+
+  poll   Poll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  upload Upload @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+  votes  PollVote[]
+
+  @@unique([pollId, uploadId])
+  @@index([pollId])
+}
+
+model PollVote {
+  id        String   @id @default(cuid())
+  pollId    String
+  nomineeId String
+  userId    String
+  createdAt DateTime @default(now())
+
+  poll    Poll        @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  nominee PollNominee @relation(fields: [nomineeId], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pollId, userId])
+  @@index([nomineeId])
+  @@index([userId])
 }
