@@ -39,8 +39,10 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
 
           {/* Footer on ALL pages */}
-          <footer className="py-8 text-center text-xs text-zinc-600">
-            © {new Date().getFullYear()} PlateVault
+          <footer className="py-8 text-center text-xs text-zinc-600 space-x-4">
+            <span>© {new Date().getFullYear()} PlateVault</span>
+            <a href="/rules" className="hover:text-zinc-400 transition-colors">Rules</a>
+            <a href="/legal" className="hover:text-zinc-400 transition-colors">Terms &amp; Privacy</a>
           </footer>
         </div>
       </body>
