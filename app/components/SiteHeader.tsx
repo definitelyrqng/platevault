@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 type MeResponse =
@@ -11,6 +12,14 @@ export default function SiteHeader() {
   const [me, setMe] = useState<MeResponse>({ user: null });
   const [loading, setLoading] = useState(true);
   const [unread, setUnread] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    if (q) router.push(`/search?q=${encodeURIComponent(q)}`);
+  }
 
   useEffect(() => {
     (async () => {
@@ -40,8 +49,8 @@ export default function SiteHeader() {
   }
 
   return (
-    <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
-      <Link href="/home" className="flex items-center gap-3">
+    <header className="mx-auto flex w-full max-w-6xl items-center gap-4 px-6 py-6">
+      <Link href="/home" className="flex items-center gap-3 shrink-0">
         <div className="grid h-9 w-9 place-items-center rounded-xl overflow-hidden bg-zinc-900 ring-1 ring-zinc-800">
           <img src="/logo.png" alt="PlateVault" className="h-7 w-7 object-contain" />
         </div>
@@ -51,7 +60,34 @@ export default function SiteHeader() {
         </div>
       </Link>
 
-      <nav className="flex items-center gap-3">
+      {/* Search bar — hidden on small screens */}
+      <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-sm items-center gap-2">
+        <div className="relative flex-1">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
+          </svg>
+          <input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search plates…"
+            autoComplete="off"
+            className="w-full rounded-xl border border-zinc-800 bg-zinc-900/60 pl-9 pr-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 outline-none focus:border-zinc-600 transition-colors"
+          />
+        </div>
+      </form>
+
+      <nav className="flex items-center gap-3 shrink-0 ml-auto">
+        {/* Mobile search icon */}
+        <Link
+          href="/search"
+          className="md:hidden grid h-9 w-9 place-items-center rounded-xl border border-zinc-800 bg-zinc-900/40 text-zinc-400 hover:bg-zinc-900"
+          aria-label="Search"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
+          </svg>
+        </Link>
+
         <Link
           href="/upload"
           className="rounded-xl bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-white"

@@ -81,9 +81,26 @@ export default async function CountriesPage() {
     <main className="mx-auto max-w-6xl px-6 pb-16 pt-8">
 
       {/* ─── Header ─── */}
-      <div className="mb-10">
-        <h1 className="text-3xl font-bold text-zinc-50">Browse by Country</h1>
-        <p className="mt-2 text-sm text-zinc-400">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-zinc-50 mb-4">Browse by Country</h1>
+        {/* Global search */}
+        <form method="GET" action="/search" className="flex gap-2 max-w-lg">
+          <div className="relative flex-1">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
+            </svg>
+            <input
+              name="q"
+              placeholder="Search any plate globally…"
+              autoComplete="off"
+              className="w-full rounded-xl border border-zinc-800 bg-zinc-900/60 pl-10 pr-4 py-2.5 text-sm text-zinc-200 placeholder:text-zinc-600 outline-none focus:border-zinc-600 transition-colors"
+            />
+          </div>
+          <button type="submit" className="rounded-xl bg-zinc-100 px-5 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-white transition-colors">
+            Search
+          </button>
+        </form>
+        <p className="mt-3 text-sm text-zinc-500">
           {spotterCounts.length === 0
             ? "No spots archived yet."
             : `${spotterCounts.length} countr${spotterCounts.length === 1 ? "y" : "ies"} with spots archived`}
