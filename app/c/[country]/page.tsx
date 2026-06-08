@@ -45,7 +45,7 @@ export default async function CountryPage({
 
   const [uploads, currentUser] = await Promise.all([
     prisma.upload.findMany({
-      where: { country, deletedAt: null },
+      where: { country, deletedAt: null, hidden: false },
       orderBy: { createdAt: "desc" },
       take: 60,
       select: {

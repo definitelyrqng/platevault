@@ -1,18 +1,6 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
-
-async function getSessionUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("pv_session")?.value;
-  if (!token) return null;
-  const session = await prisma.session.findUnique({
-    where: { token },
-    select: { expiresAt: true, user: { select: { id: true, username: true } } },
-  });
-  if (!session || session.expiresAt < new Date()) return null;
-  return session.user;
-}
+import { getSessionUserWithBanCheck } from "@/app/lib/banCheck";
 
 function optStr(val: unknown, max: number): string | null {
   const s = String(val ?? "").trim();
@@ -21,8 +9,9 @@ function optStr(val: unknown, max: number): string | null {
 
 export async function POST(req: Request) {
   try {
-    const user = await getSessionUser();
+    const { user, banError } = await getSessionUserWithBanCheck();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (banError) return NextResponse.json({ error: banError }, { status: 403 });
 
     const body = await req.json();
 

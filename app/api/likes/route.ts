@@ -1,22 +1,11 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
-
-async function getSessionUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("pv_session")?.value;
-  if (!token) return null;
-  const session = await prisma.session.findUnique({
-    where: { token },
-    select: { expiresAt: true, user: { select: { id: true } } },
-  });
-  if (!session || session.expiresAt < new Date()) return null;
-  return session.user;
-}
+import { getSessionUserWithBanCheck } from "@/app/lib/banCheck";
 
 export async function POST(req: Request) {
-  const user = await getSessionUser();
+  const { user, banError } = await getSessionUserWithBanCheck();
   if (!user) return NextResponse.json({ error: "Sign in to like." }, { status: 401 });
+  if (banError) return NextResponse.json({ error: banError }, { status: 403 });
 
   const { uploadId } = await req.json();
   if (!uploadId) return NextResponse.json({ error: "Missing uploadId" }, { status: 400 });

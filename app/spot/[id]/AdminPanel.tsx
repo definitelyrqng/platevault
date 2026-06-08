@@ -11,6 +11,7 @@ export default function AdminPanel({
   initialGeneration,
   initialTrim,
   initialColor,
+  initialHidden,
 }: {
   uploadId: string;
   initialBrand: string;
@@ -18,6 +19,7 @@ export default function AdminPanel({
   initialGeneration: string;
   initialTrim: string;
   initialColor: string;
+  initialHidden: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -34,6 +36,11 @@ export default function AdminPanel({
   const [deleteMode, setDeleteMode] = useState(false);
   const [reason, setReason] = useState("");
   const [deleting, setDeleting] = useState(false);
+
+  // Visibility state
+  const [hidden, setHidden] = useState(initialHidden);
+  const [hideReason, setHideReason] = useState("");
+  const [togglingVisibility, setTogglingVisibility] = useState(false);
 
   const models      = brand                         ? getModels(brand)                       : [];
   const generations = brand && model                ? getGenerations(brand, model)           : [];
@@ -64,6 +71,21 @@ export default function AdminPanel({
     } finally {
       setSaving(false);
     }
+  }
+
+  async function toggleVisibility() {
+    setTogglingVisibility(true); setError("");
+    try {
+      const res = await fetch(`/api/admin/uploads/${uploadId}/visibility`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hidden: !hidden, reason: hideReason.trim() || null }),
+      });
+      if (!res.ok) { setError("Failed to update visibility."); return; }
+      setHidden((v) => !v);
+      setHideReason("");
+      router.refresh();
+    } finally { setTogglingVisibility(false); }
   }
 
   async function confirmDelete() {
@@ -142,6 +164,38 @@ export default function AdminPanel({
 
           {error && <p className="text-xs text-red-400">{error}</p>}
           {saved && <p className="text-xs text-emerald-400">Saved!</p>}
+
+          {/* Hide / show */}
+          <div className="pt-1 space-y-2">
+            {hidden && (
+              <div className="rounded-xl border border-amber-900/40 bg-amber-950/20 px-3 py-1.5 text-xs text-amber-400">
+                ⚠ This spot is currently hidden from non-moderators.
+              </div>
+            )}
+            {!hidden && (
+              <div>
+                <label className="block text-xs text-zinc-500 mb-1">Hide reason (optional, shown to user)</label>
+                <input
+                  value={hideReason}
+                  onChange={(e) => setHideReason(e.target.value)}
+                  placeholder="e.g. Under review…"
+                  maxLength={280}
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600"
+                />
+              </div>
+            )}
+            <button
+              onClick={toggleVisibility}
+              disabled={togglingVisibility}
+              className={`w-full rounded-xl border py-2 text-xs font-medium transition-colors disabled:opacity-50 ${
+                hidden
+                  ? "border-emerald-900/50 bg-emerald-950/30 text-emerald-400 hover:bg-emerald-950/60"
+                  : "border-amber-900/50 bg-amber-950/20 text-amber-400 hover:bg-amber-950/40"
+              }`}
+            >
+              {togglingVisibility ? "…" : hidden ? "Show spot (restore visibility)" : "Hide spot from public"}
+            </button>
+          </div>
 
           <div className="flex gap-2 pt-1">
             <button

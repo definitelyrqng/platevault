@@ -37,6 +37,11 @@ model User {
   avatarUrl String?  @db.VarChar(500)
   bannerUrl String?  @db.VarChar(500)
 
+  // Ban
+  bannedAt     DateTime?
+  banExpiresAt DateTime?          // null = permanent
+  banReason    String?  @db.VarChar(500)
+
   sessions      Session[]
   uploads       Upload[]
   likes         Like[]
@@ -77,6 +82,7 @@ model Upload {
 
   imageUrl  String   @db.VarChar(500)
 
+  hidden    Boolean  @default(false)
   deletedAt DateTime?
   createdAt DateTime @default(now())
 

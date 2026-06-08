@@ -25,7 +25,7 @@ async function getStats() {
     prisma.upload.count({ where: { deletedAt: null } }),
     prisma.user.count(),
     prisma.upload.findMany({
-      where: { deletedAt: null },
+      where: { deletedAt: null, hidden: false },
       orderBy: { createdAt: "desc" },
       take: 9,
       select: {

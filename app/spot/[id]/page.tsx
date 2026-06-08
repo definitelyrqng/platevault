@@ -65,6 +65,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
         generation: true,
         trim: true,
         color: true,
+        hidden: true,
         createdAt: true,
         userId: true,
         user: { select: { username: true, numericId: true, avatarUrl: true } },
@@ -86,6 +87,23 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
   ]);
 
   if (!upload) return notFound();
+
+  // Hidden spot — non-mods see a placeholder instead of a 404
+  const isMod_ = currentUser?.role === "SUPERADMIN" || currentUser?.role === "ADMIN" || currentUser?.role === "MOD";
+  if (upload.hidden && !isMod_) {
+    return (
+      <main className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center px-6">
+        <div className="max-w-md text-center">
+          <div className="text-4xl mb-4">🚫</div>
+          <h1 className="text-xl font-semibold">This spot has been hidden</h1>
+          <p className="mt-3 text-zinc-400 text-sm">This content has been temporarily hidden by a moderator pending review.</p>
+          <a href="/home" className="mt-6 inline-flex rounded-xl border border-zinc-800 bg-zinc-900/40 px-5 py-2.5 text-sm text-zinc-200 hover:bg-zinc-900">
+            ← Back to PlateVault
+          </a>
+        </div>
+      </main>
+    );
+  }
 
   // Other sightings of the same plate
   const otherSightings = await prisma.upload.findMany({
@@ -255,6 +273,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 initialGeneration={upload.generation ?? ""}
                 initialTrim={upload.trim ?? ""}
                 initialColor={upload.color ?? ""}
+                initialHidden={upload.hidden}
               />
             )}
 

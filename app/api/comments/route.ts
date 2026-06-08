@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
+import { getSessionUserWithBanCheck } from "@/app/lib/banCheck";
 
 async function getSessionUser() {
   const cookieStore = await cookies();
@@ -19,7 +20,10 @@ function canModerate(role: string) {
 }
 
 export async function POST(req: Request) {
-  const user = await getSessionUser();
+  const { user: banUser, banError } = await getSessionUserWithBanCheck();
+  if (!banUser) return NextResponse.json({ error: "Sign in to comment." }, { status: 401 });
+  if (banError) return NextResponse.json({ error: banError }, { status: 403 });
+  const user = await getSessionUser(); // need full fields for comment response
   if (!user) return NextResponse.json({ error: "Sign in to comment." }, { status: 401 });
 
   const { uploadId, content } = await req.json();

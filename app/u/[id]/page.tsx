@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
+import UserAdminPanel from "./UserAdminPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -40,16 +41,16 @@ function roleBadge(role: string) {
   return map[role] ?? map.USER;
 }
 
-async function getCurrentUserId(): Promise<string | null> {
+async function getCurrentUser(): Promise<{ id: string; role: string } | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get("pv_session")?.value;
   if (!token) return null;
   const session = await prisma.session.findUnique({
     where: { token },
-    select: { expiresAt: true, user: { select: { id: true } } },
+    select: { expiresAt: true, user: { select: { id: true, role: true } } },
   });
   if (!session || session.expiresAt < new Date()) return null;
-  return session.user.id;
+  return session.user;
 }
 
 export default async function UserProfilePage({
@@ -61,7 +62,8 @@ export default async function UserProfilePage({
   const numericId = Number(id);
   if (!Number.isInteger(numericId) || numericId < 0) return notFound();
 
-  const [sessionUserId] = await Promise.all([getCurrentUserId()]);
+  const sessionUser = await getCurrentUser();
+  const sessionUserId = sessionUser?.id ?? null;
 
   const user = await prisma.user.findUnique({
     where: { numericId },
@@ -74,6 +76,9 @@ export default async function UserProfilePage({
       avatarUrl: true,
       bannerUrl: true,
       createdAt: true,
+      bannedAt: true,
+      banExpiresAt: true,
+      banReason: true,
       uploads: {
         select: {
           id: true,
@@ -90,7 +95,6 @@ export default async function UserProfilePage({
         orderBy: { createdAt: "desc" },
         take: 12,
       },
-      // filtered count — only non-deleted uploads
       _count: { select: { uploads: { where: { deletedAt: null } } } },
     },
   });
@@ -103,6 +107,13 @@ export default async function UserProfilePage({
   });
 
   const isOwnProfile = sessionUserId === user.id;
+  const viewerRole = sessionUser?.role ?? "USER";
+  const isAdmin = viewerRole === "SUPERADMIN" || viewerRole === "ADMIN";
+  const canAdminTarget = isAdmin && !isOwnProfile && user.role !== "SUPERADMIN";
+
+  // Ban is active if bannedAt is set AND (no expiry OR expiry is in the future)
+  const isBanned = !!user.bannedAt && (!user.banExpiresAt || user.banExpiresAt > new Date());
+
   const initials = user.username.slice(0, 2).toUpperCase();
   const memberSince = fmtMonthYear(user.createdAt);
   const badge = roleBadge(user.role);
@@ -174,6 +185,38 @@ export default async function UserProfilePage({
             </a>
           ) : (
             <p className="mt-5 text-sm text-zinc-500">No bio yet.</p>
+          )}
+
+          {/* Ban notice — shown to the banned user themselves */}
+          {isOwnProfile && isBanned && (
+            <div className="mt-5 rounded-2xl border border-red-800 bg-red-950/30 px-5 py-4 max-w-2xl">
+              <p className="text-sm font-semibold text-red-300">
+                🚫 Your account is {user.banExpiresAt ? `temporarily restricted until ${new Date(user.banExpiresAt).toLocaleDateString("en-GB")}` : "permanently restricted"}.
+              </p>
+              {user.banReason && <p className="mt-1 text-xs text-red-400">Reason: {user.banReason}</p>}
+            </div>
+          )}
+
+          {/* Mod-visible ban notice on other users' profiles */}
+          {!isOwnProfile && isAdmin && isBanned && (
+            <div className="mt-5 rounded-xl border border-red-900/40 bg-red-950/20 px-4 py-2 max-w-2xl">
+              <p className="text-xs text-red-400">
+                🚫 Banned{user.banExpiresAt ? ` until ${new Date(user.banExpiresAt).toLocaleDateString("en-GB")}` : " permanently"}
+                {user.banReason ? ` — ${user.banReason}` : ""}
+              </p>
+            </div>
+          )}
+
+          {/* Admin panel for this user */}
+          {canAdminTarget && (
+            <UserAdminPanel
+              targetId={user.id}
+              targetUsername={user.username}
+              targetRole={user.role}
+              isBanned={isBanned}
+              banExpiresAt={user.banExpiresAt?.toISOString() ?? null}
+              actorRole={viewerRole}
+            />
           )}
         </div>
       </section>
