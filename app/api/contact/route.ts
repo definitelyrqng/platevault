@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { logContactMessage } from "@/app/lib/discord";
+
+const WEBHOOK = process.env.DISCORD_WEBHOOK_URL;
 
 export async function POST(req: Request) {
-  if (!process.env.DISCORD_WEBHOOK_URL) {
+  if (!WEBHOOK) {
     return NextResponse.json({ error: "Contact unavailable." }, { status: 503 });
   }
 
@@ -19,7 +20,27 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid email address." }, { status: 400 });
   }
 
-  logContactMessage({ email, message });
+  // Awaited — fire-and-forget gets killed on Vercel before it completes
+  const res = await fetch(WEBHOOK, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      embeds: [{
+        title: "📬 New contact message",
+        color: 0x71717a,
+        fields: [
+          { name: "Reply to", value: email,   inline: false },
+          { name: "Message",  value: message, inline: false },
+        ],
+        footer:    { text: "PlateVault" },
+        timestamp: new Date().toISOString(),
+      }],
+    }),
+  });
+
+  if (!res.ok) {
+    return NextResponse.json({ error: "Failed to send. Try again later." }, { status: 502 });
+  }
 
   return NextResponse.json({ ok: true });
 }
