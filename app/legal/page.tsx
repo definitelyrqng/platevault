@@ -31,16 +31,15 @@ export default function LegalPage() {
     { id: "tos-changes", label: "§6 Changes to Terms" },
     { id: "tos-liability", label: "§7 Limitation of Liability" },
     { id: "tos-law", label: "§8 Governing Law" },
-    { id: "privacy-controller", label: "§9 Data Controller" },
-    { id: "privacy-data", label: "§10 Data We Collect" },
-    { id: "privacy-purpose", label: "§11 Purpose & Legal Basis" },
-    { id: "privacy-retention", label: "§12 Retention" },
-    { id: "privacy-third", label: "§13 Third-Party Processors" },
-    { id: "privacy-rights", label: "§14 Your Rights (GDPR)" },
-    { id: "privacy-transfers", label: "§15 International Transfers" },
-    { id: "privacy-cookies", label: "§16 Cookies & Sessions" },
-    { id: "privacy-minors", label: "§17 Minors" },
-    { id: "privacy-contact", label: "§18 Contact & Complaints" },
+    { id: "privacy-data", label: "§9 Data We Collect" },
+    { id: "privacy-purpose", label: "§10 Purpose & Legal Basis" },
+    { id: "privacy-retention", label: "§11 Retention" },
+    { id: "privacy-third", label: "§12 Third-Party Processors" },
+    { id: "privacy-rights", label: "§13 Your Rights (GDPR)" },
+    { id: "privacy-transfers", label: "§14 International Transfers" },
+    { id: "privacy-cookies", label: "§15 Cookies & Sessions" },
+    { id: "privacy-minors", label: "§16 Minors" },
+    { id: "privacy-contact", label: "§17 Contact & Complaints" },
   ];
 
   return (
@@ -213,9 +212,9 @@ export default function LegalPage() {
 
           <Section id="tos-law" title="§8 Governing Law">
             <p>
-              These Terms are governed by the laws of the Federal Republic of Germany. Any disputes arising from or relating to
-              these Terms or your use of PlateVault shall be subject to the exclusive jurisdiction of the competent courts of Germany,
-              unless mandatory consumer protection laws in your country of residence require otherwise.
+              These Terms are governed by the laws of Bosnia and Herzegovina. Any disputes arising from or relating to
+              these Terms or your use of PlateVault shall be subject to the jurisdiction of the competent courts of
+              Bosnia and Herzegovina, unless mandatory consumer protection laws in your country of residence require otherwise.
             </p>
             <p>
               If you are a consumer resident in the EU, you may also make use of the EU's Online Dispute Resolution platform at{" "}
@@ -235,23 +234,7 @@ export default function LegalPage() {
             </p>
           </div>
 
-          <Section id="privacy-controller" title="§9 Data Controller">
-            <p>
-              The data controller responsible for processing your personal data is:
-            </p>
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 font-mono text-xs text-zinc-300 space-y-1">
-              <p>PlateVault</p>
-              <p>[Your full name]</p>
-              <p>[Street address]</p>
-              <p>[Postcode, City, Germany]</p>
-              <p>Email: <a href="mailto:legal@platevault.app" className="text-indigo-400">legal@platevault.app</a></p>
-            </div>
-            <p className="text-xs text-zinc-500">
-              ⚠ Placeholder — replace with your real name and address before going live. An Impressum with full contact details is legally required in Germany.
-            </p>
-          </Section>
-
-          <Section id="privacy-data" title="§10 Data We Collect">
+          <Section id="privacy-data" title="§9 Data We Collect">
             <Sub title="10.1 Data you provide directly">
               <p><strong className="text-zinc-200">Email address</strong> — collected at registration and stored in our database. Used for account authentication and, where applicable, notifications.</p>
               <p><strong className="text-zinc-200">Username</strong> — publicly visible display name chosen by you at registration.</p>
@@ -266,7 +249,7 @@ export default function LegalPage() {
             </Sub>
           </Section>
 
-          <Section id="privacy-purpose" title="§11 Purpose & Legal Basis">
+          <Section id="privacy-purpose" title="§10 Purpose & Legal Basis">
             <p>We process your personal data only for the following purposes and on the following legal bases (GDPR Art. 6):</p>
             <div className="overflow-x-auto">
               <table className="w-full text-xs border-collapse">
@@ -309,7 +292,7 @@ export default function LegalPage() {
             <p>We do not use your data for advertising, profiling, or sale to third parties.</p>
           </Section>
 
-          <Section id="privacy-retention" title="§12 Retention">
+          <Section id="privacy-retention" title="§11 Retention">
             <p>
               We retain your personal data for as long as your account is active and for a reasonable period thereafter to comply with
               legal obligations, resolve disputes, and enforce our agreements.
@@ -334,7 +317,7 @@ export default function LegalPage() {
             </p>
           </Section>
 
-          <Section id="privacy-third" title="§13 Third-Party Processors">
+          <Section id="privacy-third" title="§12 Third-Party Processors">
             <p>
               We use the following third-party service providers to operate the platform. Each acts as a data processor on our behalf and is bound
               by a data processing agreement:
@@ -359,7 +342,7 @@ export default function LegalPage() {
             <p>We do not sell, rent, or share your data with any third party for their own purposes.</p>
           </Section>
 
-          <Section id="privacy-rights" title="§14 Your Rights (GDPR)">
+          <Section id="privacy-rights" title="§13 Your Rights (GDPR)">
             <p>
               As a data subject under the GDPR, you have the following rights with respect to your personal data.
               To exercise any of these rights, contact us at{" "}
@@ -386,7 +369,7 @@ export default function LegalPage() {
             </div>
           </Section>
 
-          <Section id="privacy-transfers" title="§15 International Transfers">
+          <Section id="privacy-transfers" title="§14 International Transfers">
             <p>
               Some of our third-party processors (Vercel, UploadThing) operate infrastructure outside the European Economic Area,
               including in the United States. When we transfer personal data outside the EEA, we rely on appropriate safeguards as
@@ -397,7 +380,7 @@ export default function LegalPage() {
             </p>
           </Section>
 
-          <Section id="privacy-cookies" title="§16 Cookies & Sessions">
+          <Section id="privacy-cookies" title="§15 Cookies & Sessions">
             <p>
               PlateVault uses a single essential cookie: <span className="font-mono text-xs text-zinc-200">pv_session</span>, which stores your
               session token to keep you logged in. This cookie is:
@@ -418,7 +401,7 @@ export default function LegalPage() {
             </p>
           </Section>
 
-          <Section id="privacy-minors" title="§17 Minors">
+          <Section id="privacy-minors" title="§16 Minors">
             <p>
               PlateVault is not directed at children under the age of 16. We do not knowingly collect personal data from anyone under 16.
               If you believe we have inadvertently collected data from a minor, please contact us immediately at{" "}
@@ -427,7 +410,7 @@ export default function LegalPage() {
             </p>
           </Section>
 
-          <Section id="privacy-contact" title="§18 Contact & Complaints">
+          <Section id="privacy-contact" title="§17 Contact & Complaints">
             <p>
               For any privacy-related questions or to exercise your rights, contact us at:{" "}
               <a href="mailto:legal@platevault.app" className="text-indigo-400 hover:text-indigo-300">legal@platevault.app</a>
