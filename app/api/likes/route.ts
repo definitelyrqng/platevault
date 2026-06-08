@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const user = await getSessionUser();
+  const { user } = await getSessionUserWithBanCheck();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { uploadId } = await req.json();
