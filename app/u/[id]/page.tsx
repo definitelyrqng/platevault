@@ -64,6 +64,8 @@ export default async function UserProfilePage({
 
   const sessionUser = await getCurrentUser();
   const sessionUserId = sessionUser?.id ?? null;
+  const viewerRole = sessionUser?.role ?? "USER";
+  const viewerIsMod = ["SUPERADMIN", "ADMIN", "MOD"].includes(viewerRole);
 
   const user = await prisma.user.findUnique({
     where: { numericId },
@@ -91,11 +93,15 @@ export default async function UserProfilePage({
           createdAt: true,
           _count: { select: { likes: true } },
         },
-        where: { deletedAt: null },
+        where: { deletedAt: null, ...(viewerIsMod ? {} : { hidden: false }) },
         orderBy: { createdAt: "desc" },
         take: 12,
       },
-      _count: { select: { uploads: { where: { deletedAt: null } } } },
+      _count: {
+        select: {
+          uploads: { where: { deletedAt: null, ...(viewerIsMod ? {} : { hidden: false }) } },
+        },
+      },
     },
   });
 
@@ -107,7 +113,6 @@ export default async function UserProfilePage({
   });
 
   const isOwnProfile = sessionUserId === user.id;
-  const viewerRole = sessionUser?.role ?? "USER";
   const isAdmin = viewerRole === "SUPERADMIN" || viewerRole === "ADMIN";
   const canAdminTarget = isAdmin && !isOwnProfile && user.role !== "SUPERADMIN";
 

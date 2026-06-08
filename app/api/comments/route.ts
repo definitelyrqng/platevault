@@ -34,14 +34,30 @@ export async function POST(req: Request) {
   const trimmed = String(content).trim().slice(0, 1000);
   if (trimmed.length < 1) return NextResponse.json({ error: "Comment is empty." }, { status: 400 });
 
-  // Check upload exists
-  const upload = await prisma.upload.findUnique({ where: { id: uploadId, deletedAt: null }, select: { id: true } });
+  // Check upload exists and get owner for notification
+  const upload = await prisma.upload.findUnique({
+    where: { id: uploadId, deletedAt: null },
+    select: { id: true, userId: true, plateText: true, numericId: true },
+  });
   if (!upload) return NextResponse.json({ error: "Spot not found." }, { status: 404 });
 
   const comment = await prisma.comment.create({
     data: { uploadId, userId: user.id, content: trimmed },
     select: { id: true, content: true, createdAt: true, user: { select: { username: true, numericId: true, avatarUrl: true } } },
   });
+
+  // Notify the upload owner (skip if commenting on own spot)
+  if (upload.userId !== user.id) {
+    await prisma.notification.create({
+      data: {
+        userId:  upload.userId,
+        type:    "COMMENT",
+        title:   `@${user.username} commented on your spot`,
+        message: trimmed.slice(0, 100) + (trimmed.length > 100 ? "…" : ""),
+        url:     `/spot/${upload.numericId}`,
+      },
+    });
+  }
 
   return NextResponse.json({
     comment: {

@@ -21,9 +21,10 @@ function relativeDays(d: Date) {
 }
 
 async function getStats() {
-  const [totalUploads, totalUsers, recentUploads] = await Promise.all([
+  const [totalUploads, totalUsers, countryCount, recentUploads] = await Promise.all([
     prisma.upload.count({ where: { deletedAt: null } }),
     prisma.user.count(),
+    prisma.upload.groupBy({ by: ["country"], where: { deletedAt: null } }).then((r) => r.length),
     prisma.upload.findMany({
       where: { deletedAt: null, hidden: false },
       orderBy: { createdAt: "desc" },
@@ -38,15 +39,15 @@ async function getStats() {
         brand: true,
         model: true,
         user: { select: { username: true, numericId: true, avatarUrl: true } },
-        _count: { select: { likes: true } },
+        _count: { select: { likes: true, comments: true } },
       },
     }),
   ]);
-  return { totalUploads, totalUsers, recentUploads };
+  return { totalUploads, totalUsers, countryCount, recentUploads };
 }
 
 export default async function HomePage() {
-  const { totalUploads, totalUsers, recentUploads } = await getStats();
+  const { totalUploads, totalUsers, countryCount, recentUploads } = await getStats();
 
   return (
     <main className="mx-auto max-w-6xl px-6 pb-16 pt-4">
@@ -80,16 +81,24 @@ export default async function HomePage() {
       {/* ─── Stats ─── */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4 mb-8">
         {[
-          { label: "Spots archived", value: totalUploads.toLocaleString(), icon: "📷", color: "text-zinc-100" },
-          { label: "Spotters",       value: totalUsers.toLocaleString(),   icon: "👤", color: "text-zinc-100" },
-          { label: "Countries",      value: "1",                           icon: "🌍", color: "text-zinc-100" },
-          { label: "Plate formats",  value: "7+",                          icon: "🪪", color: "text-zinc-100" },
+          { label: "Spots archived", value: totalUploads.toLocaleString(), icon: "📷", href: null },
+          { label: "Spotters",       value: totalUsers.toLocaleString(),   icon: "👤", href: null },
+          { label: "Countries",      value: countryCount.toLocaleString(), icon: "🌍", href: "/countries" },
+          { label: "Plate formats",  value: "7+",                          icon: "🪪", href: null },
         ].map((s) => (
-          <div key={s.label} className="rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900/80 to-zinc-900/30 px-5 py-5 hover:border-zinc-700 transition-colors">
-            <div className="text-lg mb-1">{s.icon}</div>
-            <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
-            <div className="mt-0.5 text-xs text-zinc-500">{s.label}</div>
-          </div>
+          s.href ? (
+            <a key={s.label} href={s.href} className="rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900/80 to-zinc-900/30 px-5 py-5 hover:border-indigo-700 hover:bg-indigo-950/20 transition-colors group">
+              <div className="text-lg mb-1">{s.icon}</div>
+              <div className="text-2xl font-bold text-zinc-100 group-hover:text-indigo-300 transition-colors">{s.value}</div>
+              <div className="mt-0.5 text-xs text-zinc-500 group-hover:text-indigo-400 transition-colors">{s.label} →</div>
+            </a>
+          ) : (
+            <div key={s.label} className="rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900/80 to-zinc-900/30 px-5 py-5 hover:border-zinc-700 transition-colors">
+              <div className="text-lg mb-1">{s.icon}</div>
+              <div className="text-2xl font-bold text-zinc-100">{s.value}</div>
+              <div className="mt-0.5 text-xs text-zinc-500">{s.label}</div>
+            </div>
+          )
         ))}
       </div>
 
@@ -153,7 +162,10 @@ export default async function HomePage() {
                         )}
                         <span className="text-xs text-zinc-500 group-hover/user:text-zinc-300 transition-colors">@{u.user.username}</span>
                       </a>
-                      <span className="text-xs text-zinc-600">♡ {u._count.likes}</span>
+                      <span className="text-xs text-zinc-600 flex items-center gap-2">
+                        <span>♡ {u._count.likes}</span>
+                        <span>💬 {u._count.comments}</span>
+                      </span>
                     </div>
                   </div>
                 </div>

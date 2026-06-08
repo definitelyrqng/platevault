@@ -59,7 +59,7 @@ export default async function CountryPage({
         brand: true,
         model: true,
         user: { select: { username: true, numericId: true } },
-        _count: { select: { likes: true } },
+        _count: { select: { likes: true, comments: true } },
       },
     }),
     getCurrentUser(),
@@ -136,6 +136,7 @@ export default async function CountryPage({
                     </a>
                     <div className="relative z-10 flex items-center gap-2">
                       <span className="text-xs text-zinc-600">{relativeDays(u.createdAt)}</span>
+                      <span className="text-xs text-zinc-600">💬 {u._count.comments}</span>
                       <LikeButton
                         uploadId={u.id}
                         initialLikes={u._count.likes}

@@ -25,13 +25,32 @@ async function getSessionUser(req: Request) {
     where: { token },
     select: {
       expiresAt: true,
-      user: { select: { id: true, username: true } },
+      user: {
+        select: {
+          id: true,
+          username: true,
+          bannedAt: true,
+          banExpiresAt: true,
+          banReason: true,
+        },
+      },
     },
   });
 
   if (!session || session.expiresAt < new Date()) return null;
-  console.log("[UT] session valid, user:", session.user.username);
-  return session.user;
+
+  const u = session.user;
+  const isBanned = !!u.bannedAt && (!u.banExpiresAt || u.banExpiresAt > new Date());
+  if (isBanned) {
+    const until = u.banExpiresAt
+      ? ` until ${u.banExpiresAt.toLocaleDateString("en-GB")}`
+      : " permanently";
+    const reason = u.banReason ? ` Reason: ${u.banReason}` : "";
+    throw new Error(`Your account is restricted${until}.${reason}`);
+  }
+
+  console.log("[UT] session valid, user:", u.username);
+  return { id: u.id, username: u.username };
 }
 
 export const ourFileRouter = {
