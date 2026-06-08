@@ -167,6 +167,51 @@ export function logUploadDelete(opts: {
   });
 }
 
+/** Awaited version — use when the webhook IS the point of the request */
+export async function sendReport(opts: {
+  reporterUsername: string;
+  plateText: string;
+  numericId: number;
+  imageUrl: string;
+  category: string;
+  details: string;
+}): Promise<boolean> {
+  if (!WEBHOOK) return false;
+
+  const categoryEmoji: Record<string, string> = {
+    inappropriate: "🔞",
+    incorrect:     "❌",
+    missing_model: "🚗",
+    other:         "💬",
+  };
+  const emoji = categoryEmoji[opts.category] ?? "📢";
+
+  const body = JSON.stringify({
+    content: "@everyone",
+    embeds: [{
+      title: `${emoji} New spot report`,
+      color: 0xef4444,
+      thumbnail: { url: opts.imageUrl },
+      fields: [
+        { name: "Plate",    value: opts.plateText,                                         inline: true },
+        { name: "Reporter", value: `@${opts.reporterUsername}`,                            inline: true },
+        { name: "Category", value: opts.category.replace("_", " "),                        inline: true },
+        { name: "Details",  value: opts.details || "No details provided",                  inline: false },
+        { name: "Link",     value: `https://platevault.app/spot/${opts.numericId}`,         inline: false },
+      ],
+      footer:    { text: "PlateVault Report System" },
+      timestamp: new Date().toISOString(),
+    }],
+  });
+
+  try {
+    const res = await fetch(WEBHOOK, { method: "POST", headers: { "Content-Type": "application/json" }, body });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 export function logUploadEdit(opts: {
   actorUsername: string;
   ownerUsername: string;

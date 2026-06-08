@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import SpotActions from "./SpotActions";
 import CommentSection from "./CommentSection";
 import AdminPanel from "./AdminPanel";
+import ReportButton from "./ReportButton";
 
 const COUNTRY_META: Record<string, { flag: string; name: string }> = {
   albania: { flag: "🇦🇱", name: "Albania" },
@@ -246,9 +247,14 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 isOwner={isOwner}
                 isLoggedIn={!!currentUser}
               />
-              <div className="mt-3 flex gap-4 text-xs text-zinc-500">
-                <span>{upload._count.likes} like{upload._count.likes !== 1 ? "s" : ""}</span>
-                <span>{upload._count.comments} comment{upload._count.comments !== 1 ? "s" : ""}</span>
+              <div className="mt-3 flex items-center justify-between gap-4 text-xs text-zinc-500">
+                <div className="flex gap-4">
+                  <span>{upload._count.likes} like{upload._count.likes !== 1 ? "s" : ""}</span>
+                  <span>{upload._count.comments} comment{upload._count.comments !== 1 ? "s" : ""}</span>
+                </div>
+                {currentUser && !isOwner && (
+                  <ReportButton uploadNumericId={upload.numericId} />
+                )}
               </div>
             </div>
 
