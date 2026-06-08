@@ -167,6 +167,26 @@ export function logUploadDelete(opts: {
   });
 }
 
+export function logUploadEdit(opts: {
+  actorUsername: string;
+  ownerUsername: string;
+  plateText: string;
+  numericId: number;
+  changes: string;
+}) {
+  logToDiscord({
+    title: "✏️ Spot edited by admin",
+    color: C.yellow,
+    fields: [
+      { name: "Plate",   value: opts.plateText,            inline: true },
+      { name: "Owner",   value: `@${opts.ownerUsername}`,  inline: true },
+      { name: "By",      value: `@${opts.actorUsername}`,  inline: true },
+      { name: "Changes", value: opts.changes,              inline: false },
+      { name: "Link",    value: `https://platevault.app/spot/${opts.numericId}`, inline: false },
+    ],
+  });
+}
+
 export function logContactMessage(opts: { email: string; message: string }) {
   logToDiscord({
     title: "📬 New contact message",

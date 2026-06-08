@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { UTApi } from "uploadthing/server";
 import { prisma } from "@/app/lib/prisma";
-import { logUploadDelete } from "@/app/lib/discord";
+import { logUploadDelete, logUploadEdit } from "@/app/lib/discord";
 
 async function getSessionUser() {
   const cookieStore = await cookies();
@@ -34,16 +34,61 @@ export async function PATCH(
 
   const opt = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim().slice(0, 60) : null);
 
+  // Fetch before updating so we can diff and notify
+  const before = await prisma.upload.findUnique({
+    where: { id },
+    select: {
+      numericId: true, plateText: true,
+      userId: true, brand: true, model: true, generation: true, trim: true, color: true,
+      user: { select: { username: true } },
+    },
+  });
+  if (!before) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const newBrand      = opt(body.brand);
+  const newModel      = opt(body.model);
+  const newGeneration = opt(body.generation);
+  const newTrim       = opt(body.trim);
+  const newColor      = opt(body.color);
+
   const upload = await prisma.upload.update({
     where: { id },
-    data: {
-      brand:      opt(body.brand),
-      model:      opt(body.model),
-      generation: opt(body.generation),
-      trim:       opt(body.trim),
-      color:      opt(body.color),
-    },
+    data: { brand: newBrand, model: newModel, generation: newGeneration, trim: newTrim, color: newColor },
     select: { id: true, brand: true, model: true, generation: true, trim: true, color: true },
+  });
+
+  // Build a human-readable diff
+  const fields: Record<string, [string | null, string | null]> = {
+    Brand:      [before.brand,      newBrand],
+    Model:      [before.model,      newModel],
+    Generation: [before.generation, newGeneration],
+    Trim:       [before.trim,       newTrim],
+    Color:      [before.color,      newColor],
+  };
+  const changedLines = Object.entries(fields)
+    .filter(([, [oldVal, newVal]]) => oldVal !== newVal)
+    .map(([label, [oldVal, newVal]]) => `${label}: ${oldVal ?? "—"} → ${newVal ?? "—"}`);
+  const changesText = changedLines.length > 0 ? changedLines.join("\n") : "No fields changed";
+
+  // Notify owner (skip if admin edited their own spot)
+  if (before.userId !== user.id && changedLines.length > 0) {
+    await prisma.notification.create({
+      data: {
+        userId:  before.userId,
+        type:    "SYSTEM",
+        title:   `Your spot ${before.plateText} was edited by a moderator`,
+        message: changesText,
+        url:     `/spot/${before.numericId}`,
+      },
+    });
+  }
+
+  logUploadEdit({
+    actorUsername: user.username,
+    ownerUsername: before.user.username,
+    plateText:     before.plateText,
+    numericId:     before.numericId,
+    changes:       changesText,
   });
 
   return NextResponse.json({ upload });
