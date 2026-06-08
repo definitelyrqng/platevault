@@ -206,7 +206,7 @@ export default function AlbaniaUploadPage() {
             <span className="text-zinc-300">Albania 🇦🇱</span>
           </div>
           <h1 className="mt-2 text-2xl font-semibold">Upload — Albania</h1>
-          <p className="mt-1 text-sm text-zinc-400">Photo · plate text · broad location. Done in seconds.</p>
+          <p className="mt-1 text-sm text-zinc-400">Photo · plate text · city &amp; country. Done in seconds.</p>
         </div>
 
         {/* Success banner */}
@@ -326,11 +326,11 @@ export default function AlbaniaUploadPage() {
               </label>
 
               <label className="grid gap-1.5">
-                <span className="text-sm text-zinc-300">Location (broad)</span>
-                <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Tirana, Durrës" className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600" />
+                <span className="text-sm text-zinc-300">Location <span className="text-zinc-600 text-xs">(city + country required)</span></span>
+                <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Berlin, Germany" className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600" />
                 {locationWarning
                   ? <span className="text-xs text-amber-400">{locationWarning}</span>
-                  : <span className="text-xs text-zinc-600">City or area only — no street + number.</span>
+                  : <span className="text-xs text-zinc-600">City + country only — no street or house number.</span>
                 }
               </label>
 
@@ -373,9 +373,9 @@ export default function AlbaniaUploadPage() {
             </div>
 
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/20 p-5">
-              <div className="text-sm font-medium text-zinc-200 mb-2">📍 Privacy rule</div>
+              <div className="text-sm font-medium text-zinc-200 mb-2">📍 Location rule</div>
               <p className="text-sm text-zinc-400 leading-relaxed">
-                Use broad locations like <span className="text-zinc-300">"Tirana"</span> or <span className="text-zinc-300">"Durrës"</span>. No exact addresses or street + house number combos.
+                City + country is required — for example <span className="text-zinc-300">"Berlin, Germany"</span> or <span className="text-zinc-300">"Tirana, Albania"</span>. No street names or house numbers.
               </p>
             </div>
 

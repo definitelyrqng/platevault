@@ -55,6 +55,15 @@ async function getStats() {
 export default async function HomePage() {
   const { totalUploads, totalUsers, countryCount, countryGroups, recentUploads } = await getStats();
 
+  // Pick a random country for the hero button
+  const randomCountry = countryGroups.length > 0
+    ? countryGroups[Math.floor(Math.random() * countryGroups.length)]
+    : null;
+  const heroCmeta = randomCountry
+    ? (COUNTRY_META[randomCountry.country] ?? { flag: "🏳️", name: randomCountry.country.charAt(0).toUpperCase() + randomCountry.country.slice(1) })
+    : COUNTRY_META["albania"];
+  const heroCountry = randomCountry?.country ?? "albania";
+
   return (
     <main className="mx-auto max-w-6xl px-6 pb-16 pt-4">
 
@@ -77,8 +86,8 @@ export default async function HomePage() {
             <a href="/upload" className="rounded-xl bg-zinc-100 px-5 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-white transition-colors">
               Upload a spot
             </a>
-            <a href="/c/albania" className="rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-300 hover:bg-zinc-800 transition-colors">
-              🇦🇱 Browse Albania
+            <a href={`/c/${heroCountry}`} className="rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-300 hover:bg-zinc-800 transition-colors">
+              {heroCmeta.flag} Browse {heroCmeta.name}
             </a>
           </div>
         </div>
