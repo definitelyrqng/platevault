@@ -17,6 +17,22 @@ function fmt(d: Date) {
   return d.toLocaleString("en-GB", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
+function fmtShort(d: Date) {
+  return d.toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function relativeDays(d: Date) {
+  const ms = Date.now() - d.getTime();
+  const days = Math.max(0, Math.floor(ms / 86_400_000));
+  if (days === 0) return "today";
+  if (days === 1) return "1 day ago";
+  if (days < 30) return `${days} days ago`;
+  const months = Math.floor(days / 30);
+  if (months === 1) return "1 month ago";
+  if (months < 12) return `${months} months ago`;
+  return `${Math.floor(months / 12)} years ago`;
+}
+
 async function getCurrentUser() {
   const cookieStore = await cookies();
   const token = cookieStore.get("pv_session")?.value;
@@ -51,7 +67,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
         color: true,
         createdAt: true,
         userId: true,
-        user: { select: { username: true, numericId: true } },
+        user: { select: { username: true, numericId: true, avatarUrl: true } },
         _count: { select: { likes: true, comments: true } },
         likes: { select: { userId: true } },
         comments: {
@@ -71,46 +87,83 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
 
   if (!upload) return notFound();
 
+  // Other sightings of the same plate
+  const otherSightings = await prisma.upload.findMany({
+    where: { plateText: upload.plateText, country: upload.country, deletedAt: null, NOT: { id: upload.id } },
+    orderBy: { createdAt: "asc" },
+    take: 12,
+    select: {
+      numericId: true,
+      imageUrl: true,
+      createdAt: true,
+      user: { select: { username: true, numericId: true, avatarUrl: true } },
+      _count: { select: { likes: true } },
+    },
+  });
+
   const meta = COUNTRY_META[upload.country] ?? { flag: "🏳️", name: upload.country };
   const isOwner = currentUser?.id === upload.userId;
   const hasLiked = upload.likes.some((l) => l.userId === currentUser?.id);
   const isAdmin = currentUser?.role === "SUPERADMIN" || currentUser?.role === "ADMIN";
   const isMod = isAdmin || currentUser?.role === "MOD";
 
-  const carLabel = [upload.brand, upload.model, upload.generation].filter(Boolean).join(" ");
+  const carLabel = [upload.brand, upload.model].filter(Boolean).join(" ");
+  const fullCarLabel = [upload.brand, upload.model, upload.generation].filter(Boolean).join(" ");
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100">
       <div className="mx-auto max-w-5xl px-4 py-8">
 
-        {/* Back link */}
-        <a href={`/c/${upload.country}`} className="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-300 mb-6">
-          ← {meta.flag} {meta.name}
-        </a>
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-1.5 text-xs text-zinc-500 mb-6">
+          <a href="/home" className="hover:text-zinc-300">Home</a>
+          <span>›</span>
+          <a href={`/c/${upload.country}`} className="hover:text-zinc-300">{meta.flag} {meta.name}</a>
+          <span>›</span>
+          <span className="font-mono text-zinc-300">{upload.plateText}</span>
+          {otherSightings.length > 0 && (
+            <span className="ml-1 rounded-full bg-blue-500/20 border border-blue-500/30 px-2 py-0.5 text-[10px] text-blue-400 font-medium">
+              📍 {otherSightings.length + 1} sightings
+            </span>
+          )}
+        </div>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
-          {/* ─── Left: image + info ─── */}
-          <div className="space-y-4">
+          {/* ─── Left: image + comments ─── */}
+          <div className="space-y-5">
+
             {/* Hero image */}
-            <div className="relative overflow-hidden rounded-2xl bg-zinc-900 border border-zinc-800">
+            <div className="relative overflow-hidden rounded-3xl bg-zinc-900 border border-zinc-800 shadow-2xl">
               <img
                 src={upload.imageUrl}
                 alt={`${upload.plateText} — ${meta.name}`}
-                className="w-full object-contain max-h-[60vh]"
+                className="w-full object-contain max-h-[65vh]"
               />
+              {/* Overlay badge */}
+              <div className="absolute bottom-3 left-3 flex items-center gap-2">
+                <span className="rounded-full bg-zinc-950/80 backdrop-blur border border-zinc-700 px-3 py-1 text-xs text-zinc-300">
+                  {meta.flag} {meta.name}
+                </span>
+              </div>
             </div>
 
-            {/* Plate badge */}
-            <div className="flex items-center justify-center">
-              <div className="relative overflow-hidden rounded-xl bg-gradient-to-b from-white to-zinc-100 shadow-md ring-1 ring-zinc-300 px-1">
+            {/* EU Plate */}
+            <div className="flex items-center justify-center py-2">
+              <div className="relative overflow-hidden rounded-xl bg-gradient-to-b from-white to-zinc-100 shadow-lg ring-1 ring-zinc-300 px-1">
                 <div className="flex items-stretch">
-                  <div className="flex flex-col items-center justify-center bg-blue-700 px-3 py-3 text-white">
-                    <span className="text-[8px] font-bold leading-none tracking-wider">EU</span>
-                    <span className="mt-1 text-sm font-extrabold leading-none">
+                  <div className="flex flex-col items-center justify-center bg-blue-700 px-3 py-3 text-white gap-0.5">
+                    <div className="flex gap-0.5">
+                      {["★","★","★"].map((s,i) => <span key={i} className="text-[5px] leading-none">★</span>)}
+                    </div>
+                    <span className="text-[8px] font-bold leading-none tracking-wider mt-0.5">EU</span>
+                    <span className="text-xs font-extrabold leading-none mt-0.5">
                       {meta.name.slice(0, 2).toUpperCase()}
                     </span>
+                    <div className="flex gap-0.5 mt-0.5">
+                      {["★","★","★"].map((s,i) => <span key={i} className="text-[5px] leading-none">★</span>)}
+                    </div>
                   </div>
-                  <div className="flex items-center justify-center px-5 py-3">
+                  <div className="flex items-center justify-center px-6 py-3">
                     <span className="font-mono text-3xl font-black tracking-[0.2em] text-zinc-900">
                       {upload.plateText}
                     </span>
@@ -119,12 +172,12 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
               </div>
             </div>
 
-            {/* Car name if available */}
-            {carLabel && (
-              <div className="text-center">
-                <div className="text-xl font-semibold text-zinc-100">{carLabel}</div>
-                {upload.generation && upload.trim && (
-                  <div className="text-sm text-zinc-400 mt-0.5">{upload.trim}</div>
+            {/* Car name */}
+            {fullCarLabel && (
+              <div className="text-center space-y-0.5">
+                <div className="text-xl font-semibold text-zinc-100">{fullCarLabel}</div>
+                {upload.trim && (
+                  <div className="text-sm text-zinc-400">{upload.trim}</div>
                 )}
               </div>
             )}
@@ -146,10 +199,27 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
             />
           </div>
 
-          {/* ─── Right: sidebar info ─── */}
+          {/* ─── Right: sidebar ─── */}
           <aside className="space-y-4">
-            {/* Like + stats */}
+
+            {/* Spotter card */}
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <a href={`/u/${upload.user.numericId}`} className="flex items-center gap-3 group">
+                  {upload.user.avatarUrl ? (
+                    <img src={upload.user.avatarUrl} alt={upload.user.username} className="h-9 w-9 rounded-xl object-cover ring-2 ring-zinc-700 group-hover:ring-zinc-500 transition-all" />
+                  ) : (
+                    <div className="h-9 w-9 rounded-xl bg-zinc-800 grid place-items-center text-xs font-bold text-zinc-400 ring-2 ring-zinc-700">
+                      {upload.user.username.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <div className="text-sm font-medium text-zinc-200 group-hover:text-white transition-colors">@{upload.user.username}</div>
+                    <div className="text-xs text-zinc-500">{relativeDays(upload.createdAt)}</div>
+                  </div>
+                </a>
+              </div>
+
               <SpotActions
                 uploadId={upload.id}
                 initialLikes={upload._count.likes}
@@ -157,7 +227,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 isOwner={isOwner}
                 isLoggedIn={!!currentUser}
               />
-              <div className="mt-3 flex gap-4 text-sm text-zinc-400">
+              <div className="mt-3 flex gap-4 text-xs text-zinc-500">
                 <span>{upload._count.likes} like{upload._count.likes !== 1 ? "s" : ""}</span>
                 <span>{upload._count.comments} comment{upload._count.comments !== 1 ? "s" : ""}</span>
               </div>
@@ -165,16 +235,13 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
 
             {/* Details */}
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
-              <div className="text-xs uppercase tracking-wider text-zinc-500">Details</div>
-
-              <Detail label="Country" value={`${meta.flag} ${meta.name}`} />
+              <div className="text-xs uppercase tracking-wider text-zinc-500 mb-1">Details</div>
+              <Detail label="Country"    value={`${meta.flag} ${meta.name}`} />
               {upload.plateType && <Detail label="Plate type" value={upload.plateType.replace(/-/g, " ")} />}
-              {upload.color && <Detail label="Color" value={upload.color} />}
-              {upload.trim && <Detail label="Trim" value={upload.trim} />}
+              {upload.color      && <Detail label="Color"      value={upload.color} />}
+              {upload.trim       && <Detail label="Trim"       value={upload.trim} />}
               {upload.generation && <Detail label="Generation" value={upload.generation} />}
-
-              <div className="border-t border-zinc-800 pt-3 space-y-3">
-                <Detail label="Spotted by" value={`@${upload.user.username}`} href={`/u/${upload.user.numericId}`} />
+              <div className="border-t border-zinc-800 pt-3">
                 <Detail label="Date" value={fmt(upload.createdAt)} />
               </div>
             </div>
@@ -191,7 +258,6 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
               />
             )}
 
-            {/* Missing car info nudge (non-admins) */}
             {!isAdmin && !upload.brand && !upload.model && (
               <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/20 p-4 text-xs text-zinc-500">
                 Car details not filled in yet. Admins can add brand, model, generation &amp; trim.
@@ -199,6 +265,56 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
             )}
           </aside>
         </div>
+
+        {/* ─── Multi Spot section ─── */}
+        {otherSightings.length > 0 && (
+          <section className="mt-12">
+            <div className="flex items-center gap-3 mb-5">
+              <h2 className="text-lg font-semibold">📍 Multi Spots</h2>
+              <span className="rounded-full bg-blue-500/20 border border-blue-500/30 px-2.5 py-0.5 text-xs text-blue-400 font-medium">
+                {otherSightings.length} other sighting{otherSightings.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+            <p className="text-sm text-zinc-400 mb-5">
+              <span className="font-mono font-bold text-zinc-200">{upload.plateText}</span> has been spotted {otherSightings.length + 1} times in {meta.name} by the community.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {otherSightings.map((s) => (
+                <a
+                  key={s.numericId}
+                  href={`/spot/${s.numericId}`}
+                  className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-blue-800 transition-colors"
+                >
+                  <div className="aspect-video bg-zinc-950 overflow-hidden">
+                    <img
+                      src={s.imageUrl}
+                      alt={upload.plateText}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="p-4 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      {s.user.avatarUrl ? (
+                        <img src={s.user.avatarUrl} alt={s.user.username} className="h-6 w-6 rounded-lg object-cover" />
+                      ) : (
+                        <div className="h-6 w-6 rounded-lg bg-zinc-800 grid place-items-center text-[9px] font-bold text-zinc-500">
+                          {s.user.username.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
+                      <span className="text-xs text-zinc-400">@{s.user.username}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-zinc-500">
+                      <span>{fmtShort(s.createdAt)}</span>
+                      <span>♡ {s._count.likes}</span>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
       </div>
     </main>
   );

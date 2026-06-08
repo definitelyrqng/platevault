@@ -5,9 +5,9 @@ export const dynamic = "force-dynamic";
 const COUNTRY_META: Record<string, { flag: string; name: string }> = {
   albania: { flag: "🇦🇱", name: "Albania" },
   germany: { flag: "🇩🇪", name: "Germany" },
-  italy: { flag: "🇮🇹", name: "Italy" },
-  kosovo: { flag: "🇽🇰", name: "Kosovo" },
-  greece: { flag: "🇬🇷", name: "Greece" },
+  italy:   { flag: "🇮🇹", name: "Italy" },
+  kosovo:  { flag: "🇽🇰", name: "Kosovo" },
+  greece:  { flag: "🇬🇷", name: "Greece" },
 };
 
 function relativeDays(d: Date) {
@@ -27,7 +27,7 @@ async function getStats() {
     prisma.upload.findMany({
       where: { deletedAt: null },
       orderBy: { createdAt: "desc" },
-      take: 6,
+      take: 9,
       select: {
         id: true,
         numericId: true,
@@ -35,7 +35,9 @@ async function getStats() {
         country: true,
         imageUrl: true,
         createdAt: true,
-        user: { select: { username: true, numericId: true } },
+        brand: true,
+        model: true,
+        user: { select: { username: true, numericId: true, avatarUrl: true } },
         _count: { select: { likes: true } },
       },
     }),
@@ -47,105 +49,111 @@ export default async function HomePage() {
   const { totalUploads, totalUsers, recentUploads } = await getStats();
 
   return (
-    <main className="mx-auto max-w-6xl px-6 pb-14 pt-6">
-      {/* Hero */}
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
-          Spot. Tag. Archive.
-        </h1>
-        <p className="mt-3 max-w-2xl text-zinc-400">
-          A community gallery for license plate spotters. Upload your finds, browse by country, and explore plate formats from around the world — without the clutter.
-        </p>
+    <main className="mx-auto max-w-6xl px-6 pb-16 pt-4">
+
+      {/* ─── Hero ─── */}
+      <div className="relative rounded-3xl overflow-hidden border border-zinc-800 bg-zinc-900/60 px-8 py-12 mb-8">
+        {/* Subtle radial glow */}
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(99,102,241,0.12),transparent)]" />
+        <div className="relative">
+          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-900/60 bg-indigo-950/40 px-3 py-1 text-xs text-indigo-400 mb-4">
+            <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
+            Community plate archive
+          </div>
+          <h1 className="text-4xl font-bold tracking-tight md:text-5xl bg-gradient-to-br from-zinc-100 to-zinc-400 bg-clip-text text-transparent">
+            Spot. Tag. Archive.
+          </h1>
+          <p className="mt-4 max-w-xl text-zinc-400 leading-relaxed">
+            A community gallery for license plate spotters. Upload your finds, browse by country, and explore plate formats from around the world.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <a href="/upload" className="rounded-xl bg-zinc-100 px-5 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-white transition-colors">
+              Upload a spot
+            </a>
+            <a href="/c/albania" className="rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-300 hover:bg-zinc-800 transition-colors">
+              🇦🇱 Browse Albania
+            </a>
+          </div>
+        </div>
       </div>
 
-      {/* Stats */}
-      <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">
+      {/* ─── Stats ─── */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 mb-8">
         {[
-          { label: "Spots archived", value: totalUploads.toLocaleString() },
-          { label: "Spotters", value: totalUsers.toLocaleString() },
-          { label: "Countries", value: "1" },
-          { label: "Plate types", value: "7+" },
+          { label: "Spots archived", value: totalUploads.toLocaleString(), icon: "📷", color: "text-zinc-100" },
+          { label: "Spotters",       value: totalUsers.toLocaleString(),   icon: "👤", color: "text-zinc-100" },
+          { label: "Countries",      value: "1",                           icon: "🌍", color: "text-zinc-100" },
+          { label: "Plate formats",  value: "7+",                          icon: "🪪", color: "text-zinc-100" },
         ].map((s) => (
-          <div key={s.label} className="rounded-2xl border border-zinc-800 bg-zinc-900/30 px-4 py-5">
-            <div className="text-2xl font-semibold text-zinc-100">{s.value}</div>
+          <div key={s.label} className="rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900/80 to-zinc-900/30 px-5 py-5 hover:border-zinc-700 transition-colors">
+            <div className="text-lg mb-1">{s.icon}</div>
+            <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
             <div className="mt-0.5 text-xs text-zinc-500">{s.label}</div>
           </div>
         ))}
       </div>
 
-      {/* Action cards */}
-      <div className="mt-6 grid gap-4 md:grid-cols-3">
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
-          <div className="text-xs uppercase tracking-wider text-zinc-500">Upload</div>
-          <div className="mt-1.5 text-lg font-semibold">Spot a plate</div>
-          <p className="mt-2 text-sm text-zinc-400">
-            Choose a country, pick the plate type, upload a JPG or PNG — done in seconds.
-          </p>
-          <a href="/upload" className="mt-4 inline-flex rounded-xl bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-white">
-            Upload a spot
-          </a>
-        </div>
-
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
-          <div className="text-xs uppercase tracking-wider text-zinc-500">Browse</div>
-          <div className="mt-1.5 text-lg font-semibold">Explore by country</div>
-          <p className="mt-2 text-sm text-zinc-400">
-            Browse plates by country. More filters and search coming soon.
-          </p>
-          <a href="/c/albania" className="mt-4 inline-flex rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-900">
-            🇦🇱 Browse Albania
-          </a>
-        </div>
-
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
-          <div className="text-xs uppercase tracking-wider text-zinc-500">Rules</div>
-          <div className="mt-1.5 text-lg font-semibold">Respect privacy</div>
-          <p className="mt-2 text-sm text-zinc-400">
-            Broad locations only — "Tirana" is fine. No street names or exact addresses. Community-first.
-          </p>
-          <span className="mt-4 inline-flex rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2 text-sm text-zinc-500">
-            Privacy-first ✓
-          </span>
-        </div>
-      </div>
-
-      {/* Recent uploads */}
+      {/* ─── Recent spots ─── */}
       {recentUploads.length > 0 && (
-        <section className="mt-12">
+        <section>
           <div className="flex items-baseline justify-between gap-4 mb-5">
-            <h2 className="text-xl font-semibold">Recent spots</h2>
-            <a href="/c/albania" className="text-sm text-zinc-400 hover:text-zinc-200">View all →</a>
+            <div>
+              <h2 className="text-xl font-semibold">Recent spots</h2>
+              <p className="text-xs text-zinc-500 mt-0.5">Latest from the community</p>
+            </div>
+            <a href="/c/albania" className="text-sm text-zinc-400 hover:text-zinc-200 transition-colors">
+              View all →
+            </a>
           </div>
+
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {recentUploads.map((u) => {
               const meta = COUNTRY_META[u.country] ?? { flag: "🏳️", name: u.country };
+              const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
               return (
-                <div key={u.id} className="group relative rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-zinc-700 transition-colors">
-                  {/* Full-card link (behind everything) */}
+                <div key={u.id} className="group relative rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-zinc-600 transition-all hover:shadow-lg hover:shadow-black/20">
                   <a href={`/spot/${u.numericId}`} className="absolute inset-0 z-0" aria-label={u.plateText} />
+
+                  {/* Image */}
                   <div className="aspect-video bg-zinc-950 overflow-hidden">
                     <img
                       src={u.imageUrl}
                       alt={`${u.plateText} plate`}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
                     />
                   </div>
+
+                  {/* Country badge overlaid */}
+                  <div className="absolute top-2.5 right-2.5 z-10">
+                    <span className="rounded-full bg-zinc-950/80 backdrop-blur border border-zinc-700/60 px-2 py-0.5 text-xs">
+                      {meta.flag}
+                    </span>
+                  </div>
+
+                  {/* Card body */}
                   <div className="p-4">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-base font-bold tracking-widest text-zinc-100">
-                        {u.plateText}
-                      </span>
-                      <span className="text-base">{meta.flag}</span>
-                    </div>
-                    <div className="mt-2 flex items-center justify-between text-xs text-zinc-500">
-                      <a href={`/u/${u.user.numericId}`} className="relative z-10 hover:text-zinc-300">
-                        @{u.user.username}
-                      </a>
-                      <div className="flex items-center gap-2">
-                        <span>{relativeDays(u.createdAt)}</span>
-                        <span className="inline-flex items-center gap-0.5">♡ {u._count.likes}</span>
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div>
+                        <div className="font-mono text-base font-bold tracking-widest text-zinc-100 leading-tight">
+                          {u.plateText}
+                        </div>
+                        {carLabel && <div className="text-xs text-zinc-500 mt-0.5">{carLabel}</div>}
                       </div>
+                      <span className="shrink-0 text-xs text-zinc-500 mt-0.5">{relativeDays(u.createdAt)}</span>
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60">
+                      <a href={`/u/${u.user.numericId}`} className="relative z-10 flex items-center gap-1.5 group/user">
+                        {u.user.avatarUrl ? (
+                          <img src={u.user.avatarUrl} alt={u.user.username} className="h-5 w-5 rounded-md object-cover" />
+                        ) : (
+                          <div className="h-5 w-5 rounded-md bg-zinc-800 grid place-items-center text-[8px] font-bold text-zinc-500">
+                            {u.user.username.slice(0, 2).toUpperCase()}
+                          </div>
+                        )}
+                        <span className="text-xs text-zinc-500 group-hover/user:text-zinc-300 transition-colors">@{u.user.username}</span>
+                      </a>
+                      <span className="text-xs text-zinc-600">♡ {u._count.likes}</span>
                     </div>
                   </div>
                 </div>
@@ -154,6 +162,7 @@ export default async function HomePage() {
           </div>
         </section>
       )}
+
     </main>
   );
 }
