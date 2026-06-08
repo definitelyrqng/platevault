@@ -80,6 +80,8 @@ model Upload {
   trim       String? @db.VarChar(60)
   color      String? @db.VarChar(60)
 
+  location  String?  @db.VarChar(120)
+
   imageUrl  String   @db.VarChar(500)
 
   hidden    Boolean  @default(false)

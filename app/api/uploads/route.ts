@@ -20,7 +20,8 @@ export async function POST(req: Request) {
     const plateType = optStr(body.plateType, 60);
     const imageUrl  = String(body.imageUrl ?? "").trim();
 
-    // Car detail fields — all optional
+    // Optional fields
+    const location   = optStr(body.location, 120);
     const brand      = optStr(body.brand, 60);
     const model      = optStr(body.model, 60);
     const generation = optStr(body.generation, 60);
@@ -45,7 +46,7 @@ export async function POST(req: Request) {
     });
 
     const upload = await prisma.upload.create({
-      data: { userId: user.id, country, plateText, plateType, imageUrl, brand, model, generation, trim, color },
+      data: { userId: user.id, country, plateText, plateType, imageUrl, location, brand, model, generation, trim, color },
       select: { id: true, numericId: true, country: true, plateText: true, plateType: true, imageUrl: true, createdAt: true },
     });
 

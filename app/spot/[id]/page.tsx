@@ -65,6 +65,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
         generation: true,
         trim: true,
         color: true,
+        location: true,
         hidden: true,
         createdAt: true,
         userId: true,
@@ -255,6 +256,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
               <div className="text-xs uppercase tracking-wider text-zinc-500 mb-1">Details</div>
               <Detail label="Country"    value={`${meta.flag} ${meta.name}`} />
+              {upload.location  && <Detail label="Location"   value={upload.location} />}
               {upload.plateType && <Detail label="Plate type" value={upload.plateType.replace(/-/g, " ")} />}
               {upload.color      && <Detail label="Color"      value={upload.color} />}
               {upload.trim       && <Detail label="Trim"       value={upload.trim} />}

@@ -21,10 +21,15 @@ function relativeDays(d: Date) {
 }
 
 async function getStats() {
-  const [totalUploads, totalUsers, countryCount, recentUploads] = await Promise.all([
+  const [totalUploads, totalUsers, countryGroups, recentUploads] = await Promise.all([
     prisma.upload.count({ where: { deletedAt: null } }),
     prisma.user.count(),
-    prisma.upload.groupBy({ by: ["country"], where: { deletedAt: null } }).then((r) => r.length),
+    prisma.upload.groupBy({
+      by: ["country"],
+      where: { deletedAt: null, hidden: false },
+      _count: { id: true },
+      orderBy: { _count: { id: "desc" } },
+    }),
     prisma.upload.findMany({
       where: { deletedAt: null, hidden: false },
       orderBy: { createdAt: "desc" },
@@ -43,11 +48,12 @@ async function getStats() {
       },
     }),
   ]);
-  return { totalUploads, totalUsers, countryCount, recentUploads };
+  const countryCount = countryGroups.length;
+  return { totalUploads, totalUsers, countryCount, countryGroups, recentUploads };
 }
 
 export default async function HomePage() {
-  const { totalUploads, totalUsers, countryCount, recentUploads } = await getStats();
+  const { totalUploads, totalUsers, countryCount, countryGroups, recentUploads } = await getStats();
 
   return (
     <main className="mx-auto max-w-6xl px-6 pb-16 pt-4">
@@ -101,6 +107,37 @@ export default async function HomePage() {
           )
         ))}
       </div>
+
+      {/* ─── Browse by country ─── */}
+      {countryGroups.length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-baseline justify-between gap-4 mb-4">
+            <div>
+              <h2 className="text-xl font-semibold">Browse by country</h2>
+              <p className="text-xs text-zinc-500 mt-0.5">Pick a country to see all its spots</p>
+            </div>
+            <a href="/countries" className="text-sm text-zinc-400 hover:text-zinc-200 transition-colors">
+              All countries →
+            </a>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            {countryGroups.map(({ country, _count }) => {
+              const m = COUNTRY_META[country] ?? { flag: "🏳️", name: country.charAt(0).toUpperCase() + country.slice(1) };
+              return (
+                <a
+                  key={country}
+                  href={`/c/${country}`}
+                  className="group flex flex-col items-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900/40 px-4 py-5 text-center hover:border-zinc-600 hover:bg-zinc-900/70 transition-all"
+                >
+                  <span className="text-3xl">{m.flag}</span>
+                  <span className="text-sm font-medium text-zinc-200 group-hover:text-white truncate w-full">{m.name}</span>
+                  <span className="text-xs text-zinc-600">{_count.id} spot{_count.id === 1 ? "" : "s"}</span>
+                </a>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* ─── Recent spots ─── */}
       {recentUploads.length > 0 && (
