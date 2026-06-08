@@ -1,0 +1,17 @@
+name: Poll Trigger
+
+on:
+  schedule:
+    # Runs at 22:00 UTC every day
+    - cron: "0 22 * * *"
+  workflow_dispatch: # allows manual trigger from GitHub UI
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger poll creation
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" \
+            -X POST "${{ secrets.PLATEVAULT_URL }}/api/cron/poll-trigger" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
