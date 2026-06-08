@@ -43,6 +43,7 @@ export default function RootLayout({
             <span>© {new Date().getFullYear()} PlateVault</span>
             <a href="/rules" className="hover:text-zinc-400 transition-colors">Rules</a>
             <a href="/legal" className="hover:text-zinc-400 transition-colors">Terms &amp; Privacy</a>
+            <a href="/contact" className="hover:text-zinc-400 transition-colors">Contact</a>
           </footer>
         </div>
       </body>
