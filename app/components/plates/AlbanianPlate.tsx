@@ -1,36 +1,29 @@
 /**
  * AlbanianPlate — background image (1000x221) + FE-Schrift overlay
  *
- * Background landmarks (image-space px):
- *   Blue strip right edge : ~145
- *   Hologram sticker      : x=382, y=104  (34px wide)
- *   Circle left edge      : ~935
- *
- * Text is split at the FIRST SPACE so the hologram sits naturally
- * between the district code and the rest:
- *   "AB"     → right-aligned, ending before the hologram
- *   "501 UV" → left-aligned,  starting after the hologram
+ * White area: x=145 to x=935
+ * Hologram:   x=365-400, y≈104
+ * Left text section  145→365, centre x=255
+ * Right text section 400→935, centre x=667
  */
 
 const FE_B64 = "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";
-
 const FONT_FACE = `@font-face{font-family:FE-Schrift;src:url('data:font/woff2;base64,${FE_B64}')format('woff2');}`;
 
-const FONT    = "FE-Schrift, Arial Black, Arial, sans-serif";
-const FS      = 110;   // font-size (image-space px)
-const Y       = 113;   // vertical centre
-const X_LEFT  = 350;   // right edge of left group  (hologram left ~365)
-const X_RIGHT = 415;   // left  edge of right group (hologram right ~400)
-const LS      = "4px";
+const FONT   = "FE-Schrift, Arial Black, Arial, sans-serif";
+const FS     = 110;    // font-size in image-space px
+const Y      = 113;    // vertical centre
+const X_L    = 255;    // centre of left  section (district code)
+const X_R    = 667;    // centre of right section (serial + check)
+const LS     = "4px";
 
 interface Props { text: string; width?: number; }
 
-export default function AlbanianPlate({ text, width = 380 }: Props) {
+export default function AlbanianPlate({ text, width = 320 }: Props) {
   const height = Math.round(width * (221 / 1000));
 
-  // Split "AB 501 UV" → ["AB", "501 UV"]
   const spaceIdx = text.indexOf(" ");
-  const left  = spaceIdx >= 0 ? text.slice(0, spaceIdx) : text;
+  const left  = spaceIdx >= 0 ? text.slice(0, spaceIdx)  : text;
   const right = spaceIdx >= 0 ? text.slice(spaceIdx + 1) : "";
 
   return (
@@ -43,9 +36,7 @@ export default function AlbanianPlate({ text, width = 380 }: Props) {
       aria-label={"Albanian plate " + text}
       style={{ display: "block", maxWidth: "100%" }}
     >
-      <defs>
-        <style>{FONT_FACE}</style>
-      </defs>
+      <defs><style>{FONT_FACE}</style></defs>
 
       <image
         href="/plates/albania/cars_current_single.png"
@@ -53,30 +44,24 @@ export default function AlbanianPlate({ text, width = 380 }: Props) {
         preserveAspectRatio="none"
       />
 
-      {/* District code — right-aligned, ends before hologram */}
+      {/* District code — centred in left section */}
       <text
-        x={X_LEFT} y={Y}
-        textAnchor="end"
-        dominantBaseline="central"
+        x={X_L} y={Y}
+        textAnchor="middle" dominantBaseline="central"
         fontFamily={FONT} fontWeight="bold"
         fontSize={FS} letterSpacing={LS}
         fill="#111111"
-      >
-        {left}
-      </text>
+      >{left}</text>
 
-      {/* Serial + check letters — left-aligned, starts after hologram */}
+      {/* Serial + check — centred in right section */}
       {right && (
         <text
-          x={X_RIGHT} y={Y}
-          textAnchor="start"
-          dominantBaseline="central"
+          x={X_R} y={Y}
+          textAnchor="middle" dominantBaseline="central"
           fontFamily={FONT} fontWeight="bold"
           fontSize={FS} letterSpacing={LS}
           fill="#111111"
-        >
-          {right}
-        </text>
+        >{right}</text>
       )}
     </svg>
   );
