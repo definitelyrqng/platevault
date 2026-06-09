@@ -331,7 +331,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
 /** Renders the correct plate component per country, falls back to generic EU style */
 function PlateRenderer({ country, text, countryName }: { country: string; text: string; countryName: string }) {
   if (country === "albania") {
-    return <AlbanianPlate text={text} size="md" />;
+    return <AlbanianPlate text={text} width={380} />;
   }
 
   // Generic EU-style fallback for all other countries
