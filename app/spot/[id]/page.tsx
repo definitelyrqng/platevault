@@ -5,6 +5,7 @@ import SpotActions from "./SpotActions";
 import CommentSection from "./CommentSection";
 import AdminPanel from "./AdminPanel";
 import ReportButton from "./ReportButton";
+import AlbanianPlate from "@/app/components/plates/AlbanianPlate";
 
 const COUNTRY_META: Record<string, { flag: string; name: string }> = {
   albania: { flag: "🇦🇱", name: "Albania" },
@@ -167,29 +168,9 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
               </div>
             </div>
 
-            {/* EU Plate */}
+            {/* License plate render */}
             <div className="flex items-center justify-center py-2">
-              <div className="relative overflow-hidden rounded-xl bg-gradient-to-b from-white to-zinc-100 shadow-lg ring-1 ring-zinc-300 px-1">
-                <div className="flex items-stretch">
-                  <div className="flex flex-col items-center justify-center bg-blue-700 px-3 py-3 text-white gap-0.5">
-                    <div className="flex gap-0.5">
-                      {["★","★","★"].map((s,i) => <span key={i} className="text-[5px] leading-none">★</span>)}
-                    </div>
-                    <span className="text-[8px] font-bold leading-none tracking-wider mt-0.5">EU</span>
-                    <span className="text-xs font-extrabold leading-none mt-0.5">
-                      {meta.name.slice(0, 2).toUpperCase()}
-                    </span>
-                    <div className="flex gap-0.5 mt-0.5">
-                      {["★","★","★"].map((s,i) => <span key={i} className="text-[5px] leading-none">★</span>)}
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-center px-6 py-3">
-                    <span className="font-mono text-3xl font-black tracking-[0.2em] text-zinc-900">
-                      {upload.plateText}
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <PlateRenderer country={upload.country} text={upload.plateText} countryName={meta.name} />
             </div>
 
             {/* Car name */}
@@ -344,6 +325,37 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
 
       </div>
     </main>
+  );
+}
+
+/** Renders the correct plate component per country, falls back to generic EU style */
+function PlateRenderer({ country, text, countryName }: { country: string; text: string; countryName: string }) {
+  if (country === "albania") {
+    return <AlbanianPlate text={text} size="md" />;
+  }
+
+  // Generic EU-style fallback for all other countries
+  const code = countryName.slice(0, 2).toUpperCase();
+  return (
+    <div className="relative overflow-hidden rounded-xl bg-gradient-to-b from-white to-zinc-100 shadow-lg ring-1 ring-zinc-300 px-1">
+      <div className="flex items-stretch">
+        <div className="flex flex-col items-center justify-center bg-blue-700 px-3 py-3 text-white gap-0.5">
+          <div className="flex gap-0.5">
+            {["★","★","★"].map((_,i) => <span key={i} className="text-[5px] leading-none">★</span>)}
+          </div>
+          <span className="text-[8px] font-bold leading-none tracking-wider mt-0.5">EU</span>
+          <span className="text-xs font-extrabold leading-none mt-0.5">{code}</span>
+          <div className="flex gap-0.5 mt-0.5">
+            {["★","★","★"].map((_,i) => <span key={i} className="text-[5px] leading-none">★</span>)}
+          </div>
+        </div>
+        <div className="flex items-center justify-center px-6 py-3">
+          <span className="font-mono text-3xl font-black tracking-[0.2em] text-zinc-900">
+            {text}
+          </span>
+        </div>
+      </div>
+    </div>
   );
 }
 
