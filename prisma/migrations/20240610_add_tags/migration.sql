@@ -1,0 +1,1 @@
+ALTER TABLE "Upload" ADD COLUMN "tags" TEXT[] NOT NULL DEFAULT '{}';

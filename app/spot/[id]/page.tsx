@@ -5,6 +5,8 @@ import SpotActions from "./SpotActions";
 import CommentSection from "./CommentSection";
 import AdminPanel from "./AdminPanel";
 import ReportButton from "./ReportButton";
+import TagEditor from "./TagEditor";
+import { tagById } from "@/app/lib/tags";
 
 const COUNTRY_META: Record<string, { flag: string; name: string }> = {
   albania: { flag: "🇦🇱", name: "Albania" },
@@ -67,6 +69,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
         trim: true,
         color: true,
         location: true,
+        tags: true,
         hidden: true,
         createdAt: true,
         userId: true,
@@ -180,6 +183,25 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
               </div>
             )}
 
+            {/* Tags */}
+            {upload.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {upload.tags.map((tag) => {
+                  const def = tagById(tag);
+                  if (!def) return null;
+                  return (
+                    <a
+                      key={tag}
+                      href={"/tags/" + tag}
+                      className="rounded-full px-2.5 py-0.5 text-xs font-medium border border-zinc-700 bg-zinc-900/60 text-zinc-300 hover:border-zinc-500 hover:text-zinc-100 transition-colors"
+                    >
+                      #{def.label}
+                    </a>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Comments */}
             <CommentSection
               uploadId={upload.id}
@@ -249,6 +271,14 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 <Detail label="Date" value={fmt(upload.createdAt)} />
               </div>
             </div>
+
+            {/* Tag editor - mod+ */}
+            {isMod && (
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
+                <div className="text-xs uppercase tracking-wider text-zinc-500 mb-1">Tags</div>
+                <TagEditor uploadId={upload.id} initialTags={upload.tags} />
+              </div>
+            )}
 
             {/* Admin panel */}
             {isAdmin && (

@@ -88,6 +88,7 @@ model Upload {
   color      String? @db.VarChar(60)
 
   location  String?  @db.VarChar(120)
+  tags      String[] @default([])
 
   imageUrl  String   @db.VarChar(500)
 

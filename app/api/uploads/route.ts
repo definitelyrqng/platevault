@@ -4,6 +4,7 @@ import { getSessionUserWithBanCheck } from "@/app/lib/banCheck";
 import { logNewUpload } from "@/app/lib/discord";
 import { applyWatermark } from "@/app/lib/watermark";
 import { UTApi, UTFile } from "uploadthing/server";
+import { sanitizeTags } from "@/app/lib/tags";
 
 function optStr(val: unknown, max: number): string | null {
   const s = String(val ?? "").trim();
@@ -24,6 +25,7 @@ export async function POST(req: Request) {
     const imageUrl  = String(body.imageUrl ?? "").trim();
 
     const location   = optStr(body.location, 120);
+    const tags       = sanitizeTags(body.tags);
     const brand      = optStr(body.brand, 60);
     const model      = optStr(body.model, 60);
     const generation = optStr(body.generation, 60);
@@ -63,7 +65,7 @@ export async function POST(req: Request) {
     });
 
     const upload = await prisma.upload.create({
-      data: { userId: user.id, country, plateText, plateType, imageUrl: finalImageUrl, location, brand, model, generation, trim, color },
+      data: { userId: user.id, country, plateText, plateType, imageUrl: finalImageUrl, location, brand, model, generation, trim, color, tags },
       select: { id: true, numericId: true, country: true, plateText: true, plateType: true, imageUrl: true, createdAt: true },
     });
 

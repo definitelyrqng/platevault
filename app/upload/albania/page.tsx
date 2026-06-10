@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { generateReactHelpers } from "@uploadthing/react";
 import type { OurFileRouter } from "@/app/lib/uploadthing";
 import CarDetailsFields from "@/app/upload/CarDetailsFields";
+import TagPicker from "@/app/components/TagPicker";
 
 const { useUploadThing } = generateReactHelpers<OurFileRouter>();
 
@@ -67,6 +68,7 @@ export default function AlbaniaUploadPage() {
   const [generation, setGeneration] = useState("");
   const [trim, setTrim] = useState("");
   const [color, setColor] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -150,6 +152,7 @@ export default function AlbaniaUploadPage() {
           generation: generation.trim(),
           trim: trim.trim(),
           color: color.trim(),
+          tags,
         }),
       });
 
@@ -346,6 +349,12 @@ export default function AlbaniaUploadPage() {
                   }, [])}
                 />
               </div>
+            </div>
+
+            {/* Tags */}
+            <div className="pt-2 border-t border-zinc-800 space-y-2">
+              <div className="text-sm text-zinc-300">Tags <span className="text-zinc-600 text-xs">(optional, up to 6)</span></div>
+              <TagPicker selected={tags} onChange={setTags} max={6} />
             </div>
 
             <div className="flex items-center gap-3 pt-1">
