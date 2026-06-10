@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
 import { getSessionUserWithBanCheck } from "@/app/lib/banCheck";
 import { logNewUpload } from "@/app/lib/discord";
+import { applyWatermark } from "@/app/lib/watermark";
+import { UTApi, UTFile } from "uploadthing/server";
 
 function optStr(val: unknown, max: number): string | null {
   const s = String(val ?? "").trim();
@@ -21,7 +23,6 @@ export async function POST(req: Request) {
     const plateType = optStr(body.plateType, 60);
     const imageUrl  = String(body.imageUrl ?? "").trim();
 
-    // Optional fields
     const location   = optStr(body.location, 120);
     const brand      = optStr(body.brand, 60);
     const model      = optStr(body.model, 60);
@@ -33,13 +34,28 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields: country, plateText, imageUrl" }, { status: 400 });
     }
     if (plateText.length < 2 || plateText.length > 32) {
-      return NextResponse.json({ error: "Plate text must be 2–32 characters" }, { status: 400 });
+      return NextResponse.json({ error: "Plate text must be 2-32 characters" }, { status: 400 });
     }
     if (!imageUrl.startsWith("https://")) {
       return NextResponse.json({ error: "Invalid image URL" }, { status: 400 });
     }
 
-    // Check for existing spot before saving (multi-spot detection)
+    // Apply watermark: download, composite logo, re-upload, swap URL
+    let finalImageUrl = imageUrl;
+    try {
+      const watermarked = await applyWatermark(imageUrl);
+      const utapi = new UTApi({ token: process.env.UPLOADTHING_TOKEN });
+      const filename = "wm_" + Date.now() + "_" + plateText.replace(/\s/g, "_") + ".jpg";
+      const [uploaded] = await utapi.uploadFiles([new UTFile([new Uint8Array(watermarked)], filename, { type: "image/jpeg" })]);
+      if (uploaded?.data?.ufsUrl) {
+        finalImageUrl = uploaded.data.ufsUrl;
+        const key = imageUrl.split("/f/")[1];
+        if (key) utapi.deleteFiles([key]).catch(() => {});
+      }
+    } catch (wmErr) {
+      console.error("[watermark] failed, using original:", wmErr);
+    }
+
     const existingSpot = await prisma.upload.findFirst({
       where: { plateText, country, deletedAt: null },
       orderBy: { createdAt: "asc" },
@@ -47,19 +63,18 @@ export async function POST(req: Request) {
     });
 
     const upload = await prisma.upload.create({
-      data: { userId: user.id, country, plateText, plateType, imageUrl, location, brand, model, generation, trim, color },
+      data: { userId: user.id, country, plateText, plateType, imageUrl: finalImageUrl, location, brand, model, generation, trim, color },
       select: { id: true, numericId: true, country: true, plateText: true, plateType: true, imageUrl: true, createdAt: true },
     });
 
-    // If another user already spotted this plate, notify them
     if (existingSpot && existingSpot.userId !== user.id) {
       await prisma.notification.create({
         data: {
           userId:  existingSpot.userId,
           type:    "MULTISPOT",
-          title:   `${plateText} was spotted again!`,
-          message: `@${user.username} also spotted ${plateText} in ${country.charAt(0).toUpperCase() + country.slice(1)}.`,
-          url:     `/spot/${upload.numericId}`,
+          title:   plateText + " was spotted again!",
+          message: "@" + user.username + " also spotted " + plateText + " in " + country.charAt(0).toUpperCase() + country.slice(1) + ".",
+          url:     "/spot/" + upload.numericId,
         },
       });
     }
@@ -69,7 +84,7 @@ export async function POST(req: Request) {
       plateText: upload.plateText,
       country:   upload.country,
       location,
-      imageUrl:  upload.imageUrl,
+      imageUrl:  finalImageUrl,
       numericId: upload.numericId,
     });
 

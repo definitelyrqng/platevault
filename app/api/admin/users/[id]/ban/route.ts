@@ -65,7 +65,7 @@ export async function POST(
     },
   });
 
-  logBan({ actorUsername: actor.username, targetUsername: target.username, reason, days });
+  await logBan({ actorUsername: actor.username, targetUsername: target.username, reason, days });
 
   return NextResponse.json({ ok: true });
 }
@@ -100,7 +100,7 @@ export async function DELETE(
     },
   });
 
-  logUnban({ actorUsername: actor.username, targetUsername: target?.username ?? targetId });
+  await logUnban({ actorUsername: actor.username, targetUsername: target?.username ?? targetId });
 
   return NextResponse.json({ ok: true });
 }

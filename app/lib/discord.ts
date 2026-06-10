@@ -23,6 +23,12 @@ interface LogPayload {
 /** Fire-and-forget — never awaited in hot paths */
 export function logToDiscord(payload: LogPayload): void {
   if (!WEBHOOK) return;
+  void logToDiscordAsync(payload);
+}
+
+/** Awaitable version — use in admin actions where we must ensure delivery */
+export async function logToDiscordAsync(payload: LogPayload): Promise<void> {
+  if (!WEBHOOK) return;
 
   const body = JSON.stringify({
     embeds: [
@@ -41,8 +47,8 @@ export function logToDiscord(payload: LogPayload): void {
     ],
   });
 
-  // Best-effort — swallow all errors so logging never breaks the API
-  fetch(WEBHOOK, { method: "POST", headers: { "Content-Type": "application/json" }, body })
+  // Best-effort — swallow errors so logging never breaks the API
+  await fetch(WEBHOOK, { method: "POST", headers: { "Content-Type": "application/json" }, body })
     .catch(() => {});
 }
 
@@ -81,13 +87,13 @@ export function logNewUpload(u: {
   });
 }
 
-export function logBan(opts: {
+export async function logBan(opts: {
   actorUsername: string;
   targetUsername: string;
   reason: string | null;
   days: number | null;
-}) {
-  logToDiscord({
+}): Promise<void> {
+  await logToDiscordAsync({
     title: "🔨 User banned",
     color: C.red,
     fields: [
@@ -99,8 +105,8 @@ export function logBan(opts: {
   });
 }
 
-export function logUnban(opts: { actorUsername: string; targetUsername: string }) {
-  logToDiscord({
+export async function logUnban(opts: { actorUsername: string; targetUsername: string }): Promise<void> {
+  await logToDiscordAsync({
     title: "✅ User unbanned",
     color: C.green,
     fields: [
