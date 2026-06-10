@@ -19,8 +19,8 @@ export async function applyWatermark(imageUrl: string): Promise<Buffer> {
   const meta = await sharp(imageBuffer).metadata();
   const w = meta.width ?? 1280;
 
-  // Scale watermark to 16% of image width, min 120px, max 360px
-  const wmWidth  = Math.max(120, Math.min(360, Math.round(w * 0.16)));
+  // Scale watermark to 20% of image width, min 140px, max 420px
+  const wmWidth  = Math.max(140, Math.min(420, Math.round(w * 0.20)));
   const wmBuffer = await sharp(fs.readFileSync(WATERMARK_PATH))
     .resize(wmWidth, null)   // scale by width, height auto from aspect ratio
     .toBuffer();
