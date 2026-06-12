@@ -36,76 +36,111 @@ export type GenerationData = {
 export type CarData = Record<
   string,                          // Brand  (e.g. "Audi")
   Record<
-    string,                        // Model  (e.g. "A6")
+    string,                        // Model  (e.g. "A6 Sedan")
     Record<string, GenerationData> // Gen    (e.g. "C7 (2011–2014)")
   >
 >;
 
-// ─── ADD YOUR DATA BELOW ─────────────────────────────────────────────
+// ─── SHARED GENERATION DATA ───────────────────────────────────────────────
 
-const AUDI: CarData["Audi"] = {
-  A6: {
-    // ── 4th Generation (C7) ──────────────────────────────────────────
-    "C7 (2011–2014)": {
-      trims: [
-        "SE",
-        "SE Executive",
-        "S Line",
-        "S Line Plus",
-        "Black Edition",
-        "Ultra",
-        "Prestige",         // US / export
-      ],
-      colors: [
-        "Brilliant Black",
-        "Glacier White Metallic",
-        "Ibis White",
-        "Floret Silver Metallic",
-        "Monsoon Grey Metallic",
-        "Daytona Grey Pearl Effect",
-        "Sepang Blue Pearl Effect",
-        "Scuba Blue Metallic",
-        "Estoril Blue Crystal Effect",
-        "Panther Black Crystal Effect",
-        "Havana Black Metallic",
-        // ↓ always keep these two at the end
-        "Custom color",
-        "Custom wrap",
-      ],
-    },
+const C6_COLORS = [
+  "Brilliant Black",
+  "Ibis White",
+  "Mythos Black Metallic",
+  "Avus Silver Metallic",
+  "Florett Silver Metallic",
+  "Quartz Grey Metallic",
+  "Lava Grey Pearl Effect",
+  "Daytona Grey Pearl Effect",
+  "Meteor Grey Pearl Effect",
+  "Condor Grey Metallic",
+  "Teak Brown Metallic",
+  "Deep Sea Blue Pearl Effect",
+  "Stratos Blue Metallic",
+  "Brilliant Red",
+  "Custom color",
+  "Custom wrap",
+];
 
-    // ── 4th Generation Facelift (C7.5) ──────────────────────────────
-    "C7 Facelift (2014–2018)": {
-      trims: [
-        "SE",
-        "SE Executive",
-        "Sport",
-        "S Line",
-        "S Line Plus",
-        "Black Edition",
-        "Ultra",
-        "Prestige",
-      ],
-      colors: [
-        "Brilliant Black",
-        "Glacier White Metallic",
-        "Ibis White",
-        "Floret Silver Metallic",
-        "Monsoon Grey Metallic",
-        "Daytona Grey Pearl Effect",
-        "Mythos Black Metallic",
-        "Nardo Grey",
-        "Quantum Grey Pearl Effect",
-        "Scuba Blue Metallic",
-        "Panther Black Crystal Effect",
-        "Navarra Blue Metallic",
-        "Custom color",
-        "Custom wrap",
-      ],
-    },
+const C6_GEN: Record<string, GenerationData> = {
+  // ── 5th Generation (C6) ───────────────────────────────────────────────
+  "C6 (2004–2011)": {
+    trims: [
+      "Standard",
+      "SE / Comfort / Attraction / Ambiente",
+      "S Line",
+    ],
+    colors: C6_COLORS,
+  },
+};
+
+const C7_GEN: Record<string, GenerationData> = {
+  // ── 6th Generation (C7) ───────────────────────────────────────────────
+  "C7 (2011–2014)": {
+    trims: [
+      "SE",
+      "SE Executive",
+      "S Line",
+      "S Line Plus",
+      "Black Edition",
+      "Ultra",
+      "Prestige",
+    ],
+    colors: [
+      "Brilliant Black",
+      "Glacier White Metallic",
+      "Ibis White",
+      "Floret Silver Metallic",
+      "Monsoon Grey Metallic",
+      "Daytona Grey Pearl Effect",
+      "Sepang Blue Pearl Effect",
+      "Scuba Blue Metallic",
+      "Estoril Blue Crystal Effect",
+      "Panther Black Crystal Effect",
+      "Havana Black Metallic",
+      "Custom color",
+      "Custom wrap",
+    ],
   },
 
-  // ── Add more Audi models below ────────────────────────────────────
+  // ── 6th Generation Facelift (C7.5) ───────────────────────────────────
+  "C7 Facelift (2014–2018)": {
+    trims: [
+      "SE",
+      "SE Executive",
+      "Sport",
+      "S Line",
+      "S Line Plus",
+      "Black Edition",
+      "Ultra",
+      "Prestige",
+    ],
+    colors: [
+      "Brilliant Black",
+      "Glacier White Metallic",
+      "Ibis White",
+      "Floret Silver Metallic",
+      "Monsoon Grey Metallic",
+      "Daytona Grey Pearl Effect",
+      "Mythos Black Metallic",
+      "Nardo Grey",
+      "Quantum Grey Pearl Effect",
+      "Scuba Blue Metallic",
+      "Panther Black Crystal Effect",
+      "Navarra Blue Metallic",
+      "Custom color",
+      "Custom wrap",
+    ],
+  },
+};
+
+// ─── Audi ────────────────────────────────────────────────────────────────────
+
+const AUDI: CarData["Audi"] = {
+  "A6 Sedan": { ...C6_GEN, ...C7_GEN },
+  "A6 Avant": { ...C6_GEN, ...C7_GEN },
+
+  // ── Add more Audi models below ──────────────────────────────────────
   // A4: {
   //   "B8 (2008–2012)": {
   //     trims: ["SE", "S Line", "Black Edition"],
@@ -114,7 +149,7 @@ const AUDI: CarData["Audi"] = {
   // },
 };
 
-// ─── MAIN EXPORT — add new brands here ───────────────────────────────
+// ─── MAIN EXPORT — add new brands here ───────────────────────────────────────────
 export const CAR_DATA: CarData = {
   Audi: AUDI,
 
@@ -123,7 +158,7 @@ export const CAR_DATA: CarData = {
   // Volkswagen: VW,
 };
 
-// ─── Helpers ─────────────────────────────────────────────────────────
+// ─── Helpers ────────────────────────────────────────────────────────────────────
 export const BRANDS = Object.keys(CAR_DATA).sort();
 
 export function getModels(brand: string): string[] {
