@@ -39,7 +39,7 @@ export async function PATCH(
     where: { id },
     select: {
       numericId: true, plateText: true,
-      userId: true, brand: true, model: true, generation: true, trim: true, color: true,
+      userId: true, brand: true, model: true, generation: true, trim: true, color: true, badge: true,
       user: { select: { username: true } },
     },
   });
@@ -50,11 +50,12 @@ export async function PATCH(
   const newGeneration = opt(body.generation);
   const newTrim       = opt(body.trim);
   const newColor      = opt(body.color);
+  const newBadge      = typeof body.badge === "string" && body.badge.trim() ? body.badge.trim().slice(0, 30) : null;
 
   const upload = await prisma.upload.update({
     where: { id },
-    data: { brand: newBrand, model: newModel, generation: newGeneration, trim: newTrim, color: newColor },
-    select: { id: true, brand: true, model: true, generation: true, trim: true, color: true },
+    data: { brand: newBrand, model: newModel, generation: newGeneration, trim: newTrim, color: newColor, badge: newBadge },
+    select: { id: true, brand: true, model: true, generation: true, trim: true, color: true, badge: true },
   });
 
   // Build a human-readable diff
@@ -64,6 +65,7 @@ export async function PATCH(
     Generation: [before.generation, newGeneration],
     Trim:       [before.trim,       newTrim],
     Color:      [before.color,      newColor],
+    Badge:      [before.badge,      newBadge],
   };
   const changedLines = Object.entries(fields)
     .filter(([, [oldVal, newVal]]) => oldVal !== newVal)

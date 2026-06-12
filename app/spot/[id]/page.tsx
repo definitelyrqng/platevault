@@ -7,7 +7,7 @@ import AdminPanel from "./AdminPanel";
 import ReportButton from "./ReportButton";
 import TagEditor from "./TagEditor";
 import { tagById } from "@/app/lib/tags";
-import { getAlbaniaRegion } from "@/app/lib/albaniaRegions";
+import { getAlbaniaRegion, ALBANIA_PLATE_TYPE_LABELS } from "@/app/lib/albaniaRegions";
 
 const COUNTRY_META: Record<string, { flag: string; name: string }> = {
   albania: { flag: "🇦🇱", name: "Albania" },
@@ -154,8 +154,6 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
           {albaniaRegion && (
             <>
               <span>›</span>
-              <span className="text-zinc-400">{albaniaRegion.county}</span>
-              <span>›</span>
               <span className="text-zinc-400">{albaniaRegion.city}</span>
             </>
           )}
@@ -287,10 +285,10 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
               <div className="text-xs uppercase tracking-wider text-zinc-500 mb-1">Details</div>
               <Detail label="Country"    value={`${meta.flag} ${meta.name}`} />
               {albaniaRegion && (
-                <Detail label="Region" value={`${albaniaRegion.county} / ${albaniaRegion.city}`} />
+                <Detail label="Region" value={albaniaRegion.district} />
               )}
               {upload.location  && <Detail label="Location"   value={upload.location} />}
-              {upload.plateType && <Detail label="Plate type" value={upload.plateType.replace(/-/g, " ")} />}
+              {upload.plateType && <Detail label="Plate type" value={ALBANIA_PLATE_TYPE_LABELS[upload.plateType] ?? upload.plateType.replace(/-/g, " ")} />}
               {upload.badge      && <Detail label="Badge"      value={upload.badge} />}
               {upload.color      && <Detail label="Color"      value={upload.color} />}
               {upload.trim       && <Detail label="Trim"       value={upload.trim} />}
@@ -317,6 +315,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 initialGeneration={upload.generation ?? ""}
                 initialTrim={upload.trim ?? ""}
                 initialColor={upload.color ?? ""}
+                initialBadge={upload.badge ?? ""}
                 initialHidden={upload.hidden}
               />
             )}

@@ -332,7 +332,7 @@ export default function AlbaniaUploadPage() {
                 </select>
               </label>
 
-              <div className="grid gap-1.5">
+              <div className="md:col-span-2 grid gap-1.5">
                 <span className="text-sm text-zinc-300">Plate text</span>
                 <AlbaniaPlateInput category={category} onChange={onPlateChange} />
               </div>

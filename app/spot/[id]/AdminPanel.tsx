@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { BRANDS, getModels, getGenerations, getTrims, getColors } from "@/app/lib/carData";
+import { getBadges } from "@/app/lib/modelBadges";
 
 export default function AdminPanel({
   uploadId,
@@ -11,6 +12,7 @@ export default function AdminPanel({
   initialGeneration,
   initialTrim,
   initialColor,
+  initialBadge,
   initialHidden,
 }: {
   uploadId: string;
@@ -19,6 +21,7 @@ export default function AdminPanel({
   initialGeneration: string;
   initialTrim: string;
   initialColor: string;
+  initialBadge: string;
   initialHidden: boolean;
 }) {
   const router = useRouter();
@@ -28,6 +31,7 @@ export default function AdminPanel({
   const [generation, setGeneration] = useState(initialGeneration);
   const [trim, setTrim] = useState(initialTrim);
   const [color, setColor] = useState(initialColor);
+  const [badge, setBadge] = useState(initialBadge);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
@@ -46,12 +50,13 @@ export default function AdminPanel({
   const generations = brand && model                ? getGenerations(brand, model)           : [];
   const trims       = brand && model && generation  ? getTrims(brand, model, generation)    : [];
   const colors      = brand && model && generation  ? getColors(brand, model, generation)   : ["Custom color", "Custom wrap"];
+  const badges      = brand && model                ? getBadges(brand, model)                : [];
 
   function onBrandChange(v: string) {
-    setBrand(v); setModel(""); setGeneration(""); setTrim(""); setColor("");
+    setBrand(v); setModel(""); setGeneration(""); setTrim(""); setColor(""); setBadge("");
   }
   function onModelChange(v: string) {
-    setModel(v); setGeneration(""); setTrim(""); setColor("");
+    setModel(v); setGeneration(""); setTrim(""); setColor(""); setBadge("");
   }
   function onGenerationChange(v: string) {
     setGeneration(v); setTrim(""); setColor("");
@@ -63,7 +68,7 @@ export default function AdminPanel({
       const res = await fetch(`/api/uploads/${uploadId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ brand, model, generation, trim, color }),
+        body: JSON.stringify({ brand, model, generation, trim, color, badge }),
       });
       if (!res.ok) { setError("Failed to save."); return; }
       setSaved(true);
@@ -162,6 +167,25 @@ export default function AdminPanel({
             </select>
           </div>
 
+          {/* Badge — dropdown if model has known variants, free text otherwise */}
+          <div>
+            <label className="block text-xs text-zinc-500 mb-1">Engine / variant badge</label>
+            {badges.length > 0 ? (
+              <select value={badge} onChange={(e) => setBadge(e.target.value)} className={selectCls}>
+                <option value="">— select badge —</option>
+                {badges.map((b) => <option key={b} value={b}>{b}</option>)}
+              </select>
+            ) : (
+              <input
+                value={badge}
+                onChange={(e) => setBadge(e.target.value)}
+                placeholder="e.g. 2.0 TDI, 320d"
+                maxLength={30}
+                className={selectCls}
+              />
+            )}
+          </div>
+
           {error && <p className="text-xs text-red-400">{error}</p>}
           {saved && <p className="text-xs text-emerald-400">Saved!</p>}
 
@@ -250,7 +274,7 @@ export default function AdminPanel({
               disabled={deleting}
               className="flex-1 rounded-xl border border-red-900/50 bg-red-950/60 py-2 text-xs font-medium text-red-300 hover:bg-red-950 disabled:opacity-50"
             >
-              {deleting ? "Deleting…" : "Yes, delete permanently"}
+              {deleting ? "Deleting..." : "Yes, delete permanently"}
             </button>
           </div>
         </div>

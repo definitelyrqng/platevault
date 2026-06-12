@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import SiteHeader from "./SiteHeader";
 
-const HIDE_ON = new Set<string>(["/status", "/coming-soon"]);
+const HIDE_ON = new Set<string>(["/status"]);
 
 export default function HeaderGate() {
   const pathname = usePathname();

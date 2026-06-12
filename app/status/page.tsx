@@ -1,53 +1,69 @@
 import { siteStatus, statusInfo } from "../status-config";
 
+const SERVICES = [
+  { name: "Website",         key: "web" },
+  { name: "Image uploads",   key: "uploads" },
+  { name: "Database",        key: "db" },
+  { name: "Authentication",  key: "auth" },
+];
+
 export default function StatusPage() {
   const s = statusInfo[siteStatus];
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-100 grid place-items-center px-6">
-      <div className="w-full max-w-2xl">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="text-2xl font-semibold tracking-tight">PlateVault Status</div>
-            <p className="mt-2 text-sm text-zinc-400">
-              Live status for the site and core services.
-            </p>
-          </div>
+    <main className="min-h-screen bg-zinc-950 text-zinc-100 px-4 py-12">
+      <div className="mx-auto max-w-2xl">
 
+        {/* Header */}
+        <div className="flex items-center justify-between mb-10">
+          <div>
+            <div className="text-xs uppercase tracking-widest text-zinc-500 mb-1">PlateVault</div>
+            <h1 className="text-2xl font-semibold">System Status</h1>
+          </div>
           <a
-            href="/coming-soon"
-            className="rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-900"
+            href="/home"
+            className="rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-900 transition-colors"
           >
-            Back
+            Back to PlateVault
           </a>
         </div>
 
-        <div className="mt-8 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
-          <div className="flex items-center justify-between gap-4">
-            <div className="text-sm font-medium">Website</div>
-
-            <div className={`inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs ring-1 ${s.text} ${s.ring}`}>
-              <span className="relative flex h-2 w-2">
-                <span className={`absolute inline-flex h-full w-full animate-ping rounded-full ${s.dotBg} opacity-60`} />
-                <span className={`relative inline-flex h-2 w-2 rounded-full ${s.dotBg}`} />
-              </span>
-              {s.label}
-            </div>
+        {/* Overall status banner */}
+        <div className={`rounded-2xl border p-6 mb-6 ${
+          siteStatus === "online"
+            ? "border-emerald-900/40 bg-emerald-950/10"
+            : siteStatus === "maintenance"
+            ? "border-amber-900/40 bg-amber-950/10"
+            : "border-red-900/40 bg-red-950/10"
+        }`}>
+          <div className="flex items-center gap-3">
+            <span className="relative flex h-3 w-3">
+              <span className={`absolute inline-flex h-full w-full animate-ping rounded-full ${s.dotBg} opacity-50`} />
+              <span className={`relative inline-flex h-3 w-3 rounded-full ${s.dotBg}`} />
+            </span>
+            <span className={`text-sm font-semibold ${s.text}`}>{s.label}</span>
           </div>
-
-          <div className="mt-3 text-lg font-medium">{s.headline}</div>
-          <p className="mt-2 text-sm text-zinc-400">{s.description}</p>
-
-          <div className="mt-6 border-t border-zinc-800 pt-5">
-            <div className="text-xs uppercase tracking-wider text-zinc-500">Last updated</div>
-            <div className="mt-2 text-sm text-zinc-300">
-              {new Date().toLocaleString()}
-            </div>
-            <p className="mt-2 text-xs text-zinc-500">
-              (This timestamp updates when the page is loaded.)
-            </p>
-          </div>
+          <div className="mt-3 text-lg font-semibold">{s.headline}</div>
+          <p className="mt-1 text-sm text-zinc-400">{s.description}</p>
         </div>
+
+        {/* Per-service rows */}
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 divide-y divide-zinc-800">
+          {SERVICES.map((svc) => (
+            <div key={svc.key} className="flex items-center justify-between px-5 py-4">
+              <span className="text-sm text-zinc-200">{svc.name}</span>
+              <span className={`inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs ring-1 ${s.text} ${s.ring}`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${s.dotBg}`} />
+                {s.label}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <p className="mt-6 text-center text-xs text-zinc-600">
+          Having issues? Reach out on our community channels.
+        </p>
+
       </div>
     </main>
   );
