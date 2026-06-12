@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { BRANDS, getModels, getGenerations, getTrims, getColors } from "@/app/lib/carData";
+import { BRANDS, getModels, getGenerations, getTrims } from "@/app/lib/carData";
 import { getBadges } from "@/app/lib/modelBadges";
 
 type Props = {
@@ -29,7 +29,6 @@ export default function CarDetailsFields({ onChange }: Props) {
   const models      = brand      ? getModels(brand)                   : [];
   const generations = model      ? getGenerations(brand, model)       : [];
   const trims       = generation ? getTrims(brand, model, generation) : [];
-  const colors      = generation ? getColors(brand, model, generation) : ["Custom color", "Custom wrap"];
   const badges      = brand && model ? getBadges(brand, model)        : [];
 
   // Reset downstream when upstream changes
@@ -114,14 +113,13 @@ export default function CarDetailsFields({ onChange }: Props) {
       {/* Color */}
       <div>
         <label className="block text-xs text-zinc-400 mb-1">Color</label>
-        <select
+        <input
+          type="text"
           value={color}
           onChange={(e) => setColor(e.target.value)}
+          placeholder="e.g. Brilliant Black, Custom wrap..."
           className={SELECT_CLS}
-        >
-          <option value="">— Select color (optional) —</option>
-          {colors.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
+        />
       </div>
     </div>
   );

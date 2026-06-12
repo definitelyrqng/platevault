@@ -149,9 +149,21 @@ const AUDI: CarData["Audi"] = {
   // },
 };
 
+// ─── Schmitz ─────────────────────────────────────────────────────────────────
+
+const SCHMITZ: CarData["Schmitz"] = {
+  Cargobull: {
+    Standard: {
+      trims: [],
+      colors: ["Black", "White", "Multicolor", "Custom color", "Custom wrap"],
+    },
+  },
+};
+
 // ─── MAIN EXPORT — add new brands here ───────────────────────────────────────────
 export const CAR_DATA: CarData = {
   Audi: AUDI,
+  Schmitz: SCHMITZ,
 
   // BMW: BMW,
   // Mercedes: MERCEDES,
