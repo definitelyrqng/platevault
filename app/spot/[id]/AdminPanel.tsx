@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { BRANDS, getModels, getGenerations, getTrims, getColors } from "@/app/lib/carData";
+import { BRANDS, getModels, getGenerations } from "@/app/lib/carData";
 import { getBadges } from "@/app/lib/modelBadges";
 
 export default function AdminPanel({
@@ -46,11 +46,9 @@ export default function AdminPanel({
   const [hideReason, setHideReason] = useState("");
   const [togglingVisibility, setTogglingVisibility] = useState(false);
 
-  const models      = brand                         ? getModels(brand)                       : [];
-  const generations = brand && model                ? getGenerations(brand, model)           : [];
-  const trims       = brand && model && generation  ? getTrims(brand, model, generation)    : [];
-  const colors      = brand && model && generation  ? getColors(brand, model, generation)   : ["Custom color", "Custom wrap"];
-  const badges      = brand && model                ? getBadges(brand, model)                : [];
+  const models      = brand      ? getModels(brand)             : [];
+  const generations = model      ? getGenerations(brand, model) : [];
+  const badges      = brand && model ? getBadges(brand, model)  : [];
 
   function onBrandChange(v: string) {
     setBrand(v); setModel(""); setGeneration(""); setTrim(""); setColor(""); setBadge("");
@@ -152,19 +150,23 @@ export default function AdminPanel({
           {/* Trim */}
           <div>
             <label className="block text-xs text-zinc-500 mb-1">Trim</label>
-            <select value={trim} onChange={(e) => setTrim(e.target.value)} disabled={!generation} className={selectCls}>
-              <option value="">— select trim —</option>
-              {trims.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
+            <input
+              value={trim}
+              onChange={(e) => setTrim(e.target.value)}
+              placeholder="e.g. AMG Line, Sport, Luxury..."
+              className={selectCls}
+            />
           </div>
 
           {/* Color */}
           <div>
             <label className="block text-xs text-zinc-500 mb-1">Color</label>
-            <select value={color} onChange={(e) => setColor(e.target.value)} disabled={!generation} className={selectCls}>
-              <option value="">— select color —</option>
-              {colors.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
+            <input
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+              placeholder="e.g. Obsidian Black Metallic..."
+              className={selectCls}
+            />
           </div>
 
           {/* Badge — dropdown if model has known variants, free text otherwise */}

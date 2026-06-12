@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { BRANDS, getModels, getGenerations, getTrims } from "@/app/lib/carData";
+import { BRANDS, getModels, getGenerations } from "@/app/lib/carData";
 import { getBadges } from "@/app/lib/modelBadges";
 
 type Props = {
@@ -26,12 +26,10 @@ export default function CarDetailsFields({ onChange }: Props) {
   const [color, setColor]           = useState("");
   const [badge, setBadge]           = useState("");
 
-  const models      = brand      ? getModels(brand)                   : [];
-  const generations = model      ? getGenerations(brand, model)       : [];
-  const trims       = generation ? getTrims(brand, model, generation) : [];
-  const badges      = brand && model ? getBadges(brand, model)        : [];
+  const models      = brand ? getModels(brand)                   : [];
+  const generations = model ? getGenerations(brand, model)       : [];
+  const badges      = brand && model ? getBadges(brand, model)   : [];
 
-  // Reset downstream when upstream changes
   useEffect(() => { setModel(""); setGeneration(""); setTrim(""); setColor(""); setBadge(""); }, [brand]);
   useEffect(() => { setGeneration(""); setTrim(""); setColor(""); setBadge(""); }, [model]);
   useEffect(() => { setTrim(""); setColor(""); }, [generation]);
@@ -67,7 +65,7 @@ export default function CarDetailsFields({ onChange }: Props) {
         </select>
       </div>
 
-      {/* Engine badge — shown when model has known variants */}
+      {/* Engine badge */}
       {badges.length > 0 && (
         <div>
           <label className="block text-xs text-zinc-400 mb-1">Engine / variant badge</label>
@@ -96,28 +94,26 @@ export default function CarDetailsFields({ onChange }: Props) {
         </select>
       </div>
 
-      {/* Trim */}
+      {/* Trim — free text */}
       <div>
         <label className="block text-xs text-zinc-400 mb-1">Trim</label>
-        <select
+        <input
+          type="text"
           value={trim}
           onChange={(e) => setTrim(e.target.value)}
-          disabled={!generation}
+          placeholder="e.g. AMG Line, Sport, Luxury..."
           className={SELECT_CLS}
-        >
-          <option value="">— Select trim (optional) —</option>
-          {trims.map((t) => <option key={t} value={t}>{t}</option>)}
-        </select>
+        />
       </div>
 
-      {/* Color */}
+      {/* Color — free text */}
       <div>
         <label className="block text-xs text-zinc-400 mb-1">Color</label>
         <input
           type="text"
           value={color}
           onChange={(e) => setColor(e.target.value)}
-          placeholder="e.g. Brilliant Black, Custom wrap..."
+          placeholder="e.g. Obsidian Black Metallic..."
           className={SELECT_CLS}
         />
       </div>
