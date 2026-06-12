@@ -1,6 +1,6 @@
 export type SiteStatus = "offline" | "maintenance" | "online";
 
-export const siteStatus: SiteStatus = "maintenance";
+export const siteStatus: SiteStatus = "online";
 
 export const statusInfo: Record<
   SiteStatus,
