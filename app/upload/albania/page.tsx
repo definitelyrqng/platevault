@@ -6,7 +6,7 @@ import { generateReactHelpers } from "@uploadthing/react";
 import type { OurFileRouter } from "@/app/lib/uploadthing";
 import CarDetailsFields from "@/app/upload/CarDetailsFields";
 import TagPicker from "@/app/components/TagPicker";
-import { ALBANIA_REGIONS } from "@/app/lib/albaniaRegions";
+import AlbaniaPlateInput from "@/app/upload/AlbaniaPlateInput";
 
 const { useUploadThing } = generateReactHelpers<OurFileRouter>();
 
@@ -65,6 +65,10 @@ export default function AlbaniaUploadPage() {
   const [plateText, setPlateText] = useState("");
   const [location, setLocation] = useState("");
   const [plateRegion, setPlateRegion] = useState("");
+  const onPlateChange = useCallback((text: string, region: string) => {
+    setPlateText(text);
+    setPlateRegion(region);
+  }, []);
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
   const [generation, setGeneration] = useState("");
@@ -328,20 +332,10 @@ export default function AlbaniaUploadPage() {
                 </select>
               </label>
 
-              <label className="grid gap-1.5">
+              <div className="grid gap-1.5">
                 <span className="text-sm text-zinc-300">Plate text</span>
-                <input value={plateText} onChange={(e) => setPlateText(e.target.value.toUpperCase())} placeholder={selectedType.example} maxLength={32} className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono tracking-widest outline-none focus:border-zinc-600 placeholder:text-zinc-700 placeholder:tracking-normal" />
-              </label>
-
-              <label className="grid gap-1.5">
-                <span className="text-sm text-zinc-300">Region <span className="text-zinc-600 text-xs">(optional)</span></span>
-                <select value={plateRegion} onChange={(e) => setPlateRegion(e.target.value)} className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600">
-                  <option value="">— Select region —</option>
-                  {ALBANIA_REGIONS.map((r) => (
-                    <option key={r.code} value={r.code}>{r.code} — {r.city}</option>
-                  ))}
-                </select>
-              </label>
+                <AlbaniaPlateInput category={category} onChange={onPlateChange} />
+              </div>
 
               <label className="grid gap-1.5">
                 <span className="text-sm text-zinc-300">Location <span className="text-zinc-600 text-xs">(city + country required)</span></span>
