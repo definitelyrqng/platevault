@@ -1,0 +1,2 @@
+ALTER TABLE "Upload" ADD COLUMN "plateRegion" VARCHAR(10);
+ALTER TABLE "Upload" ADD COLUMN "badge" VARCHAR(30);

@@ -7,6 +7,7 @@ import AdminPanel from "./AdminPanel";
 import ReportButton from "./ReportButton";
 import TagEditor from "./TagEditor";
 import { tagById } from "@/app/lib/tags";
+import { getAlbaniaRegion } from "@/app/lib/albaniaRegions";
 
 const COUNTRY_META: Record<string, { flag: string; name: string }> = {
   albania: { flag: "🇦🇱", name: "Albania" },
@@ -69,6 +70,8 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
         trim: true,
         color: true,
         location: true,
+        plateRegion: true,
+        badge: true,
         tags: true,
         hidden: true,
         createdAt: true,
@@ -125,6 +128,12 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
   });
 
   const meta = COUNTRY_META[upload.country] ?? { flag: "🏳️", name: upload.country };
+
+  // Albania region lookup
+  const albaniaRegion = upload.country === "albania" && upload.plateRegion
+    ? getAlbaniaRegion(upload.plateRegion)
+    : undefined;
+
   const isOwner = currentUser?.id === upload.userId;
   const hasLiked = upload.likes.some((l) => l.userId === currentUser?.id);
   const isAdmin = currentUser?.role === "SUPERADMIN" || currentUser?.role === "ADMIN";
@@ -142,6 +151,14 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
           <a href="/home" className="hover:text-zinc-300">Home</a>
           <span>›</span>
           <a href={`/c/${upload.country}`} className="hover:text-zinc-300">{meta.flag} {meta.name}</a>
+          {albaniaRegion && (
+            <>
+              <span>›</span>
+              <span className="text-zinc-400">{albaniaRegion.county}</span>
+              <span>›</span>
+              <span className="text-zinc-400">{albaniaRegion.city}</span>
+            </>
+          )}
           <span>›</span>
           <span className="font-mono text-zinc-300">{upload.plateText}</span>
           {otherSightings.length > 0 && (
@@ -176,7 +193,14 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
             {/* Car name */}
             {fullCarLabel && (
               <div className="text-center space-y-0.5">
-                <div className="text-xl font-semibold text-zinc-100">{fullCarLabel}</div>
+                <div className="text-xl font-semibold text-zinc-100 flex items-center justify-center gap-2 flex-wrap">
+                  {fullCarLabel}
+                  {upload.badge && (
+                    <span className="rounded-md bg-zinc-800 border border-zinc-700 px-2 py-0.5 text-sm font-mono text-zinc-300">
+                      {upload.badge}
+                    </span>
+                  )}
+                </div>
                 {upload.trim && (
                   <div className="text-sm text-zinc-400">{upload.trim}</div>
                 )}
@@ -262,8 +286,12 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
               <div className="text-xs uppercase tracking-wider text-zinc-500 mb-1">Details</div>
               <Detail label="Country"    value={`${meta.flag} ${meta.name}`} />
+              {albaniaRegion && (
+                <Detail label="Region" value={`${albaniaRegion.county} / ${albaniaRegion.city}`} />
+              )}
               {upload.location  && <Detail label="Location"   value={upload.location} />}
               {upload.plateType && <Detail label="Plate type" value={upload.plateType.replace(/-/g, " ")} />}
+              {upload.badge      && <Detail label="Badge"      value={upload.badge} />}
               {upload.color      && <Detail label="Color"      value={upload.color} />}
               {upload.trim       && <Detail label="Trim"       value={upload.trim} />}
               {upload.generation && <Detail label="Generation" value={upload.generation} />}

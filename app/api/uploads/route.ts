@@ -24,9 +24,11 @@ export async function POST(req: Request) {
     const plateType = optStr(body.plateType, 60);
     const imageUrl  = String(body.imageUrl ?? "").trim();
 
-    const location   = optStr(body.location, 120);
-    const tags       = sanitizeTags(body.tags);
-    const brand      = optStr(body.brand, 60);
+    const location    = optStr(body.location, 120);
+    const plateRegion = optStr(body.plateRegion, 10);
+    const badge       = optStr(body.badge, 30);
+    const tags        = sanitizeTags(body.tags);
+    const brand       = optStr(body.brand, 60);
     const model      = optStr(body.model, 60);
     const generation = optStr(body.generation, 60);
     const trim       = optStr(body.trim, 60);
@@ -65,7 +67,7 @@ export async function POST(req: Request) {
     });
 
     const upload = await prisma.upload.create({
-      data: { userId: user.id, country, plateText, plateType, imageUrl: finalImageUrl, location, brand, model, generation, trim, color, tags },
+      data: { userId: user.id, country, plateText, plateType, imageUrl: finalImageUrl, location, plateRegion, badge, brand, model, generation, trim, color, tags },
       select: { id: true, numericId: true, country: true, plateText: true, plateType: true, imageUrl: true, createdAt: true },
     });
 

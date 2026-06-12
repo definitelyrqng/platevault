@@ -6,6 +6,7 @@ import { generateReactHelpers } from "@uploadthing/react";
 import type { OurFileRouter } from "@/app/lib/uploadthing";
 import CarDetailsFields from "@/app/upload/CarDetailsFields";
 import TagPicker from "@/app/components/TagPicker";
+import { ALBANIA_REGIONS } from "@/app/lib/albaniaRegions";
 
 const { useUploadThing } = generateReactHelpers<OurFileRouter>();
 
@@ -63,11 +64,13 @@ export default function AlbaniaUploadPage() {
   const [plateTypeId, setPlateTypeId] = useState("car-2011-standard");
   const [plateText, setPlateText] = useState("");
   const [location, setLocation] = useState("");
+  const [plateRegion, setPlateRegion] = useState("");
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
   const [generation, setGeneration] = useState("");
   const [trim, setTrim] = useState("");
   const [color, setColor] = useState("");
+  const [badge, setBadge] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -147,11 +150,13 @@ export default function AlbaniaUploadPage() {
           plateType: selectedType.id,
           imageUrl,
           location: location.trim(),
+          plateRegion: plateRegion || null,
           brand: brand.trim(),
           model: model.trim(),
           generation: generation.trim(),
           trim: trim.trim(),
           color: color.trim(),
+          badge: badge.trim(),
           tags,
         }),
       });
@@ -329,6 +334,16 @@ export default function AlbaniaUploadPage() {
               </label>
 
               <label className="grid gap-1.5">
+                <span className="text-sm text-zinc-300">Region <span className="text-zinc-600 text-xs">(optional)</span></span>
+                <select value={plateRegion} onChange={(e) => setPlateRegion(e.target.value)} className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600">
+                  <option value="">— Select region —</option>
+                  {ALBANIA_REGIONS.map((r) => (
+                    <option key={r.code} value={r.code}>{r.code} — {r.city}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="grid gap-1.5">
                 <span className="text-sm text-zinc-300">Location <span className="text-zinc-600 text-xs">(city + country required)</span></span>
                 <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Berlin, Germany" className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600" />
                 {locationWarning
@@ -346,6 +361,7 @@ export default function AlbaniaUploadPage() {
                     setGeneration(d.generation);
                     setTrim(d.trim);
                     setColor(d.color);
+                    setBadge(d.badge);
                   }, [])}
                 />
               </div>
@@ -384,7 +400,7 @@ export default function AlbaniaUploadPage() {
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/20 p-5">
               <div className="text-sm font-medium text-zinc-200 mb-2">📍 Location rule</div>
               <p className="text-sm text-zinc-400 leading-relaxed">
-                City + country is required — for example <span className="text-zinc-300">"Berlin, Germany"</span> or <span className="text-zinc-300">"Tirana, Albania"</span>. No street names or house numbers.
+                City + country is required - for example <span className="text-zinc-300">Berlin, Germany</span> or <span className="text-zinc-300">Tirana, Albania</span>. No street names or house numbers.
               </p>
             </div>
 

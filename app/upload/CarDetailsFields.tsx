@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { BRANDS, getModels, getGenerations, getTrims, getColors } from "@/app/lib/carData";
+import { getBadges } from "@/app/lib/modelBadges";
 
 type Props = {
   onChange: (details: {
@@ -10,6 +11,7 @@ type Props = {
     generation: string;
     trim: string;
     color: string;
+    badge: string;
   }) => void;
 };
 
@@ -22,20 +24,22 @@ export default function CarDetailsFields({ onChange }: Props) {
   const [generation, setGeneration] = useState("");
   const [trim, setTrim]             = useState("");
   const [color, setColor]           = useState("");
+  const [badge, setBadge]           = useState("");
 
-  const models      = brand      ? getModels(brand)                 : [];
-  const generations = model      ? getGenerations(brand, model)     : [];
+  const models      = brand      ? getModels(brand)                   : [];
+  const generations = model      ? getGenerations(brand, model)       : [];
   const trims       = generation ? getTrims(brand, model, generation) : [];
   const colors      = generation ? getColors(brand, model, generation) : ["Custom color", "Custom wrap"];
+  const badges      = brand && model ? getBadges(brand, model)        : [];
 
   // Reset downstream when upstream changes
-  useEffect(() => { setModel(""); setGeneration(""); setTrim(""); setColor(""); }, [brand]);
-  useEffect(() => { setGeneration(""); setTrim(""); setColor(""); }, [model]);
+  useEffect(() => { setModel(""); setGeneration(""); setTrim(""); setColor(""); setBadge(""); }, [brand]);
+  useEffect(() => { setGeneration(""); setTrim(""); setColor(""); setBadge(""); }, [model]);
   useEffect(() => { setTrim(""); setColor(""); }, [generation]);
 
   useEffect(() => {
-    onChange({ brand, model, generation, trim, color });
-  }, [brand, model, generation, trim, color, onChange]);
+    onChange({ brand, model, generation, trim, color, badge });
+  }, [brand, model, generation, trim, color, badge, onChange]);
 
   return (
     <div className="space-y-3">
@@ -63,6 +67,21 @@ export default function CarDetailsFields({ onChange }: Props) {
           {models.map((m) => <option key={m} value={m}>{m}</option>)}
         </select>
       </div>
+
+      {/* Engine badge — shown when model has known variants */}
+      {badges.length > 0 && (
+        <div>
+          <label className="block text-xs text-zinc-400 mb-1">Engine / variant badge</label>
+          <select
+            value={badge}
+            onChange={(e) => setBadge(e.target.value)}
+            className={SELECT_CLS}
+          >
+            <option value="">— Select badge (optional) —</option>
+            {badges.map((b) => <option key={b} value={b}>{b}</option>)}
+          </select>
+        </div>
+      )}
 
       {/* Generation */}
       <div>

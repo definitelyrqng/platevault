@@ -87,8 +87,10 @@ model Upload {
   trim       String? @db.VarChar(60)
   color      String? @db.VarChar(60)
 
-  location  String?  @db.VarChar(120)
-  tags      String[] @default([])
+  location     String?  @db.VarChar(120)
+  plateRegion  String?  @db.VarChar(10)
+  badge        String?  @db.VarChar(30)
+  tags         String[] @default([])
 
   imageUrl  String   @db.VarChar(500)
 
