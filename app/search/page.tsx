@@ -1,22 +1,11 @@
 import { prisma } from "@/app/lib/prisma";
 import { cookies } from "next/headers";
+import Flag from "@/app/components/Flag";
+import { COUNTRY_META, getCountryMeta } from "@/app/lib/countries";
+
 
 export const dynamic = "force-dynamic";
 
-const COUNTRY_META: Record<string, { flag: string; name: string }> = {
-  albania:    { flag: "🇦🇱", name: "Albania" },
-  germany:    { flag: "🇩🇪", name: "Germany" },
-  italy:      { flag: "🇮🇹", name: "Italy" },
-  kosovo:     { flag: "🇽🇰", name: "Kosovo" },
-  greece:     { flag: "🇬🇷", name: "Greece" },
-  france:     { flag: "🇫🇷", name: "France" },
-  spain:      { flag: "🇪🇸", name: "Spain" },
-  austria:    { flag: "🇦🇹", name: "Austria" },
-  switzerland:{ flag: "🇨🇭", name: "Switzerland" },
-  netherlands:{ flag: "🇳🇱", name: "Netherlands" },
-  belgium:    { flag: "🇧🇪", name: "Belgium" },
-  poland:     { flag: "🇵🇱", name: "Poland" },
-};
 
 function normalize(s: string) {
   return s.toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -158,7 +147,7 @@ export default async function SearchPage({
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {results.map((u) => {
-            const meta = COUNTRY_META[u.country] ?? { flag: "🏳️", name: u.country };
+            const meta = COUNTRY_META[u.country] ?? { iso: null, name: u.country };
             const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
             return (
               <div
@@ -180,7 +169,7 @@ export default async function SearchPage({
                       href={`/c/${u.country}`}
                       className="relative z-10 rounded-full bg-zinc-950/80 backdrop-blur border border-zinc-700/60 px-2 py-0.5 text-xs hover:bg-zinc-900"
                     >
-                      {meta.flag} {meta.name}
+                      <Flag iso={meta.iso} /> {meta.name}
                     </a>
                   </div>
                 </div>

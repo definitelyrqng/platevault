@@ -1,3 +1,5 @@
+import Flag from "@/app/components/Flag";
+import { getCountryMeta } from "@/app/lib/countries";
 import { prisma } from "@/app/lib/prisma";
 import { cookies } from "next/headers";
 import LikeButton from "./LikeButton";
@@ -41,7 +43,7 @@ export default async function CountryPage({
 }) {
   const { country: rawCountry } = await params;
   const country = rawCountry.toLowerCase();
-  const meta = COUNTRY_META[country];
+  const meta = getCountryMeta(country);
 
   const [uploads, currentUser] = await Promise.all([
     prisma.upload.findMany({

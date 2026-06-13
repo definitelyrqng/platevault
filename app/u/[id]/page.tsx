@@ -2,6 +2,9 @@ import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
 import UserAdminPanel from "./UserAdminPanel";
+import Flag from "@/app/components/Flag";
+import { getCountryMeta } from "@/app/lib/countries";
+
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +15,7 @@ const COUNTRY_META: Record<string, { flag: string; name: string }> = {
 
 function countryMeta(country: string) {
   const key = country.toLowerCase();
-  return COUNTRY_META[key] ?? { flag: "🏳️", name: country.charAt(0).toUpperCase() + country.slice(1) };
+  return COUNTRY_META[key] ?? { iso: null, name: country.charAt(0).toUpperCase() + country.slice(1) };
 }
 
 function fmtMonthYear(d: Date) {
@@ -267,7 +270,7 @@ export default async function UserProfilePage({
                   <div className="p-4">
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-mono text-base font-bold tracking-widest text-zinc-100">{u.plateText}</span>
-                      <span>{meta.flag}</span>
+                      <span><Flag iso={meta.iso} /></span>
                     </div>
                     {carLabel && <div className="text-xs text-zinc-400 mt-0.5">{carLabel}</div>}
                     <div className="mt-2 flex items-center justify-between text-xs text-zinc-500">

@@ -8,14 +8,11 @@ import ReportButton from "./ReportButton";
 import TagEditor from "./TagEditor";
 import { tagById } from "@/app/lib/tags";
 import { getAlbaniaRegion, ALBANIA_PLATE_TYPE_LABELS } from "@/app/lib/albaniaRegions";
+import Flag from "@/app/components/Flag";
+import { getCountryMeta } from "@/app/lib/countries";
+import { AUSTRIA_PLATE_TYPE_LABELS } from "@/app/lib/austriaData";
 
-const COUNTRY_META: Record<string, { flag: string; name: string }> = {
-  albania: { flag: "🇦🇱", name: "Albania" },
-  germany: { flag: "🇩🇪", name: "Germany" },
-  italy:   { flag: "🇮🇹", name: "Italy" },
-  kosovo:  { flag: "🇽🇰", name: "Kosovo" },
-  greece:  { flag: "🇬🇷", name: "Greece" },
-};
+
 
 function fmt(d: Date) {
   return d.toLocaleString("en-GB", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -129,7 +126,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
     },
   });
 
-  const meta = COUNTRY_META[upload.country] ?? { flag: "🏳️", name: upload.country };
+  const meta = getCountryMeta(upload.country);
 
   // Albania region lookup
   const albaniaRegion = upload.country === "albania" && upload.plateRegion
@@ -152,7 +149,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
         <div className="flex items-center gap-1.5 text-xs text-zinc-500 mb-6">
           <a href="/home" className="hover:text-zinc-300">Home</a>
           <span>›</span>
-          <a href={`/c/${upload.country}`} className="hover:text-zinc-300">{meta.flag} {meta.name}</a>
+          <a href={`/c/${upload.country}`} className="hover:text-zinc-300 inline-flex items-center gap-1"><Flag iso={meta.iso} />{meta.name}</a>
           {albaniaRegion && (
             <>
               <span>›</span>
@@ -194,7 +191,19 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
             {fullCarLabel && (
               <div className="text-center space-y-0.5">
                 <div className="text-xl font-semibold text-zinc-100 flex items-center justify-center gap-2 flex-wrap">
-                  {fullCarLabel}
+                  {upload.brand && (
+                    <a href={"/catalog/" + encodeURIComponent(upload.brand)} className="hover:text-blue-400 transition-colors">
+                      {upload.brand}
+                    </a>
+                  )}
+                  {upload.model && (
+                    <a href={"/catalog/" + encodeURIComponent(upload.brand ?? "") + "/" + encodeURIComponent(upload.model)} className="hover:text-blue-400 transition-colors">
+                      {upload.model}
+                    </a>
+                  )}
+                  {upload.generation && (
+                    <span className="text-zinc-400 text-base font-normal">{upload.generation}</span>
+                  )}
                   {upload.badge && (
                     <span className="rounded-md bg-zinc-800 border border-zinc-700 px-2 py-0.5 text-sm font-mono text-zinc-300">
                       {upload.badge}
@@ -285,12 +294,12 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
             {/* Details */}
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
               <div className="text-xs uppercase tracking-wider text-zinc-500 mb-1">Details</div>
-              <Detail label="Country"    value={`${meta.flag} ${meta.name}`} />
+              <div className="flex items-start justify-between gap-3 text-sm"><span className="text-zinc-500 shrink-0">Country</span><span className="inline-flex items-center gap-1.5 text-zinc-200"><Flag iso={meta.iso} />{meta.name}</span></div>
               {albaniaRegion && (
                 <Detail label="Region" value={albaniaRegion.district} />
               )}
               {upload.location  && <Detail label="Location"   value={upload.location} />}
-              {upload.plateType && <Detail label="Plate type" value={ALBANIA_PLATE_TYPE_LABELS[upload.plateType] ?? upload.plateType.replace(/-/g, " ")} />}
+              {upload.plateType && <Detail label="Plate type" value={ALBANIA_PLATE_TYPE_LABELS[upload.plateType] ?? AUSTRIA_PLATE_TYPE_LABELS[upload.plateType] ?? upload.plateType.replace(/-/g, " ")} />}
               {upload.badge      && <Detail label="Badge"      value={upload.badge} />}
               {upload.color      && <Detail label="Color"      value={upload.color} />}
               {upload.trim       && <Detail label="Trim"       value={upload.trim} />}

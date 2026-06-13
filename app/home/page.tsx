@@ -1,4 +1,7 @@
 import { prisma } from "@/app/lib/prisma";
+import Flag from "@/app/components/Flag";
+import { COUNTRY_META, getCountryMeta } from "@/app/lib/countries";
+
 
 export const dynamic = "force-dynamic";
 
@@ -60,7 +63,7 @@ export default async function HomePage() {
     ? countryGroups[Math.floor(Math.random() * countryGroups.length)]
     : null;
   const heroCmeta = randomCountry
-    ? (COUNTRY_META[randomCountry.country] ?? { flag: "🏳️", name: randomCountry.country.charAt(0).toUpperCase() + randomCountry.country.slice(1) })
+    ? (COUNTRY_META[randomCountry.country] ?? { iso: null, name: randomCountry.country.charAt(0).toUpperCase() + randomCountry.country.slice(1) })
     : COUNTRY_META["albania"];
   const heroCountry = randomCountry?.country ?? "albania";
 
@@ -87,7 +90,7 @@ export default async function HomePage() {
               Upload a spot
             </a>
             <a href={`/c/${heroCountry}`} className="rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-300 hover:bg-zinc-800 transition-colors">
-              {heroCmeta.flag} Browse {heroCmeta.name}
+              <Flag iso={heroCmeta.iso} /> Browse {heroCmeta.name}
             </a>
           </div>
         </div>
@@ -99,7 +102,7 @@ export default async function HomePage() {
           { label: "Spots archived", value: totalUploads.toLocaleString(), icon: "📷", href: null },
           { label: "Spotters",       value: totalUsers.toLocaleString(),   icon: "👤", href: null },
           { label: "Countries",      value: countryCount.toLocaleString(), icon: "🌍", href: "/countries" },
-          { label: "Plate formats",  value: "7+",                          icon: "🪪", href: null },
+          { label: "Plate formats",  value: "7+",                          icon: "📋", href: null },
         ].map((s) => (
           s.href ? (
             <a key={s.label} href={s.href} className="rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900/80 to-zinc-900/30 px-5 py-5 hover:border-indigo-700 hover:bg-indigo-950/20 transition-colors group">
@@ -131,14 +134,14 @@ export default async function HomePage() {
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {countryGroups.map(({ country, _count }) => {
-              const m = COUNTRY_META[country] ?? { flag: "🏳️", name: country.charAt(0).toUpperCase() + country.slice(1) };
+              const m = COUNTRY_META[country] ?? { iso: null, name: country.charAt(0).toUpperCase() + country.slice(1) };
               return (
                 <a
                   key={country}
                   href={`/c/${country}`}
                   className="group flex flex-col items-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900/40 px-4 py-5 text-center hover:border-zinc-600 hover:bg-zinc-900/70 transition-all"
                 >
-                  <span className="text-3xl">{m.flag}</span>
+                  <span className="text-3xl"><Flag iso={m.iso} /></span>
                   <span className="text-sm font-medium text-zinc-200 group-hover:text-white truncate w-full">{m.name}</span>
                   <span className="text-xs text-zinc-600">{_count.id} spot{_count.id === 1 ? "" : "s"}</span>
                 </a>
@@ -163,7 +166,7 @@ export default async function HomePage() {
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {recentUploads.map((u) => {
-              const meta = COUNTRY_META[u.country] ?? { flag: "🏳️", name: u.country };
+              const meta = COUNTRY_META[u.country] ?? { iso: null, name: u.country };
               const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
               return (
                 <div key={u.id} className="group relative rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-zinc-600 transition-all hover:shadow-lg hover:shadow-black/20">
@@ -182,7 +185,7 @@ export default async function HomePage() {
                   {/* Country badge overlaid */}
                   <div className="absolute top-2.5 right-2.5 z-10">
                     <span className="rounded-full bg-zinc-950/80 backdrop-blur border border-zinc-700/60 px-2 py-0.5 text-xs">
-                      {meta.flag}
+                      <Flag iso={meta.iso} />
                     </span>
                   </div>
 

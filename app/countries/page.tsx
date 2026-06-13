@@ -1,39 +1,16 @@
 import { prisma } from "@/app/lib/prisma";
+import Flag from "@/app/components/Flag";
+import { COUNTRY_META, getCountryMeta } from "@/app/lib/countries";
+
 
 export const dynamic = "force-dynamic";
 
-const COUNTRY_META: Record<string, { flag: string; name: string }> = {
-  albania: { flag: "🇦🇱", name: "Albania" },
-  germany: { flag: "🇩🇪", name: "Germany" },
-  italy:   { flag: "🇮🇹", name: "Italy" },
-  kosovo:  { flag: "🇽🇰", name: "Kosovo" },
-  greece:  { flag: "🇬🇷", name: "Greece" },
-  france:  { flag: "🇫🇷", name: "France" },
-  spain:   { flag: "🇪🇸", name: "Spain" },
-  austria: { flag: "🇦🇹", name: "Austria" },
-  switzerland: { flag: "🇨🇭", name: "Switzerland" },
-  netherlands: { flag: "🇳🇱", name: "Netherlands" },
-  belgium: { flag: "🇧🇪", name: "Belgium" },
-  poland:  { flag: "🇵🇱", name: "Poland" },
-  czechia: { flag: "🇨🇿", name: "Czechia" },
-  slovakia: { flag: "🇸🇰", name: "Slovakia" },
-  hungary: { flag: "🇭🇺", name: "Hungary" },
-  romania: { flag: "🇷🇴", name: "Romania" },
-  serbia:  { flag: "🇷🇸", name: "Serbia" },
-  croatia: { flag: "🇭🇷", name: "Croatia" },
-  slovenia: { flag: "🇸🇮", name: "Slovenia" },
-  "north-macedonia": { flag: "🇲🇰", name: "North Macedonia" },
-  "bosnia-and-herzegovina": { flag: "🇧🇦", name: "Bosnia & Herzegovina" },
-  montenegro: { flag: "🇲🇪", name: "Montenegro" },
-  bulgaria: { flag: "🇧🇬", name: "Bulgaria" },
-  "north macedonia": { flag: "🇲🇰", name: "North Macedonia" },
-};
 
 function countryLabel(key: string) {
   const meta = COUNTRY_META[key.toLowerCase()];
   if (meta) return meta;
   return {
-    flag: "🏳️",
+    iso: null,
     name: key.charAt(0).toUpperCase() + key.slice(1),
   };
 }
@@ -129,7 +106,7 @@ export default async function CountriesPage() {
                     href={`/c/${country}`}
                     className="group flex items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/40 px-5 py-4 hover:border-zinc-600 hover:bg-zinc-900/70 transition-all"
                   >
-                    <span className="text-3xl shrink-0">{meta.flag}</span>
+                    <span className="text-3xl shrink-0"><Flag iso={meta.iso} /></span>
                     <div className="min-w-0 flex-1">
                       <div className="font-semibold text-zinc-100 group-hover:text-white truncate">{meta.name}</div>
                       <div className="mt-0.5 text-xs text-zinc-500">

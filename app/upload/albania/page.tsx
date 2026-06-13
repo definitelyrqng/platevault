@@ -6,6 +6,7 @@ import { generateReactHelpers } from "@uploadthing/react";
 import type { OurFileRouter } from "@/app/lib/uploadthing";
 import CarDetailsFields from "@/app/upload/CarDetailsFields";
 import CompanyPicker from "@/app/components/CompanyPicker";
+import ZoomImage from "@/app/components/ZoomImage";
 import TagPicker from "@/app/components/TagPicker";
 import AlbaniaPlateInput from "@/app/upload/AlbaniaPlateInput";
 
@@ -302,7 +303,7 @@ export default function AlbaniaUploadPage() {
               >
                 {preview ? (
                   <div className="relative w-full group">
-                    <img src={preview} alt="Preview" className="w-full object-contain max-h-64 rounded-xl" />
+                    <ZoomImage src={preview} alt="Preview" className="rounded-xl" />
                     <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/0 group-hover:bg-zinc-950/50 transition-colors rounded-xl">
                       <span className="opacity-0 group-hover:opacity-100 text-xs text-zinc-200 transition-opacity">Click to change</span>
                     </div>

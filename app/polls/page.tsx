@@ -1,21 +1,10 @@
 import { prisma } from "@/app/lib/prisma";
+import Flag from "@/app/components/Flag";
+import { COUNTRY_META, getCountryMeta } from "@/app/lib/countries";
+
 
 export const dynamic = "force-dynamic";
 
-const COUNTRY_META: Record<string, { flag: string; name: string }> = {
-  albania:    { flag: "🇦🇱", name: "Albania" },
-  germany:    { flag: "🇩🇪", name: "Germany" },
-  italy:      { flag: "🇮🇹", name: "Italy" },
-  kosovo:     { flag: "🇽🇰", name: "Kosovo" },
-  greece:     { flag: "🇬🇷", name: "Greece" },
-  france:     { flag: "🇫🇷", name: "France" },
-  spain:      { flag: "🇪🇸", name: "Spain" },
-  austria:    { flag: "🇦🇹", name: "Austria" },
-  switzerland:{ flag: "🇨🇭", name: "Switzerland" },
-  netherlands:{ flag: "🇳🇱", name: "Netherlands" },
-  belgium:    { flag: "🇧🇪", name: "Belgium" },
-  poland:     { flag: "🇵🇱", name: "Poland" },
-};
 
 const MONTH_NAMES = [
   "", "January", "February", "March", "April", "May", "June",
@@ -65,7 +54,7 @@ export default async function PollsPage() {
 
   function PollCard({ poll }: { poll: (typeof open)[0] }) {
     const meta = COUNTRY_META[poll.country] ?? {
-      flag: "🏳️",
+      iso: null,
       name: poll.country.charAt(0).toUpperCase() + poll.country.slice(1),
     };
     const isOpen = new Date(poll.closesAt) > new Date();
@@ -101,7 +90,7 @@ export default async function PollsPage() {
         <div className="p-4">
           <div className="flex items-start justify-between gap-2 mb-2">
             <div>
-              <div className="text-xs text-zinc-500 mb-0.5">{meta.flag} {meta.name}</div>
+              <div className="text-xs text-zinc-500 mb-0.5"><Flag iso={meta.iso} /> {meta.name}</div>
               <div className="text-sm font-semibold text-zinc-100 group-hover:text-white">{title}</div>
             </div>
             <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium border ${

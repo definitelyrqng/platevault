@@ -2,23 +2,12 @@ import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
 import VoteButton from "./VoteButton";
+import Flag from "@/app/components/Flag";
+import { COUNTRY_META, getCountryMeta } from "@/app/lib/countries";
+
 
 export const dynamic = "force-dynamic";
 
-const COUNTRY_META: Record<string, { flag: string; name: string }> = {
-  albania:    { flag: "🇦🇱", name: "Albania" },
-  germany:    { flag: "🇩🇪", name: "Germany" },
-  italy:      { flag: "🇮🇹", name: "Italy" },
-  kosovo:     { flag: "🇽🇰", name: "Kosovo" },
-  greece:     { flag: "🇬🇷", name: "Greece" },
-  france:     { flag: "🇫🇷", name: "France" },
-  spain:      { flag: "🇪🇸", name: "Spain" },
-  austria:    { flag: "🇦🇹", name: "Austria" },
-  switzerland:{ flag: "🇨🇭", name: "Switzerland" },
-  netherlands:{ flag: "🇳🇱", name: "Netherlands" },
-  belgium:    { flag: "🇧🇪", name: "Belgium" },
-  poland:     { flag: "🇵🇱", name: "Poland" },
-};
 
 const MONTH_NAMES = [
   "", "January", "February", "March", "April", "May", "June",
@@ -107,7 +96,7 @@ export default async function PollPage({
   const showVoteCounts = !isOpen || userVote !== null;
 
   const meta = COUNTRY_META[poll.country] ?? {
-    flag: "🏳️",
+    iso: null,
     name: poll.country.charAt(0).toUpperCase() + poll.country.slice(1),
   };
 
@@ -133,13 +122,13 @@ export default async function PollPage({
       <div className="mb-2 flex items-center gap-2 text-xs text-zinc-500">
         <a href="/polls" className="hover:text-zinc-300">Polls</a>
         <span>›</span>
-        <span>{meta.flag} {meta.name}</span>
+        <span><Flag iso={meta.iso} /> {meta.name}</span>
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-8">
         <div>
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-3xl">{meta.flag}</span>
+            <span className="text-3xl"><Flag iso={meta.iso} /></span>
             <h1 className="text-2xl font-bold text-zinc-50">{pollTitle}</h1>
             <span className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${
               isOpen

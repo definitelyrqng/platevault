@@ -38,6 +38,14 @@ const SCHMITZ: CarData["Schmitz"] = {
   },
 };
 
+// ─── Porsche ──────────────────────────────────────────────────────────────────
+
+const PORSCHE: CarData["Porsche"] = {
+  Taycan: {
+    "1st Gen Sport Turismo (9J1) (2021-2024)": {},
+  },
+};
+
 // ─── Skoda ────────────────────────────────────────────────────────────────────
 
 const SKODA: CarData["Skoda"] = {
@@ -51,6 +59,7 @@ export const CAR_DATA: CarData = {
   Audi:            AUDI,
   "Mercedes-Benz": MERCEDES_BENZ,
   Schmitz:         SCHMITZ,
+  Porsche:         PORSCHE,
   Skoda:           SKODA,
 };
 
