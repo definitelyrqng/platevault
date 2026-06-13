@@ -45,6 +45,15 @@ const BMW: CarData["BMW"] = {
   },
 };
 
+// ─── Lotus ────────────────────────────────────────────────────────────────────
+
+const LOTUS: CarData["Lotus"] = {
+  Evora: {
+    "1st Gen (Type 122) (2009-2014)": {},
+    "1st Gen Facelift (Type 122) (2015-2021)": {},
+  },
+};
+
 // ─── Mercedes-Benz ────────────────────────────────────────────────────────────
 
 const MERCEDES_BENZ: CarData["Mercedes-Benz"] = {
@@ -83,6 +92,7 @@ export const CAR_DATA: CarData = {
   Audi:            AUDI,
   BMW:             BMW,
   Fiat:            FIAT,
+  Lotus:           LOTUS,
   "Mercedes-Benz": MERCEDES_BENZ,
   Schmitz:         SCHMITZ,
   Porsche:         PORSCHE,
