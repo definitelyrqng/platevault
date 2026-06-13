@@ -29,6 +29,14 @@ const AUDI: CarData["Audi"] = {
   },
 };
 
+// ─── Fiat ─────────────────────────────────────────────────────────────────────
+
+const FIAT: CarData["Fiat"] = {
+  Talento: {
+    "2nd Gen (296) (2016-2020)": {},
+  },
+};
+
 // ─── BMW ──────────────────────────────────────────────────────────────────────
 
 const BMW: CarData["BMW"] = {
@@ -74,6 +82,7 @@ const SKODA: CarData["Skoda"] = {
 export const CAR_DATA: CarData = {
   Audi:            AUDI,
   BMW:             BMW,
+  Fiat:            FIAT,
   "Mercedes-Benz": MERCEDES_BENZ,
   Schmitz:         SCHMITZ,
   Porsche:         PORSCHE,
