@@ -23,6 +23,10 @@ const AUDI: CarData["Audi"] = {
     "2nd Gen (4K8/C8) (2018-2023)": {},
     "2nd Gen Facelift (4K8/C8) (2023-2025)": {},
   },
+  "RS5 Sportback": {
+    "2nd Gen (B9) (2017-2019)": {},
+    "2nd Gen Facelift (B9.5) (2020-2024)": {},
+  },
 };
 
 // ─── Mercedes-Benz ────────────────────────────────────────────────────────────
