@@ -178,8 +178,8 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
               />
               {/* Overlay badges */}
               <div className="absolute bottom-3 left-3 flex items-center gap-2">
-                <span className="rounded-full bg-zinc-950/80 backdrop-blur border border-zinc-700 px-3 py-1 text-xs text-zinc-300">
-                  <Flag iso={meta.iso} /> {meta.name}
+                <span className="rounded-full bg-zinc-950/80 backdrop-blur border border-zinc-700 px-3 py-1 text-xs text-zinc-300 inline-flex items-center gap-1.5">
+                  <Flag iso={meta.iso} />{meta.name}
                 </span>
                 <span className="rounded-full bg-zinc-950/80 backdrop-blur border border-zinc-700 px-3 py-1 text-xs font-mono font-bold text-zinc-100 tracking-widest">
                   {upload.plateText}

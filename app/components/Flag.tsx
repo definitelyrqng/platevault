@@ -1,16 +1,12 @@
-import Image from "next/image";
-
-export default function Flag({ iso, size = 20 }: { iso: string | null; size?: number }) {
-  const w = Math.round(size * 1.33);
-  if (!iso) return <span className="inline-block rounded-sm bg-zinc-700" style={{ width: w, height: size }} />;
+export default function Flag({ iso }: { iso: string | null }) {
+  if (!iso) return null;
   return (
-    <Image
-      src={"https://flagcdn.com/" + w + "x" + size + "/" + iso + ".png"}
+    <img
+      src={"https://flagcdn.com/24x18/" + iso + ".png"}
       alt={iso.toUpperCase()}
-      width={w}
-      height={size}
+      width={24}
+      height={18}
       className="inline-block align-middle rounded-sm"
-      unoptimized
     />
   );
 }

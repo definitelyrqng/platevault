@@ -249,7 +249,7 @@ export default function AustriaUploadPage() {
                 {preview ? (
                   <div className="relative w-full group">
                     <ZoomImage src={preview} alt="Preview" className="rounded-xl" />
-                    <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/0 group-hover:bg-zinc-950/50 transition-colors rounded-xl">
+                    <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/0 group-hover:bg-zinc-950/50 transition-colors rounded-xl pointer-events-none">
                       <span className="opacity-0 group-hover:opacity-100 text-xs text-zinc-200 transition-opacity">Click to change</span>
                     </div>
                   </div>

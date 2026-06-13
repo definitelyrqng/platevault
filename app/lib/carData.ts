@@ -19,6 +19,10 @@ const C7_GEN: Record<string, GenerationData> = {
 const AUDI: CarData["Audi"] = {
   "A6 Sedan": { ...C6_GEN, ...C7_GEN },
   "A6 Avant": { ...C6_GEN, ...C7_GEN },
+  "A7 Sportback": {
+    "2nd Gen (4K8/C8) (2018-2023)": {},
+    "2nd Gen Facelift (4K8/C8) (2023-2025)": {},
+  },
 };
 
 // ─── Mercedes-Benz ────────────────────────────────────────────────────────────
