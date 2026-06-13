@@ -27,8 +27,8 @@ async function getSessionUser() {
   return session.user;
 }
 
-function isMod(role: string) {
-  return ["SUPERADMIN", "ADMIN", "MOD"].includes(role);
+function isAdmin(role: string) {
+  return role === "SUPERADMIN" || role === "ADMIN";
 }
 
 export default async function CompanyPage({ params }: { params: Promise<{ id: string }> }) {
@@ -60,7 +60,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
 
   if (!company) return notFound();
 
-  const modAccess = currentUser && isMod(currentUser.role);
+  const adminAccess = currentUser && isAdmin(currentUser.role);
   const spots = company.uploads;
 
   // Stats
@@ -162,7 +162,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
       )}
 
       {/* Mod edit panel */}
-      {modAccess && (
+      {adminAccess && (
         <div className="mb-8">
           <CompanyAdmin company={{
             id: company.id,

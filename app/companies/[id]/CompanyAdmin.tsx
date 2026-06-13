@@ -57,7 +57,7 @@ export default function CompanyAdmin({ company }: Props) {
       <button onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-amber-500">
         <span>Mod Panel</span>
-        <span className="text-amber-700">{open ? "&#9650;" : "&#9660;"}</span>
+        <span className="text-amber-700">{open ? "▲" : "▼"}</span>
       </button>
 
       {open && !delMode && (
