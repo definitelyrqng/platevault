@@ -20,7 +20,6 @@ function canAdmin(role: string) {
   return role === "SUPERADMIN" || role === "ADMIN";
 }
 
-// PATCH — edit car details (admin only)
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -34,7 +33,6 @@ export async function PATCH(
 
   const opt = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim().slice(0, 60) : null);
 
-  // Fetch before updating so we can diff and notify
   const before = await prisma.upload.findUnique({
     where: { id },
     select: {
@@ -51,14 +49,14 @@ export async function PATCH(
   const newTrim       = opt(body.trim);
   const newColor      = opt(body.color);
   const newBadge      = typeof body.badge === "string" && body.badge.trim() ? body.badge.trim().slice(0, 30) : null;
+  const newCompanyId  = typeof body.companyId === "string" && body.companyId.trim() ? body.companyId.trim() : null;
 
   const upload = await prisma.upload.update({
     where: { id },
-    data: { brand: newBrand, model: newModel, generation: newGeneration, trim: newTrim, color: newColor, badge: newBadge },
-    select: { id: true, brand: true, model: true, generation: true, trim: true, color: true, badge: true },
+    data: { brand: newBrand, model: newModel, generation: newGeneration, trim: newTrim, color: newColor, badge: newBadge, companyId: newCompanyId },
+    select: { id: true, brand: true, model: true, generation: true, trim: true, color: true, badge: true, companyId: true },
   });
 
-  // Build a human-readable diff
   const fields: Record<string, [string | null, string | null]> = {
     Brand:      [before.brand,      newBrand],
     Model:      [before.model,      newModel],
@@ -69,18 +67,17 @@ export async function PATCH(
   };
   const changedLines = Object.entries(fields)
     .filter(([, [oldVal, newVal]]) => oldVal !== newVal)
-    .map(([label, [oldVal, newVal]]) => `${label}: ${oldVal ?? "—"} → ${newVal ?? "—"}`);
+    .map(([label, [oldVal, newVal]]) => label + ": " + (oldVal ?? "-") + " -> " + (newVal ?? "-"));
   const changesText = changedLines.length > 0 ? changedLines.join("\n") : "No fields changed";
 
-  // Notify owner (skip if admin edited their own spot)
   if (before.userId !== user.id && changedLines.length > 0) {
     await prisma.notification.create({
       data: {
         userId:  before.userId,
         type:    "SYSTEM",
-        title:   `Your spot ${before.plateText} was edited by a moderator`,
+        title:   "Your spot " + before.plateText + " was edited by a moderator",
         message: changesText,
-        url:     `/spot/${before.numericId}`,
+        url:     "/spot/" + before.numericId,
       },
     });
   }
@@ -96,7 +93,6 @@ export async function PATCH(
   return NextResponse.json({ upload });
 }
 
-// DELETE — hard delete with UT cleanup + notification (admin only)
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -111,14 +107,12 @@ export async function DELETE(
     ? body.reason.trim().slice(0, 280)
     : null;
 
-  // Fetch upload before deleting so we have imageUrl + owner
   const upload = await prisma.upload.findUnique({
     where: { id },
     select: { userId: true, imageUrl: true, plateText: true, country: true, user: { select: { username: true } } },
   });
   if (!upload) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Delete image from UploadThing
   try {
     const utapi = new UTApi({ token: process.env.UPLOADTHING_TOKEN });
     const match = upload.imageUrl.match(/\/f\/([^/?#]+)/);
@@ -127,24 +121,21 @@ export async function DELETE(
       console.log("[DELETE] UT file deleted:", match[1]);
     }
   } catch (e) {
-    // Don't block deletion if UT cleanup fails
     console.error("[DELETE] UT delete failed:", e);
   }
 
-  // Notify the original uploader (skip if admin is deleting their own post)
   if (upload.userId !== user.id) {
     const plate = upload.plateText.toUpperCase();
     await prisma.notification.create({
       data: {
         userId:  upload.userId,
         type:    "UPLOAD_DELETED",
-        title:   `Your spot ${plate} was removed`,
+        title:   "Your spot " + plate + " was removed",
         message: reason ?? "Your spot was removed by a moderator.",
       },
     });
   }
 
-  // Hard delete — cascades to likes & comments via schema
   await prisma.upload.delete({ where: { id } });
 
   logUploadDelete({

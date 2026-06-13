@@ -51,12 +51,12 @@ export function getAlbaniaRegion(code: string): AlbaniaRegion | undefined {
 }
 
 export const ALBANIA_PLATE_TYPE_LABELS: Record<string, string> = {
-  "car-2011-standard":   "Standard single row (2011+)",
-  "car-2011-double":     "Double row (2011+)",
-  "car-2011-us":         "US-size single row (2011+)",
+  "car-2011-standard":   "Standard single line (2011+)",
+  "car-2011-double":     "Double line (2011+)",
+  "car-2011-us":         "US-size single line (2011+)",
   "moto-2011":           "Motorcycle plate (2011+)",
-  "trailer-2011-single": "Trailer single row (2011+)",
-  "trailer-2011-double": "Trailer double row (2011+)",
-  "car-1993-single":     "Old format single row (1993-2010)",
-  "car-1993-double":     "Old format double row (1993-2010)",
+  "trailer-2011-single": "Trailer single line (2011+)",
+  "trailer-2011-double": "Trailer double line (2011+)",
+  "car-1993-single":     "Old format single line (1993-2010)",
+  "car-1993-double":     "Old format double line (1993-2010)",
 };

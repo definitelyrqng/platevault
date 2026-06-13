@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { generateReactHelpers } from "@uploadthing/react";
 import type { OurFileRouter } from "@/app/lib/uploadthing";
 import CarDetailsFields from "@/app/upload/CarDetailsFields";
+import CompanyPicker from "@/app/components/CompanyPicker";
 import TagPicker from "@/app/components/TagPicker";
 import AustriaPlateInput from "@/app/upload/AustriaPlateInput";
 import {
@@ -55,6 +56,7 @@ export default function AustriaUploadPage() {
   const [color, setColor]           = useState("");
   const [badge, setBadge]           = useState("");
   const [tags, setTags]             = useState<string[]>([]);
+  const [companyId, setCompanyId]   = useState<string | null>(null);
   const [file, setFile]             = useState<File | null>(null);
   const [preview, setPreview]       = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -141,6 +143,7 @@ export default function AustriaUploadPage() {
           color: color.trim(),
           badge: badge.trim(),
           tags,
+          companyId,
         }),
       });
       const data = await res.json();
@@ -305,6 +308,11 @@ export default function AustriaUploadPage() {
             {/* Tags */}
             <div className="pt-2 border-t border-zinc-800 space-y-2">
               <div className="text-sm text-zinc-300">Tags <span className="text-zinc-600 text-xs">(optional, up to 6)</span></div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider text-zinc-500 mb-1.5">Transport company</p>
+                <CompanyPicker value={companyId} onChange={(id) => setCompanyId(id)} />
+              </div>
+
               <TagPicker selected={tags} onChange={setTags} max={6} />
             </div>
 

@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { BRANDS, getModels, getGenerations } from "@/app/lib/carData";
-import { getBadges } from "@/app/lib/modelBadges";
+import CompanyPicker from "@/app/components/CompanyPicker";
+
+const FIELD = "w-full rounded-xl border border-zinc-800 bg-zinc-900/60 px-3 py-2.5 text-sm text-zinc-100 outline-none transition-colors focus:border-zinc-600 focus:bg-zinc-900 disabled:opacity-30 disabled:cursor-not-allowed placeholder:text-zinc-600";
+
+function Label({ children }: { children: React.ReactNode }) {
+  return <label className="block text-[11px] font-medium uppercase tracking-wider text-zinc-500 mb-1.5">{children}</label>;
+}
 
 export default function AdminPanel({
   uploadId,
@@ -14,6 +20,7 @@ export default function AdminPanel({
   initialColor,
   initialBadge,
   initialHidden,
+  initialCompanyId,
 }: {
   uploadId: string;
   initialBrand: string;
@@ -23,42 +30,34 @@ export default function AdminPanel({
   initialColor: string;
   initialBadge: string;
   initialHidden: boolean;
+  initialCompanyId?: string | null;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [brand, setBrand] = useState(initialBrand);
-  const [model, setModel] = useState(initialModel);
+  const [brand,      setBrand]      = useState(initialBrand);
+  const [model,      setModel]      = useState(initialModel);
   const [generation, setGeneration] = useState(initialGeneration);
-  const [trim, setTrim] = useState(initialTrim);
-  const [color, setColor] = useState(initialColor);
-  const [badge, setBadge] = useState(initialBadge);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [saved, setSaved] = useState(false);
+  const [color,      setColor]      = useState(initialColor);
+  const [badge,      setBadge]      = useState(initialBadge);
+  const [companyId,  setCompanyId]  = useState<string | null>(initialCompanyId ?? null);
+  const [saving,     setSaving]     = useState(false);
+  const [error,      setError]      = useState("");
+  const [saved,      setSaved]      = useState(false);
 
-  // Delete confirmation state
   const [deleteMode, setDeleteMode] = useState(false);
-  const [reason, setReason] = useState("");
-  const [deleting, setDeleting] = useState(false);
+  const [reason,     setReason]     = useState("");
+  const [deleting,   setDeleting]   = useState(false);
 
-  // Visibility state
-  const [hidden, setHidden] = useState(initialHidden);
-  const [hideReason, setHideReason] = useState("");
+  const [hidden,            setHidden]            = useState(initialHidden);
+  const [hideReason,        setHideReason]        = useState("");
   const [togglingVisibility, setTogglingVisibility] = useState(false);
 
-  const models      = brand      ? getModels(brand)             : [];
-  const generations = model      ? getGenerations(brand, model) : [];
-  const badges      = brand && model ? getBadges(brand, model)  : [];
+  const models      = brand ? getModels(brand)             : [];
+  const generations = model ? getGenerations(brand, model) : [];
 
-  function onBrandChange(v: string) {
-    setBrand(v); setModel(""); setGeneration(""); setTrim(""); setColor(""); setBadge("");
-  }
-  function onModelChange(v: string) {
-    setModel(v); setGeneration(""); setTrim(""); setColor(""); setBadge("");
-  }
-  function onGenerationChange(v: string) {
-    setGeneration(v); setTrim(""); setColor("");
-  }
+  function onBrandChange(v: string)      { setBrand(v);      setModel(""); setGeneration(""); setColor(""); setBadge(""); }
+  function onModelChange(v: string)      { setModel(v);      setGeneration(""); setColor(""); setBadge(""); }
+  function onGenerationChange(v: string) { setGeneration(v); setColor(""); }
 
   async function saveDetails() {
     setSaving(true); setError(""); setSaved(false);
@@ -66,14 +65,12 @@ export default function AdminPanel({
       const res = await fetch(`/api/uploads/${uploadId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ brand, model, generation, trim, color, badge }),
+        body: JSON.stringify({ brand, model, generation, trim: initialTrim, color, badge, companyId }),
       });
       if (!res.ok) { setError("Failed to save."); return; }
       setSaved(true);
       router.refresh();
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
   }
 
   async function toggleVisibility() {
@@ -101,125 +98,99 @@ export default function AdminPanel({
       });
       if (!res.ok) { setError("Failed to delete."); return; }
       window.location.href = "/home";
-    } finally {
-      setDeleting(false);
-    }
+    } finally { setDeleting(false); }
   }
 
-  const selectCls = "w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600 disabled:opacity-40";
-
   return (
-    <div className="rounded-2xl border border-amber-900/40 bg-amber-950/10 p-4">
+    <div className="rounded-2xl border border-amber-900/30 bg-amber-950/10 p-4">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between text-xs font-semibold uppercase tracking-wider text-amber-400"
+        className="flex w-full items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-amber-500"
       >
-        <span>⚙ Admin Panel</span>
-        <span>{open ? "▲" : "▼"}</span>
+        <span>Admin Panel</span>
+        <span className="text-amber-700">{open ? "&#9650;" : "&#9660;"}</span>
       </button>
 
       {open && !deleteMode && (
         <div className="mt-4 space-y-3">
-          {/* Brand */}
-          <div>
-            <label className="block text-xs text-zinc-500 mb-1">Brand</label>
-            <select value={brand} onChange={(e) => onBrandChange(e.target.value)} className={selectCls}>
-              <option value="">— select brand —</option>
-              {BRANDS.map((b) => <option key={b} value={b}>{b}</option>)}
-            </select>
-          </div>
-
-          {/* Model */}
-          <div>
-            <label className="block text-xs text-zinc-500 mb-1">Model</label>
-            <select value={model} onChange={(e) => onModelChange(e.target.value)} disabled={!brand} className={selectCls}>
-              <option value="">— select model —</option>
-              {models.map((m) => <option key={m} value={m}>{m}</option>)}
-            </select>
-          </div>
-
-          {/* Generation */}
-          <div>
-            <label className="block text-xs text-zinc-500 mb-1">Generation</label>
-            <select value={generation} onChange={(e) => onGenerationChange(e.target.value)} disabled={!model} className={selectCls}>
-              <option value="">— select generation —</option>
-              {generations.map((g) => <option key={g} value={g}>{g}</option>)}
-            </select>
-          </div>
-
-          {/* Trim */}
-          <div>
-            <label className="block text-xs text-zinc-500 mb-1">Trim</label>
-            <input
-              value={trim}
-              onChange={(e) => setTrim(e.target.value)}
-              placeholder="e.g. AMG Line, Sport, Luxury..."
-              className={selectCls}
-            />
-          </div>
-
-          {/* Color */}
-          <div>
-            <label className="block text-xs text-zinc-500 mb-1">Color</label>
-            <input
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-              placeholder="e.g. Obsidian Black Metallic..."
-              className={selectCls}
-            />
-          </div>
-
-          {/* Badge — dropdown if model has known variants, free text otherwise */}
-          <div>
-            <label className="block text-xs text-zinc-500 mb-1">Engine / variant badge</label>
-            {badges.length > 0 ? (
-              <select value={badge} onChange={(e) => setBadge(e.target.value)} className={selectCls}>
-                <option value="">— select badge —</option>
-                {badges.map((b) => <option key={b} value={b}>{b}</option>)}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2">
+              <Label>Brand</Label>
+              <select value={brand} onChange={(e) => onBrandChange(e.target.value)} className={FIELD}>
+                <option value="">Select brand...</option>
+                {BRANDS.map((b) => <option key={b} value={b}>{b}</option>)}
               </select>
-            ) : (
+            </div>
+
+            <div className="col-span-2">
+              <Label>Model</Label>
+              <select value={model} onChange={(e) => onModelChange(e.target.value)} disabled={!brand} className={FIELD}>
+                <option value="">Select model...</option>
+                {models.map((m) => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+
+            <div className="col-span-2">
+              <Label>Generation</Label>
+              <select value={generation} onChange={(e) => onGenerationChange(e.target.value)} disabled={!model} className={FIELD}>
+                <option value="">Select generation...</option>
+                {generations.map((g) => <option key={g} value={g}>{g}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <Label>Badge</Label>
               <input
                 value={badge}
                 onChange={(e) => setBadge(e.target.value)}
-                placeholder="e.g. 2.0 TDI, 320d"
+                placeholder="3.0 TDI, RS6..."
                 maxLength={30}
-                className={selectCls}
+                className={FIELD}
               />
-            )}
+            </div>
+
+            <div>
+              <Label>Color</Label>
+              <input
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                placeholder="Obsidian Black..."
+                className={FIELD}
+              />
+            </div>
           </div>
 
           {error && <p className="text-xs text-red-400">{error}</p>}
           {saved && <p className="text-xs text-emerald-400">Saved!</p>}
 
-          {/* Hide / show */}
           <div className="pt-1 space-y-2">
             {hidden && (
-              <div className="rounded-xl border border-amber-900/40 bg-amber-950/20 px-3 py-1.5 text-xs text-amber-400">
-                ⚠ This spot is currently hidden from non-moderators.
+              <div className="rounded-xl border border-amber-900/40 bg-amber-950/20 px-3 py-2 text-xs text-amber-400">
+                This spot is hidden from non-moderators.
               </div>
             )}
             {!hidden && (
               <div>
-                <label className="block text-xs text-zinc-500 mb-1">Hide reason (optional, shown to user)</label>
+                <Label>Hide reason (optional)</Label>
                 <input
                   value={hideReason}
                   onChange={(e) => setHideReason(e.target.value)}
-                  placeholder="e.g. Under review…"
+                  placeholder="e.g. Under review..."
                   maxLength={280}
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600"
+                  className={FIELD}
                 />
               </div>
             )}
             <button
               onClick={toggleVisibility}
               disabled={togglingVisibility}
-              className={`w-full rounded-xl border py-2 text-xs font-medium transition-colors disabled:opacity-50 ${
+              className={`w-full rounded-xl border py-2 text-xs font-medium transition-colors disabled:opacity-40 ${
                 hidden
                   ? "border-emerald-900/50 bg-emerald-950/30 text-emerald-400 hover:bg-emerald-950/60"
-                  : "border-amber-900/50 bg-amber-950/20 text-amber-400 hover:bg-amber-950/40"
+                  : "border-amber-900/40 bg-amber-950/20 text-amber-400 hover:bg-amber-950/40"
               }`}
             >
-              {togglingVisibility ? "…" : hidden ? "Show spot (restore visibility)" : "Hide spot from public"}
+              {togglingVisibility ? "..." : hidden ? "Restore visibility" : "Hide spot"}
             </button>
           </div>
 
@@ -227,39 +198,36 @@ export default function AdminPanel({
             <button
               onClick={saveDetails}
               disabled={saving}
-              className="flex-1 rounded-xl bg-zinc-100 py-2 text-xs font-medium text-zinc-950 hover:bg-white disabled:opacity-50"
+              className="flex-1 rounded-xl bg-zinc-100 py-2 text-xs font-semibold text-zinc-950 hover:bg-white transition-colors disabled:opacity-40"
             >
-              {saving ? "Saving…" : "Save details"}
+              {saving ? "Saving..." : "Save details"}
             </button>
             <button
               onClick={() => { setDeleteMode(true); setError(""); }}
-              className="rounded-xl border border-red-900/50 bg-red-950/30 px-4 py-2 text-xs font-medium text-red-400 hover:bg-red-950/60"
+              className="rounded-xl border border-red-900/50 bg-red-950/20 px-4 py-2 text-xs font-medium text-red-400 hover:bg-red-950/50 transition-colors"
             >
-              Delete post
+              Delete
             </button>
           </div>
         </div>
       )}
 
-      {/* Delete confirmation panel */}
       {open && deleteMode && (
         <div className="mt-4 space-y-3">
-          <p className="text-xs text-red-300 font-medium">
-            This will permanently delete the spot and remove the image from storage. The user will be notified.
+          <p className="text-xs text-red-300/80">
+            This permanently deletes the spot and removes the image. The user will be notified.
           </p>
           <div>
-            <label className="block text-xs text-zinc-500 mb-1">
-              Reason <span className="text-zinc-600">(shown to user — leave blank for generic message)</span>
-            </label>
+            <Label>Reason <span className="normal-case text-zinc-600 font-normal">(optional — shown to user)</span></Label>
             <textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="e.g. Duplicate spot, blurry image, violates rules…"
+              placeholder="e.g. Duplicate spot, blurry image, violates rules..."
               maxLength={280}
               rows={3}
-              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600 resize-none"
+              className={FIELD + " resize-none"}
             />
-            <div className="text-right text-[10px] text-zinc-600 mt-0.5">{reason.length}/280</div>
+            <div className="text-right text-[10px] text-zinc-700 mt-0.5">{reason.length}/280</div>
           </div>
 
           {error && <p className="text-xs text-red-400">{error}</p>}
@@ -267,16 +235,16 @@ export default function AdminPanel({
           <div className="flex gap-2">
             <button
               onClick={() => { setDeleteMode(false); setReason(""); setError(""); }}
-              className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 py-2 text-xs font-medium text-zinc-300 hover:bg-zinc-800"
+              className="flex-1 rounded-xl border border-zinc-800 bg-zinc-900 py-2 text-xs font-medium text-zinc-400 hover:bg-zinc-800 transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={confirmDelete}
               disabled={deleting}
-              className="flex-1 rounded-xl border border-red-900/50 bg-red-950/60 py-2 text-xs font-medium text-red-300 hover:bg-red-950 disabled:opacity-50"
+              className="flex-1 rounded-xl border border-red-900/50 bg-red-950/50 py-2 text-xs font-medium text-red-300 hover:bg-red-950 transition-colors disabled:opacity-40"
             >
-              {deleting ? "Deleting..." : "Yes, delete permanently"}
+              {deleting ? "Deleting..." : "Delete permanently"}
             </button>
           </div>
         </div>

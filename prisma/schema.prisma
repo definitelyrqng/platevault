@@ -54,6 +54,7 @@ model User {
   comments      Comment[]
   notifications Notification[]
   pollVotes     PollVote[]
+  companies     TransportCompany[]
 
   @@index([createdAt])
 }
@@ -94,6 +95,9 @@ model Upload {
 
   imageUrl  String   @db.VarChar(500)
 
+  companyId String?
+  company   TransportCompany? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
   hidden    Boolean  @default(false)
   deletedAt DateTime?
   createdAt DateTime @default(now())
@@ -105,6 +109,7 @@ model Upload {
   @@index([userId, createdAt])
   @@index([country, createdAt])
   @@index([plateText])
+  @@index([companyId])
 }
 
 model Like {
@@ -150,6 +155,23 @@ model Notification {
 
   @@index([userId, createdAt])
   @@index([userId, readAt])
+}
+
+model TransportCompany {
+  id          String   @id @default(cuid())
+  numericId   Int      @unique @default(autoincrement())
+  name        String   @db.VarChar(120)
+  country     String?  @db.VarChar(60)
+  city        String?  @db.VarChar(80)
+  description String?  @db.VarChar(500)
+  website     String?  @db.VarChar(200)
+  createdAt   DateTime @default(now())
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  uploads     Upload[]
+
+  @@index([name])
+  @@index([country])
 }
 
 model Poll {

@@ -60,7 +60,6 @@ export default function SiteHeader() {
         </div>
       </Link>
 
-      {/* Search bar — hidden on small screens */}
       <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-sm items-center gap-2">
         <div className="relative flex-1">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
@@ -69,7 +68,7 @@ export default function SiteHeader() {
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search plates…"
+            placeholder="Search plates..."
             autoComplete="off"
             className="w-full rounded-xl border border-zinc-800 bg-zinc-900/60 pl-9 pr-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 outline-none focus:border-zinc-600 transition-colors"
           />
@@ -77,7 +76,6 @@ export default function SiteHeader() {
       </form>
 
       <nav className="flex items-center gap-3 shrink-0 ml-auto">
-        {/* Mobile search icon */}
         <Link
           href="/search"
           className="md:hidden grid h-9 w-9 place-items-center rounded-xl border border-zinc-800 bg-zinc-900/40 text-zinc-400 hover:bg-zinc-900"
@@ -89,8 +87,22 @@ export default function SiteHeader() {
         </Link>
 
         <Link
+          href="/catalog"
+          className="hidden sm:block rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"
+        >
+          Catalog
+        </Link>
+
+        <Link
+          href="/companies"
+          className="hidden lg:block rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors"
+        >
+          Companies
+        </Link>
+
+        <Link
           href="/upload"
-          className="rounded-xl bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-white"
+          className="rounded-xl bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-white transition-colors"
         >
           Upload
         </Link>
@@ -103,7 +115,6 @@ export default function SiteHeader() {
           </>
         ) : me.user ? (
           <>
-            {/* Bell */}
             <Link
               href="/notifications"
               className="relative grid h-9 w-9 place-items-center rounded-xl border border-zinc-800 bg-zinc-900/40 text-zinc-300 hover:bg-zinc-900"
@@ -122,20 +133,20 @@ export default function SiteHeader() {
 
             <Link
               href="/polls"
-              className="hidden sm:block rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-900"
+              className="hidden sm:block rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-900 transition-colors"
             >
-              🗳️ Polls
+              Polls
             </Link>
 
             <Link
               href={`/u/${me.user.numericId}`}
-              className="rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-900"
+              className="rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-900 transition-colors"
             >
               @{me.user.username}
             </Link>
             <button
               onClick={logout}
-              className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-900"
+              className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-900 transition-colors"
             >
               Log out
             </button>
@@ -144,13 +155,13 @@ export default function SiteHeader() {
           <>
             <Link
               href="/login"
-              className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-900"
+              className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-900 transition-colors"
             >
               Log in
             </Link>
             <Link
               href="/signup"
-              className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-900"
+              className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-900 transition-colors"
             >
               Sign up
             </Link>

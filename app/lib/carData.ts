@@ -1,17 +1,3 @@
-/**
- * PlateVault - Car Data
- * Structure: Brand > Model > Generation > { colors }
- *
- * HOW TO ADD A NEW BRAND
- * Copy any existing brand block and register it in CAR_DATA at the bottom.
- *
- * HOW TO ADD A MODEL / GENERATION
- * Add a new key under the brand. Generations are just strings like "X243 (2021-2023)".
- * Always end the colors array with "Custom color" and "Custom wrap".
- *
- * TRIM is now free-text in the upload form - no need to list trims here.
- */
-
 export type GenerationData = {
   colors: string[];
 };

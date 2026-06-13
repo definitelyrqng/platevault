@@ -29,10 +29,11 @@ export async function POST(req: Request) {
     const badge       = optStr(body.badge, 30);
     const tags        = sanitizeTags(body.tags);
     const brand       = optStr(body.brand, 60);
-    const model      = optStr(body.model, 60);
-    const generation = optStr(body.generation, 60);
-    const trim       = optStr(body.trim, 60);
-    const color      = optStr(body.color, 60);
+    const model       = optStr(body.model, 60);
+    const generation  = optStr(body.generation, 60);
+    const trim        = optStr(body.trim, 60);
+    const color       = optStr(body.color, 60);
+    const companyId   = typeof body.companyId === "string" && body.companyId.trim() ? body.companyId.trim() : null;
 
     if (!country || !plateText || !imageUrl) {
       return NextResponse.json({ error: "Missing required fields: country, plateText, imageUrl" }, { status: 400 });
@@ -44,7 +45,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid image URL" }, { status: 400 });
     }
 
-    // Apply watermark: download, composite logo, re-upload, swap URL
     let finalImageUrl = imageUrl;
     try {
       const watermarked = await applyWatermark(imageUrl);
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
     });
 
     const upload = await prisma.upload.create({
-      data: { userId: user.id, country, plateText, plateType, imageUrl: finalImageUrl, location, plateRegion, badge, brand, model, generation, trim, color, tags },
+      data: { userId: user.id, country, plateText, plateType, imageUrl: finalImageUrl, location, plateRegion, badge, brand, model, generation, trim, color, tags, companyId },
       select: { id: true, numericId: true, country: true, plateText: true, plateType: true, imageUrl: true, createdAt: true },
     });
 

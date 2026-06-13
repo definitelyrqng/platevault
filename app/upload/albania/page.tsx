@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { generateReactHelpers } from "@uploadthing/react";
 import type { OurFileRouter } from "@/app/lib/uploadthing";
 import CarDetailsFields from "@/app/upload/CarDetailsFields";
+import CompanyPicker from "@/app/components/CompanyPicker";
 import TagPicker from "@/app/components/TagPicker";
 import AlbaniaPlateInput from "@/app/upload/AlbaniaPlateInput";
 
@@ -23,20 +24,20 @@ type VehicleCategory = (typeof VEHICLE_CATEGORIES)[number];
 
 const PLATE_TYPES_BY_CATEGORY: Record<VehicleCategory, { id: string; name: string; example: string }[]> = {
   "Cars (2011–present)": [
-    { id: "car-2011-standard", name: "Standard (single row)", example: "AA 123 AB" },
-    { id: "car-2011-double", name: "Double row", example: "AA 123 / AB" },
-    { id: "car-2011-us", name: "US-size single row", example: "AA 123 AB" },
+    { id: "car-2011-standard", name: "Standard (single line)", example: "AA 123 AB" },
+    { id: "car-2011-double", name: "Double line", example: "AA 123 / AB" },
+    { id: "car-2011-us", name: "US-size single line", example: "AA 123 AB" },
   ],
   "Motorcycles (2011–present)": [
     { id: "moto-2011", name: "Motorcycle plate", example: "AA 1234" },
   ],
   "Trailers (2011–present)": [
-    { id: "trailer-2011-single", name: "Trailer (single row)", example: "TR R 1234" },
-    { id: "trailer-2011-double", name: "Trailer (double row)", example: "TR R / 1234" },
+    { id: "trailer-2011-single", name: "Trailer (single line)", example: "TR R 1234" },
+    { id: "trailer-2011-double", name: "Trailer (double line)", example: "TR R / 1234" },
   ],
   "Cars (1993–2010)": [
-    { id: "car-1993-single", name: "Old format (single row)", example: "BC 1234 AA" },
-    { id: "car-1993-double", name: "Old format (double row)", example: "BC 1234 / AA" },
+    { id: "car-1993-single", name: "Old format (single line)", example: "BC 1234 AA" },
+    { id: "car-1993-double", name: "Old format (double line)", example: "BC 1234 / AA" },
   ],
 };
 
@@ -75,6 +76,7 @@ export default function AlbaniaUploadPage() {
   const [trim, setTrim] = useState("");
   const [color, setColor] = useState("");
   const [badge, setBadge] = useState("");
+  const [companyId, setCompanyId] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -162,6 +164,7 @@ export default function AlbaniaUploadPage() {
           color: color.trim(),
           badge: badge.trim(),
           tags,
+          companyId,
         }),
       });
 
@@ -364,6 +367,11 @@ export default function AlbaniaUploadPage() {
             {/* Tags */}
             <div className="pt-2 border-t border-zinc-800 space-y-2">
               <div className="text-sm text-zinc-300">Tags <span className="text-zinc-600 text-xs">(optional, up to 6)</span></div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider text-zinc-500 mb-1.5">Transport company</p>
+                <CompanyPicker value={companyId} onChange={(id) => setCompanyId(id)} />
+              </div>
+
               <TagPicker selected={tags} onChange={setTags} max={6} />
             </div>
 

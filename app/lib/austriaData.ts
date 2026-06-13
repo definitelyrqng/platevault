@@ -150,10 +150,10 @@ export function getAustriaPreselect3(code: string) { return BY3.get(code); }
 
 // ─── Plate formats ───────────────────────────────────────────────────────────────────────
 export const AT_FORMAT_LABELS: Record<string, string> = {
-  "single-euroband":    "Single-row plate with euroband",
-  "double-euroband":    "Two-row plate with euroband",
-  "single-no-euroband": "Single-row plate without euroband",
-  "double-no-euroband": "Two-row plate without euroband",
+  "single-euroband":    "Single-line plate with euroband",
+  "double-euroband":    "Two-line plate with euroband",
+  "single-no-euroband": "Single-line plate without euroband",
+  "double-no-euroband": "Two-line plate without euroband",
   "repeater":           "Repeater plates (red)",
   "moped":              "Mopeds",
   "moped-green":        "Mopeds (green characters)",

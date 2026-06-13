@@ -74,6 +74,8 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
         badge: true,
         tags: true,
         hidden: true,
+        companyId: true,
+        company: { select: { id: true, numericId: true, name: true, city: true, country: true } },
         createdAt: true,
         userId: true,
         user: { select: { username: true, numericId: true, avatarUrl: true } },
@@ -292,6 +294,16 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
               {upload.badge      && <Detail label="Badge"      value={upload.badge} />}
               {upload.color      && <Detail label="Color"      value={upload.color} />}
               {upload.trim       && <Detail label="Trim"       value={upload.trim} />}
+              {upload.company && (
+                <div className="flex items-start justify-between gap-2 py-0.5">
+                  <span className="text-xs text-zinc-500 shrink-0">Company</span>
+                  <a href={"/companies/" + upload.company.numericId}
+                    className="relative z-10 text-xs text-zinc-200 text-right hover:text-white transition-colors">
+                    {upload.company.name}
+                    {upload.company.city && <span className="text-zinc-500 ml-1">{upload.company.city}</span>}
+                  </a>
+                </div>
+              )}
               {upload.generation && <Detail label="Generation" value={upload.generation} />}
               <div className="border-t border-zinc-800 pt-3">
                 <Detail label="Date" value={fmt(upload.createdAt)} />
@@ -316,6 +328,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 initialTrim={upload.trim ?? ""}
                 initialColor={upload.color ?? ""}
                 initialBadge={upload.badge ?? ""}
+                initialCompanyId={upload.companyId}
                 initialHidden={upload.hidden}
               />
             )}
