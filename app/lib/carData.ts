@@ -29,6 +29,14 @@ const AUDI: CarData["Audi"] = {
   },
 };
 
+// ─── BMW ──────────────────────────────────────────────────────────────────────
+
+const BMW: CarData["BMW"] = {
+  XM: {
+    "1st Gen (G09) (2022-)": {},
+  },
+};
+
 // ─── Mercedes-Benz ────────────────────────────────────────────────────────────
 
 const MERCEDES_BENZ: CarData["Mercedes-Benz"] = {
@@ -65,6 +73,7 @@ const SKODA: CarData["Skoda"] = {
 // ─── MAIN EXPORT ──────────────────────────────────────────────────────────────
 export const CAR_DATA: CarData = {
   Audi:            AUDI,
+  BMW:             BMW,
   "Mercedes-Benz": MERCEDES_BENZ,
   Schmitz:         SCHMITZ,
   Porsche:         PORSCHE,

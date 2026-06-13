@@ -410,9 +410,9 @@ function Detail({ label, value, href }: { label: string; value: string; href?: s
     <div className="flex items-start justify-between gap-3 text-sm">
       <span className="text-zinc-500 shrink-0">{label}</span>
       {href ? (
-        <a href={href} className="text-zinc-200 hover:text-white truncate font-medium">{value}</a>
+        <a href={href} className="text-zinc-200 hover:text-white font-medium text-right">{value}</a>
       ) : (
-        <span className="text-zinc-200 truncate capitalize">{value}</span>
+        <span className="text-zinc-200 capitalize text-right">{value}</span>
       )}
     </div>
   );
