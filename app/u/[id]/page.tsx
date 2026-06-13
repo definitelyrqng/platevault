@@ -8,11 +8,6 @@ import { getCountryMeta } from "@/app/lib/countries";
 
 export const dynamic = "force-dynamic";
 
-function countryMeta(country: string) {
-  const key = country.toLowerCase();
-  return COUNTRY_META[key] ?? { iso: null, name: country.charAt(0).toUpperCase() + country.slice(1) };
-}
-
 function fmtMonthYear(d: Date) {
   return d.toLocaleString(undefined, { month: "long", year: "numeric" });
 }
@@ -255,7 +250,7 @@ export default async function UserProfilePage({
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {user.uploads.map((u) => {
-              const meta = countryMeta(u.country);
+              const meta = getCountryMeta(u.country);
               const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
               return (
                 <a key={u.id} href={`/spot/${u.numericId}`} className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-zinc-700 transition-colors">
