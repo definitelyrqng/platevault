@@ -1,6 +1,4 @@
-export type GenerationData = {
-  colors: string[];
-};
+export type GenerationData = Record<string, never>;
 
 export type CarData = Record<
   string,
@@ -9,37 +7,13 @@ export type CarData = Record<
 
 // ─── Audi ─────────────────────────────────────────────────────────────────────
 
-const C6_COLORS = [
-  "Brilliant Black", "Ibis White", "Mythos Black Metallic",
-  "Avus Silver Metallic", "Florett Silver Metallic", "Quartz Grey Metallic",
-  "Lava Grey Pearl Effect", "Daytona Grey Pearl Effect", "Meteor Grey Pearl Effect",
-  "Condor Grey Metallic", "Teak Brown Metallic", "Deep Sea Blue Pearl Effect",
-  "Stratos Blue Metallic", "Brilliant Red", "Custom color", "Custom wrap",
-];
-
 const C6_GEN: Record<string, GenerationData> = {
-  "C6 (2004–2011)": { colors: C6_COLORS },
+  "C6 (2004-2011)": {},
 };
 
 const C7_GEN: Record<string, GenerationData> = {
-  "C7 (2011–2014)": {
-    colors: [
-      "Brilliant Black", "Glacier White Metallic", "Ibis White",
-      "Floret Silver Metallic", "Monsoon Grey Metallic", "Daytona Grey Pearl Effect",
-      "Sepang Blue Pearl Effect", "Scuba Blue Metallic", "Estoril Blue Crystal Effect",
-      "Panther Black Crystal Effect", "Havana Black Metallic",
-      "Custom color", "Custom wrap",
-    ],
-  },
-  "C7 Facelift (2014–2018)": {
-    colors: [
-      "Brilliant Black", "Glacier White Metallic", "Ibis White",
-      "Floret Silver Metallic", "Monsoon Grey Metallic", "Daytona Grey Pearl Effect",
-      "Mythos Black Metallic", "Nardo Grey", "Quantum Grey Pearl Effect",
-      "Scuba Blue Metallic", "Panther Black Crystal Effect", "Navarra Blue Metallic",
-      "Custom color", "Custom wrap",
-    ],
-  },
+  "C7 (2011-2014)": {},
+  "C7 Facelift (2014-2018)": {},
 };
 
 const AUDI: CarData["Audi"] = {
@@ -49,16 +23,10 @@ const AUDI: CarData["Audi"] = {
 
 // ─── Mercedes-Benz ────────────────────────────────────────────────────────────
 
-const MB_EQB_COLORS = [
-  "Polar White", "Obsidian Black Metallic", "High-Tech Silver Metallic",
-  "Graphite Grey Metallic", "Mountain Grey Metallic", "Spectral Blue Metallic",
-  "Manufaktur Hyacinth Red Metallic", "Custom color", "Custom wrap",
-];
-
 const MERCEDES_BENZ: CarData["Mercedes-Benz"] = {
   EQB: {
-    "X243 (2021–2023)":         { colors: MB_EQB_COLORS },
-    "X243 Facelift (2023–2025)": { colors: MB_EQB_COLORS },
+    "X243 (2021-2023)": {},
+    "X243 Facelift (2023-2025)": {},
   },
 };
 
@@ -66,9 +34,15 @@ const MERCEDES_BENZ: CarData["Mercedes-Benz"] = {
 
 const SCHMITZ: CarData["Schmitz"] = {
   Cargobull: {
-    Standard: {
-      colors: ["Black", "White", "Multicolor", "Custom color", "Custom wrap"],
-    },
+    Standard: {},
+  },
+};
+
+// ─── Skoda ────────────────────────────────────────────────────────────────────
+
+const SKODA: CarData["Skoda"] = {
+  Elroq: {
+    "1st Gen (2025-)": {},
   },
 };
 
@@ -77,6 +51,7 @@ export const CAR_DATA: CarData = {
   Audi:            AUDI,
   "Mercedes-Benz": MERCEDES_BENZ,
   Schmitz:         SCHMITZ,
+  Skoda:           SKODA,
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -88,8 +63,4 @@ export function getModels(brand: string): string[] {
 
 export function getGenerations(brand: string, model: string): string[] {
   return Object.keys(CAR_DATA[brand]?.[model] ?? {});
-}
-
-export function getColors(brand: string, model: string, gen: string): string[] {
-  return CAR_DATA[brand]?.[model]?.[gen]?.colors ?? ["Custom color", "Custom wrap"];
 }
