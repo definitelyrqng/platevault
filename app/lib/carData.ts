@@ -85,6 +85,9 @@ const SKODA: CarData["Skoda"] = {
   Elroq: {
     "1st Gen (2025-)": {},
   },
+  Enyaq: {
+    "1st Gen iV SUV (NY) (2020-)": {},
+  },
 };
 
 // ─── MAIN EXPORT ──────────────────────────────────────────────────────────────
