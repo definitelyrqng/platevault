@@ -97,7 +97,7 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
               </div>
 
               <p className="text-xs text-zinc-600 mb-3">
-                {gens.join(" &#183; ")}
+                {gens.join(" · ")}
               </p>
 
               {mSpots.length === 0 ? (

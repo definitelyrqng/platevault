@@ -12,15 +12,10 @@ type Props = {
 const FIELD = "w-full rounded-xl border border-zinc-800 bg-zinc-900/60 px-3 py-2.5 text-sm text-zinc-100 outline-none transition-colors focus:border-zinc-500 placeholder:text-zinc-600";
 
 export default function CompanyPicker({ value, onChange }: Props) {
-  const [query,     setQuery]     = useState("");
-  const [results,   setResults]   = useState<Company[]>([]);
-  const [selected,  setSelected]  = useState<Company | null>(null);
-  const [open,      setOpen]      = useState(false);
-  const [creating,  setCreating]  = useState(false);
-  const [newName,   setNewName]   = useState("");
-  const [newCountry,setNewCountry]= useState("");
-  const [newCity,   setNewCity]   = useState("");
-  const [saving,    setSaving]    = useState(false);
+  const [query,    setQuery]    = useState("");
+  const [results,  setResults]  = useState<Company[]>([]);
+  const [selected, setSelected] = useState<Company | null>(null);
+  const [open,     setOpen]     = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -60,20 +55,6 @@ export default function CompanyPicker({ value, onChange }: Props) {
     setSelected(null); onChange(null, null); setQuery("");
   }
 
-  async function createCompany() {
-    if (!newName.trim()) return;
-    setSaving(true);
-    try {
-      const r = await fetch("/api/companies", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newName.trim(), country: newCountry.trim() || null, city: newCity.trim() || null }),
-      });
-      const d = await r.json();
-      if (d.company) { pick(d.company); setCreating(false); setNewName(""); setNewCountry(""); setNewCity(""); }
-    } finally { setSaving(false); }
-  }
-
   if (selected) {
     return (
       <div className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900/60 px-3 py-2.5">
@@ -92,35 +73,12 @@ export default function CompanyPicker({ value, onChange }: Props) {
     );
   }
 
-  if (creating) {
-    return (
-      <div className="space-y-2 rounded-xl border border-zinc-700 bg-zinc-900/60 p-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">New company</p>
-        <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Company name *" className={FIELD} />
-        <div className="grid grid-cols-2 gap-2">
-          <input value={newCountry} onChange={(e) => setNewCountry(e.target.value)} placeholder="Country" className={FIELD} />
-          <input value={newCity}    onChange={(e) => setNewCity(e.target.value)}    placeholder="City"    className={FIELD} />
-        </div>
-        <div className="flex gap-2">
-          <button type="button" onClick={createCompany} disabled={!newName.trim() || saving}
-            className="flex-1 rounded-xl bg-zinc-100 py-2 text-xs font-semibold text-zinc-950 hover:bg-white disabled:opacity-40 transition-colors">
-            {saving ? "Saving..." : "Add company"}
-          </button>
-          <button type="button" onClick={() => setCreating(false)}
-            className="rounded-xl border border-zinc-700 px-3 py-2 text-xs text-zinc-400 hover:bg-zinc-800 transition-colors">
-            Cancel
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div ref={ref} className="relative">
       <input
         value={query}
         onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
-        onFocus={() => setOpen(true)}
+        onFocus={() => { if (query.trim()) setOpen(true); }}
         placeholder="Search transport company..."
         className={FIELD}
       />
@@ -142,14 +100,8 @@ export default function CompanyPicker({ value, onChange }: Props) {
             </button>
           ))}
           {results.length === 0 && query.trim() && (
-            <div className="px-3 py-2.5 text-sm text-zinc-500">No matches found.</div>
+            <div className="px-3 py-2.5 text-sm text-zinc-500">No company found.</div>
           )}
-          <div className="border-t border-zinc-800 px-3 py-2">
-            <button type="button" onClick={() => { setCreating(true); setOpen(false); setNewName(query.trim()); }}
-              className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors">
-              + Add new company
-            </button>
-          </div>
         </div>
       )}
     </div>

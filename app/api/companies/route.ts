@@ -14,6 +14,10 @@ async function getSessionUser() {
   return session.user;
 }
 
+function isAdmin(role: string) {
+  return role === "SUPERADMIN" || role === "ADMIN";
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const q       = searchParams.get("q")?.trim() ?? "";
@@ -38,6 +42,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isAdmin(user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();
   const name    = String(body.name    ?? "").trim().slice(0, 120);

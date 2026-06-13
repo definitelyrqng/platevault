@@ -14,8 +14,8 @@ async function getSessionUser() {
   return session.user;
 }
 
-function isMod(role: string) {
-  return ["SUPERADMIN", "ADMIN", "MOD"].includes(role);
+function isAdmin(role: string) {
+  return role === "SUPERADMIN" || role === "ADMIN";
 }
 
 export async function GET(
@@ -42,7 +42,7 @@ export async function PATCH(
 ) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!isMod(user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!isAdmin(user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await params;
   const body = await req.json();
@@ -66,7 +66,7 @@ export async function DELETE(
 ) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!isMod(user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!isAdmin(user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await params;
   await prisma.transportCompany.delete({ where: { id } });

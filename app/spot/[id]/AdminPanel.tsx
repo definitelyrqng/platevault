@@ -108,7 +108,7 @@ export default function AdminPanel({
         className="flex w-full items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-amber-500"
       >
         <span>Admin Panel</span>
-        <span className="text-amber-700">{open ? "&#9650;" : "&#9660;"}</span>
+        <span className="text-amber-700">{open ? "▲" : "▼"}</span>
       </button>
 
       {open && !deleteMode && (
@@ -156,6 +156,14 @@ export default function AdminPanel({
                 onChange={(e) => setColor(e.target.value)}
                 placeholder="Obsidian Black..."
                 className={FIELD}
+              />
+            </div>
+
+            <div className="col-span-2">
+              <Label>Company</Label>
+              <CompanyPicker
+                value={companyId}
+                onChange={(id) => setCompanyId(id)}
               />
             </div>
           </div>
