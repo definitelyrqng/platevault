@@ -63,7 +63,7 @@ export default async function CountryPage({
     <main className="mx-auto max-w-6xl px-6 py-10">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <div className="text-3xl mb-1">{meta?.flag ?? "🏳️"}</div>
+          <div className="text-3xl mb-1"><Flag iso={meta?.iso ?? null} /></div>
           <h1 className="text-2xl font-semibold">{meta?.name ?? country}</h1>
           <p className="mt-1 text-sm text-zinc-400">
             {uploads.length === 0
@@ -79,7 +79,7 @@ export default async function CountryPage({
       {uploads.length === 0 ? (
         <div className="mt-16 text-center">
           <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-zinc-900 ring-1 ring-zinc-800 text-2xl">
-            {meta?.flag ?? "🏳️"}
+            <Flag iso={meta?.iso ?? null} />
           </div>
           <div className="mt-4 text-sm font-medium text-zinc-200">No spots yet</div>
           <p className="mt-1 text-xs text-zinc-500">Be the first to upload a plate from {meta?.name ?? country}.</p>
