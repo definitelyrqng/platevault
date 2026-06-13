@@ -24,16 +24,11 @@ export default function AustriaPlateInput({ category, onChange }: Props) {
 
   const formats = AUSTRIA_FORMATS_FOR[category];
 
-  // Reset all when category changes; pre-select first format
   useEffect(() => {
-    setPreselect("");
-    setSeg1("");
-    setSeg2("");
-    setSeg3("");
+    setPreselect(""); setSeg1(""); setSeg2(""); setSeg3("");
     setFormat(formats[0] ?? "");
   }, [category]);
 
-  // Also sync format when formats list changes (covers initial render)
   useEffect(() => {
     if (!formats.includes(format as never)) setFormat(formats[0] ?? "");
   }, [formats, format]);
@@ -42,7 +37,7 @@ export default function AustriaPlateInput({ category, onChange }: Props) {
     let plateText = "";
     if (category === "regular" || category === "electric" || category === "export" || category === "official") {
       plateText = [p, s1, s2].filter(Boolean).join(" ");
-    } else if (category === "vanity") {
+    } else if (category === "vanity" || category === "electric-vanity") {
       plateText = [p, s1, s2].filter(Boolean).join(" ");
     } else if (category === "provisional") {
       plateText = [p, s1, s2, s3].filter(Boolean).join(" ");
@@ -56,73 +51,53 @@ export default function AustriaPlateInput({ category, onChange }: Props) {
 
   function onPreselect(v: string) { setPreselect(v); emit(v, seg1, seg2, seg3, format); }
   function onFormat(v: string)    { setFormat(v);    emit(preselect, seg1, seg2, seg3, v); }
-
-  // Input handlers
-  function onNums1(v: string)  { const s = v.replace(/[^0-9]/g, "").slice(0, 5);  setSeg1(s); emit(preselect, s, seg2, seg3, format); }
-  function onLetters1(v: string){ const s = v.replace(/[^A-Za-z]/g, "").toUpperCase().slice(0, 5); setSeg1(s); emit(preselect, s, seg2, seg3, format); }
-  function onLetters2(v: string){ const s = v.replace(/[^A-Za-z]/g, "").toUpperCase().slice(0, 5); setSeg2(s); emit(preselect, seg1, s, seg3, format); }
-  function onNums2(v: string)  { const s = v.replace(/[^0-9]/g, "").slice(0, 5);  setSeg2(s); emit(preselect, seg1, s, seg3, format); }
-  function onExtra(v: string)  { const s = v.replace(/[^0-9]/g, "").slice(0, 2);  setSeg3(s); emit(preselect, seg1, seg2, s, format); }
-  function onAlpha6(v: string) { const s = v.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 6); setSeg1(s); emit(preselect, s, seg2, seg3, format); }
-  function onAlpha7(v: string) { const s = v.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 7); setSeg1(s); emit(preselect, s, seg2, seg3, format); }
+  function onNums1(v: string)    { const s = v.replace(/[^0-9]/g, "").slice(0, 5);  setSeg1(s); emit(preselect, s, seg2, seg3, format); }
+  function onLetters1(v: string) { const s = v.replace(/[^A-Za-z]/g, "").toUpperCase().slice(0, 5); setSeg1(s); emit(preselect, s, seg2, seg3, format); }
+  function onLetters2(v: string) { const s = v.replace(/[^A-Za-z]/g, "").toUpperCase().slice(0, 5); setSeg2(s); emit(preselect, seg1, s, seg3, format); }
+  function onNums2(v: string)    { const s = v.replace(/[^0-9]/g, "").slice(0, 5);  setSeg2(s); emit(preselect, seg1, s, seg3, format); }
+  function onExtra(v: string)    { const s = v.replace(/[^0-9]/g, "").slice(0, 2);  setSeg3(s); emit(preselect, seg1, seg2, s, format); }
+  function onAlpha6(v: string)   { const s = v.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 6); setSeg1(s); emit(preselect, s, seg2, seg3, format); }
+  function onAlpha7(v: string)   { const s = v.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 7); setSeg1(s); emit(preselect, s, seg2, seg3, format); }
   function onDiploCode(v: string){ const s = v.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 4); setPreselect(s); emit(s, seg1, seg2, seg3, format); }
-
-  const preselect1List = AUSTRIA_PRESELECT_1;
-  const preselect2List = AUSTRIA_PRESELECT_2;
-  const preselect3List = AUSTRIA_PRESELECT_3;
 
   function Preselect1() {
     return (
       <select value={preselect} onChange={(e) => onPreselect(e.target.value)} className={SEL + " w-40"}>
         <option value="">District</option>
-        {preselect1List.map((r) => (
-          <option key={r.code} value={r.code}>{r.code} - {r.name}</option>
-        ))}
+        {AUSTRIA_PRESELECT_1.map((r) => <option key={r.code} value={r.code}>{r.code} - {r.name}</option>)}
       </select>
     );
   }
-
   function Preselect2() {
     return (
       <select value={preselect} onChange={(e) => onPreselect(e.target.value)} className={SEL + " w-48"}>
         <option value="">Service</option>
-        {preselect2List.map((r) => (
-          <option key={r.code} value={r.code}>{r.code} - {r.name}</option>
-        ))}
+        {AUSTRIA_PRESELECT_2.map((r) => <option key={r.code} value={r.code}>{r.code} - {r.name}</option>)}
       </select>
     );
   }
-
   function Preselect3() {
     return (
       <select value={preselect} onChange={(e) => onPreselect(e.target.value)} className={SEL + " w-44"}>
         <option value="">Federal state</option>
-        {preselect3List.map((r) => (
-          <option key={r.code} value={r.code}>{r.code} - {r.name}</option>
-        ))}
+        {AUSTRIA_PRESELECT_3.map((r) => <option key={r.code} value={r.code}>{r.code} - {r.name}</option>)}
       </select>
     );
   }
-
   function FormatSelect() {
     return (
       <select value={format} onChange={(e) => onFormat(e.target.value)} className={SEL + " w-full"}>
-        {formats.map((f) => (
-          <option key={f} value={f}>{AT_FORMAT_LABELS[f]}</option>
-        ))}
+        {formats.map((f) => <option key={f} value={f}>{AT_FORMAT_LABELS[f]}</option>)}
       </select>
     );
   }
 
   return (
     <div className="space-y-3">
-      {/* Format selector */}
       <div>
         <p className="text-xs text-zinc-500 mb-1.5">Plate format</p>
         <FormatSelect />
       </div>
-
-      {/* Plate fields */}
       <div>
         <p className="text-xs text-zinc-500 mb-1.5">Plate text</p>
 
@@ -135,8 +110,8 @@ export default function AustriaPlateInput({ category, onChange }: Props) {
           </div>
         )}
 
-        {/* vanity */}
-        {category === "vanity" && (
+        {/* vanity / electric-vanity */}
+        {(category === "vanity" || category === "electric-vanity") && (
           <div className="flex items-center gap-2">
             <Preselect1 />
             <input value={seg1} onChange={(e) => onLetters1(e.target.value)} placeholder="AAAAA" maxLength={5} className={IN + " w-24"} />

@@ -160,14 +160,15 @@ export const AT_FORMAT_LABELS: Record<string, string> = {
 };
 
 export type AustriaCategoryId =
-  | "regular" | "electric" | "vanity"    | "official"
+  | "regular" | "electric" | "vanity" | "electric-vanity" | "official"
   | "export"  | "provisional" | "1947"   | "dealer"
   | "dealer-1947" | "diplomatic";
 
 export const AUSTRIA_CATEGORIES: { id: AustriaCategoryId; label: string }[] = [
-  { id: "regular",     label: "Regular" },
-  { id: "electric",    label: "Electric Vehicle" },
-  { id: "vanity",      label: "Vanity" },
+  { id: "regular",          label: "Regular" },
+  { id: "electric",         label: "Electric Vehicle" },
+  { id: "vanity",           label: "Vanity" },
+  { id: "electric-vanity",  label: "Electric Vehicle Vanity" },
   { id: "official",    label: "Official Services & Consulates" },
   { id: "export",      label: "Export Transit" },
   { id: "provisional", label: "Provisional" },
@@ -182,10 +183,11 @@ const EXP_FMT = ["single-no-euroband","double-no-euroband"] as const;
 const NEB_FMT = ["single-no-euroband","double-no-euroband","moped"] as const;
 
 export const AUSTRIA_FORMATS_FOR: Record<AustriaCategoryId, readonly string[]> = {
-  regular:       ALL_FMT,
-  electric:      ALL_FMT,
-  vanity:        ALL_FMT,
-  official:      ALL_FMT,
+  regular:          ALL_FMT,
+  electric:         ALL_FMT,
+  vanity:           ALL_FMT,
+  "electric-vanity": ALL_FMT,
+  official:         ALL_FMT,
   diplomatic:    ALL_FMT,
   export:        EXP_FMT,
   provisional:   NEB_FMT,
