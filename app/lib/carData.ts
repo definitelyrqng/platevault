@@ -37,10 +37,14 @@ const AUDI: CarData["Audi"] = {
   "A4 Sedan": {
     "4th Gen (8K2/B8) (2007-2011)": {},
     "4th Gen Facelift (8K2/B8.5) (2011-2015)": {},
+    "5th Gen (8W2/B9) (2015-2019)": {},
+    "5th Gen Facelift (8WC/B9.5) (2019-2024)": {},
   },
   "A4 Avant": {
     "4th Gen (8K5/B8) (2008-2012)": {},
     "4th Gen Facelift (8K5/B8.5) (2011-2015)": {},
+    "5th Gen (8W5/B9) (2015-2019)": {},
+    "5th Gen Facelift (8WD/B9.5) (2019-2024)": {},
   },
 };
 
