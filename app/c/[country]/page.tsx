@@ -4,14 +4,6 @@ import { prisma } from "@/app/lib/prisma";
 import { cookies } from "next/headers";
 import LikeButton from "./LikeButton";
 
-const COUNTRY_META: Record<string, { flag: string; name: string }> = {
-  albania: { flag: "🇦🇱", name: "Albania" },
-  germany: { flag: "🇩🇪", name: "Germany" },
-  italy:   { flag: "🇮🇹", name: "Italy" },
-  kosovo:  { flag: "🇽🇰", name: "Kosovo" },
-  greece:  { flag: "🇬🇷", name: "Greece" },
-};
-
 function relativeDays(d: Date) {
   const ms = Date.now() - d.getTime();
   const days = Math.max(0, Math.floor(ms / 86_400_000));

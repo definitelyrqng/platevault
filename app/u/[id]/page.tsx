@@ -8,11 +8,6 @@ import { getCountryMeta } from "@/app/lib/countries";
 
 export const dynamic = "force-dynamic";
 
-const COUNTRY_META: Record<string, { flag: string; name: string }> = {
-  albania: { flag: "🇦🇱", name: "Albania" },
-  germany: { flag: "🇩🇪", name: "Germany" },
-};
-
 function countryMeta(country: string) {
   const key = country.toLowerCase();
   return COUNTRY_META[key] ?? { iso: null, name: country.charAt(0).toUpperCase() + country.slice(1) };
