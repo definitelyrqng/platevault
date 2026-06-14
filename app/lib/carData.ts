@@ -80,6 +80,10 @@ const BMW: CarData["BMW"] = {
   XM: {
     "1st Gen (G09) (2022-)": {},
   },
+  X3: {
+    "3rd Gen (G01) (2017-2021)": {},
+    "3rd Gen Facelift (G01 LCI) (2021-2024)": {},
+  },
   X1: {
     "2nd Gen (F48) (2015-2019)": {},
     "2nd Gen Facelift (F48 LCI) (2019-2022)": {},
