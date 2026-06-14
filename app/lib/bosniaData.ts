@@ -16,14 +16,16 @@ export const BOSNIA_CATEGORIES: {
 
 // Per-category layout formats
 export const BOSNIA_FORMATS_FOR: Record<BosniacategoryId, string[]> = {
-  regular:     ["two-line-euroband"],
-  taxi:        ["two-line-euroband"],
-  provisional: ["two-line-euroband"],
-  "year-1998": ["two-line-no-euroband"],
+  regular:     ["single-euroband", "two-line-euroband"],
+  taxi:        ["single-euroband", "two-line-euroband"],
+  provisional: ["single-euroband", "two-line-euroband"],
+  "year-1998": ["single-no-euroband", "two-line-no-euroband"],
 };
 
 export const BA_FORMAT_LABELS: Record<string, string> = {
+  "single-euroband":       "Single-line with euroband",
   "two-line-euroband":     "Two-line with euroband",
+  "single-no-euroband":    "Single-line without euroband",
   "two-line-no-euroband":  "Two-line without euroband",
 };
 
