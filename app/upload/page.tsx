@@ -39,6 +39,16 @@ export default function UploadPage() {
             </div>
           </a>
 
+          <a
+            href="/upload/bosnia"
+            className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 hover:border-zinc-600"
+          >
+            <div className="text-lg font-semibold">Bosnia & Herzegovina</div>
+            <div className="mt-1 text-sm text-zinc-400">
+              Regular, taxi, provisional and 1998 year system plates
+            </div>
+          </a>
+
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900/20 p-5 opacity-50">
             <div className="text-lg font-semibold">Germany</div>
             <div className="mt-1 text-sm text-zinc-400">Coming soon</div>
