@@ -256,6 +256,7 @@ export default async function UserProfilePage({
             <p className="mt-1 text-xs text-zinc-500">When @{user.username} uploads their first plate, it will appear here.</p>
           </div>
         ) : (
+          <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {user.uploads.map((u) => {
               const meta = getCountryMeta(u.country);
@@ -304,6 +305,7 @@ export default async function UserProfilePage({
               )}
             </div>
           )}
+          </>
         )}
       </section>
     </main>
