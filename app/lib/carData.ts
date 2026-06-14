@@ -158,9 +158,19 @@ const CITROEN: CarData["Citroën"] = {
   },
 };
 
+// ─── Cupra ──────────────────────────────────────────────────────────────────────
+
+const CUPRA: CarData["Cupra"] = {
+  Leon: {
+    "1st Gen (KL) (2020-2024)": {},
+    "1st Gen Facelift (KL) (2024-)": {},
+  },
+};
+
 // ─── MAIN EXPORT ──────────────────────────────────────────────────────────────
 export const CAR_DATA: CarData = {
   "Citroën":       CITROEN,
+  Cupra:           CUPRA,
   Audi:            AUDI,
   BMW:             BMW,
   Fiat:            FIAT,
