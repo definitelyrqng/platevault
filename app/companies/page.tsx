@@ -1,6 +1,20 @@
 import { prisma } from "@/app/lib/prisma";
+import { cookies } from "next/headers";
+import AddCompanyButton from "./AddCompanyButton";
 
 export const dynamic = "force-dynamic";
+
+async function getSessionUser() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("pv_session")?.value;
+  if (!token) return null;
+  const session = await prisma.session.findUnique({
+    where: { token },
+    select: { expiresAt: true, user: { select: { id: true, role: true } } },
+  });
+  if (!session || session.expiresAt < new Date()) return null;
+  return session.user;
+}
 
 async function getCompanies() {
   return prisma.transportCompany.findMany({
@@ -13,7 +27,8 @@ async function getCompanies() {
 }
 
 export default async function CompaniesPage() {
-  const companies = await getCompanies();
+  const [companies, currentUser] = await Promise.all([getCompanies(), getSessionUser()]);
+  const isSuperAdmin = currentUser?.role === "SUPERADMIN";
 
   const byLetter: Record<string, typeof companies> = {};
   for (const c of companies) {
@@ -26,12 +41,15 @@ export default async function CompaniesPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-12">
-      <div className="mb-8">
-        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2">Directory</p>
-        <h1 className="text-3xl font-bold">Transport Companies</h1>
-        <p className="mt-2 text-sm text-zinc-400">
-          {companies.length} compan{companies.length !== 1 ? "ies" : "y"} in the database
-        </p>
+      <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2">Directory</p>
+          <h1 className="text-3xl font-bold">Transport Companies</h1>
+          <p className="mt-2 text-sm text-zinc-400">
+            {companies.length} compan{companies.length !== 1 ? "ies" : "y"} in the database
+          </p>
+        </div>
+        {isSuperAdmin && <AddCompanyButton />}
       </div>
 
       {companies.length === 0 ? (
