@@ -80,21 +80,19 @@ const BMW: CarData["BMW"] = {
   XM: {
     "1st Gen (G09) (2022-)": {},
   },
-  "3 Series Sedan": {
-    "5th Gen (E90) (2005-2008)": {},
-    "5th Gen Facelift (E90 LCI) (2008-2011)": {},
-  },
-  "3 Series Touring": {
-    "5th Gen (E91) (2005-2008)": {},
-    "5th Gen Facelift (E91 LCI) (2008-2012)": {},
-  },
-  "3 Series Coupe": {
-    "5th Gen (E92) (2006-2010)": {},
-    "5th Gen Facelift (E92 LCI) (2010-2013)": {},
-  },
-  "3 Series Convertible": {
-    "5th Gen (E93) (2006-2010)": {},
-    "5th Gen Facelift (E93 LCI) (2010-2013)": {},
+  "3 Series": {
+    "5th Gen Sedan (E90) (2005-2008)": {},
+    "5th Gen Sedan Facelift (E90 LCI) (2008-2011)": {},
+    "5th Gen Touring (E91) (2005-2008)": {},
+    "5th Gen Touring Facelift (E91 LCI) (2008-2012)": {},
+    "5th Gen Coupe (E92) (2006-2010)": {},
+    "5th Gen Coupe Facelift (E92 LCI) (2010-2013)": {},
+    "5th Gen Convertible (E93) (2006-2010)": {},
+    "5th Gen Convertible Facelift (E93 LCI) (2010-2013)": {},
+    "7th Gen Sedan (G20) (2018-2022)": {},
+    "7th Gen Touring (G21) (2018-2022)": {},
+    "7th Gen Sedan Facelift (G20 LCI) (2022-)": {},
+    "7th Gen Touring Facelift (G21 LCI) (2022-)": {},
   },
 };
 
