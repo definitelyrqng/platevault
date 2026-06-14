@@ -149,8 +149,18 @@ const SKODA: CarData["Skoda"] = {
   },
 };
 
+// ─── Citroën ────────────────────────────────────────────────────────────────────
+
+const CITROEN: CarData["Citroën"] = {
+  "C5 Aircross": {
+    "1st Gen (C84) (2018-2022)": {},
+    "1st Gen Facelift (C84) (2022-2025)": {},
+  },
+};
+
 // ─── MAIN EXPORT ──────────────────────────────────────────────────────────────
 export const CAR_DATA: CarData = {
+  "Citroën":       CITROEN,
   Audi:            AUDI,
   BMW:             BMW,
   Fiat:            FIAT,
