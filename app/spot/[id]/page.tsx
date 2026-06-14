@@ -14,6 +14,9 @@ import { AUSTRIA_PLATE_TYPE_LABELS } from "@/app/lib/austriaData";
 
 
 
+function toSlug(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
 function fmt(d: Date) {
   return d.toLocaleString("en-GB", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
@@ -192,12 +195,12 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
               <div className="text-center space-y-0.5">
                 <div className="text-xl font-semibold text-zinc-100 flex items-center justify-center gap-2 flex-wrap">
                   {upload.brand && (
-                    <a href={"/catalog/" + encodeURIComponent(upload.brand)} className="hover:text-blue-400 transition-colors">
+                    <a href={"/catalog/" + toSlug(upload.brand)} className="hover:text-blue-400 transition-colors">
                       {upload.brand}
                     </a>
                   )}
                   {upload.model && (
-                    <a href={"/catalog/" + encodeURIComponent(upload.brand ?? "") + "/" + encodeURIComponent(upload.model)} className="hover:text-blue-400 transition-colors">
+                    <a href={"/catalog/" + toSlug(upload.brand ?? "") + "/" + toSlug(upload.model)} className="hover:text-blue-400 transition-colors">
                       {upload.model}
                     </a>
                   )}
