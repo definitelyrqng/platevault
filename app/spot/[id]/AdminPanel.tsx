@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { BRANDS, getModels, getGenerations } from "@/app/lib/carData";
 import CompanyPicker from "@/app/components/CompanyPicker";
 
 const FIELD = "w-full rounded-xl border border-zinc-800 bg-zinc-900/60 px-3 py-2.5 text-sm text-zinc-100 outline-none transition-colors focus:border-zinc-600 focus:bg-zinc-900 disabled:opacity-30 disabled:cursor-not-allowed placeholder:text-zinc-600";
@@ -10,6 +9,10 @@ const FIELD = "w-full rounded-xl border border-zinc-800 bg-zinc-900/60 px-3 py-2
 function Label({ children }: { children: React.ReactNode }) {
   return <label className="block text-[11px] font-medium uppercase tracking-wider text-zinc-500 mb-1.5">{children}</label>;
 }
+
+type BrandRow = { id: number; name: string };
+type ModelRow  = { id: number; name: string };
+type GenRow    = { id: number; name: string };
 
 export default function AdminPanel({
   uploadId,
@@ -48,16 +51,75 @@ export default function AdminPanel({
   const [reason,     setReason]     = useState("");
   const [deleting,   setDeleting]   = useState(false);
 
-  const [hidden,            setHidden]            = useState(initialHidden);
-  const [hideReason,        setHideReason]        = useState("");
+  const [hidden,             setHidden]             = useState(initialHidden);
+  const [hideReason,         setHideReason]         = useState("");
   const [togglingVisibility, setTogglingVisibility] = useState(false);
 
-  const models      = brand ? getModels(brand)             : [];
-  const generations = model ? getGenerations(brand, model) : [];
+  // Dynamic catalog data
+  const [brands,  setBrands]  = useState<BrandRow[]>([]);
+  const [models,  setModels]  = useState<ModelRow[]>([]);
+  const [gens,    setGens]    = useState<GenRow[]>([]);
+  const [brandId, setBrandId] = useState<number | null>(null);
+  const [modelId, setModelId] = useState<number | null>(null);
 
-  function onBrandChange(v: string)      { setBrand(v);      setModel(""); setGeneration(""); setColor(""); setBadge(""); }
-  function onModelChange(v: string)      { setModel(v);      setGeneration(""); setColor(""); setBadge(""); }
-  function onGenerationChange(v: string) { setGeneration(v); setColor(""); }
+  // Load brands on mount
+  useEffect(() => {
+    fetch("/api/catalog")
+      .then((r) => r.json())
+      .then((data: { id: number; name: string }[]) => {
+        setBrands(data);
+        // Resolve initial brandId
+        if (initialBrand) {
+          const found = data.find((b) => b.name === initialBrand);
+          if (found) setBrandId(found.id);
+        }
+      })
+      .catch(() => {});
+  }, [initialBrand]);
+
+  // Load models when brandId changes
+  useEffect(() => {
+    if (!brandId) { setModels([]); setGens([]); return; }
+    fetch(`/api/catalog/brands/${brandId}/models`)
+      .then((r) => r.json())
+      .then((data: ModelRow[]) => {
+        setModels(data);
+        if (initialModel && brandId) {
+          const found = data.find((m) => m.name === initialModel);
+          if (found) setModelId(found.id);
+        }
+      })
+      .catch(() => {});
+  }, [brandId, initialModel]);
+
+  // Load generations when modelId changes
+  useEffect(() => {
+    if (!modelId) { setGens([]); return; }
+    fetch(`/api/catalog/models/${modelId}/generations`)
+      .then((r) => r.json())
+      .then((data: GenRow[]) => setGens(data))
+      .catch(() => {});
+  }, [modelId]);
+
+  function onBrandChange(v: string) {
+    setBrand(v);
+    setModel(""); setGeneration(""); setColor(""); setBadge("");
+    setModels([]); setGens([]); setModelId(null);
+    const found = brands.find((b) => b.name === v);
+    setBrandId(found?.id ?? null);
+  }
+
+  function onModelChange(v: string) {
+    setModel(v);
+    setGeneration(""); setColor(""); setBadge("");
+    setGens([]); setModelId(null);
+    const found = models.find((m) => m.name === v);
+    setModelId(found?.id ?? null);
+  }
+
+  function onGenerationChange(v: string) {
+    setGeneration(v); setColor("");
+  }
 
   async function saveDetails() {
     setSaving(true); setError(""); setSaved(false);
@@ -118,23 +180,23 @@ export default function AdminPanel({
               <Label>Brand</Label>
               <select value={brand} onChange={(e) => onBrandChange(e.target.value)} className={FIELD}>
                 <option value="">Select brand...</option>
-                {BRANDS.map((b) => <option key={b} value={b}>{b}</option>)}
+                {brands.map((b) => <option key={b.id} value={b.name}>{b.name}</option>)}
               </select>
             </div>
 
             <div className="col-span-2">
               <Label>Model</Label>
-              <select value={model} onChange={(e) => onModelChange(e.target.value)} disabled={!brand} className={FIELD}>
+              <select value={model} onChange={(e) => onModelChange(e.target.value)} disabled={!brand || models.length === 0} className={FIELD}>
                 <option value="">Select model...</option>
-                {models.map((m) => <option key={m} value={m}>{m}</option>)}
+                {models.map((m) => <option key={m.id} value={m.name}>{m.name}</option>)}
               </select>
             </div>
 
             <div className="col-span-2">
               <Label>Generation</Label>
-              <select value={generation} onChange={(e) => onGenerationChange(e.target.value)} disabled={!model} className={FIELD}>
+              <select value={generation} onChange={(e) => onGenerationChange(e.target.value)} disabled={!model || gens.length === 0} className={FIELD}>
                 <option value="">Select generation...</option>
-                {generations.map((g) => <option key={g} value={g}>{g}</option>)}
+                {gens.map((g) => <option key={g.id} value={g.name}>{g.name}</option>)}
               </select>
             </div>
 

@@ -46,12 +46,17 @@ async function getCurrentUser(): Promise<{ id: string; role: string } | null> {
   return session.user;
 }
 
+const PER_PAGE = 12;
+
 export default async function UserProfilePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
-  const { id } = await params;
+  const [{ id }, sp] = await Promise.all([params, searchParams]);
+  const page = Math.max(1, parseInt(sp.page ?? "1") || 1);
   const numericId = Number(id);
   if (!Number.isInteger(numericId) || numericId < 0) return notFound();
 
@@ -88,7 +93,8 @@ export default async function UserProfilePage({
         },
         where: { deletedAt: null, ...(viewerIsMod ? {} : { hidden: false }) },
         orderBy: { createdAt: "desc" },
-        take: 12,
+        skip: (page - 1) * PER_PAGE,
+        take: PER_PAGE,
       },
       _count: {
         select: {
@@ -99,6 +105,8 @@ export default async function UserProfilePage({
   });
 
   if (!user) return notFound();
+
+  const totalPages = Math.ceil(user._count.uploads / PER_PAGE);
 
   const likesAgg = await prisma.like.aggregate({
     where: { upload: { user: { numericId }, deletedAt: null } },
@@ -272,6 +280,30 @@ export default async function UserProfilePage({
               );
             })}
           </div>
+
+          {totalPages > 1 && (
+            <div className="mt-8 flex items-center justify-center gap-3">
+              {page > 1 ? (
+                <a href={`?page=${page - 1}#spots`} className="rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-2 text-sm text-zinc-400 hover:border-zinc-600 hover:text-zinc-200 transition-colors">
+                  ← Previous
+                </a>
+              ) : (
+                <span className="rounded-xl border border-zinc-800/40 px-4 py-2 text-sm text-zinc-700 cursor-default">← Previous</span>
+              )}
+
+              <span className="text-xs text-zinc-500 tabular-nums">
+                Page {page} of {totalPages}
+              </span>
+
+              {page < totalPages ? (
+                <a href={`?page=${page + 1}#spots`} className="rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-2 text-sm text-zinc-400 hover:border-zinc-600 hover:text-zinc-200 transition-colors">
+                  Next →
+                </a>
+              ) : (
+                <span className="rounded-xl border border-zinc-800/40 px-4 py-2 text-sm text-zinc-700 cursor-default">Next →</span>
+              )}
+            </div>
+          )}
         )}
       </section>
     </main>
