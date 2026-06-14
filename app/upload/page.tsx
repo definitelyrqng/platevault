@@ -29,6 +29,16 @@ export default function UploadPage() {
             </div>
           </a>
 
+          <a
+            href="/upload/belgium"
+            className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 hover:border-zinc-600"
+          >
+            <div className="text-lg font-semibold">Belgium</div>
+            <div className="mt-1 text-sm text-zinc-400">
+              Regular, oldtimer, motorcycle, taxi, trailer, dealer, diplomatic and more — with auto-detection
+            </div>
+          </a>
+
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900/20 p-5 opacity-50">
             <div className="text-lg font-semibold">Germany</div>
             <div className="mt-1 text-sm text-zinc-400">Coming soon</div>
