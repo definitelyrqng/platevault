@@ -170,6 +170,10 @@ const CUPRA: CarData["Cupra"] = {
 // ─── Ford ───────────────────────────────────────────────────────────────────────
 
 const FORD: CarData["Ford"] = {
+  "S-Max": {
+    "2nd Gen (CJ) (2015-2019)": {},
+    "2nd Gen Facelift (CJ) (2020-2023)": {},
+  },
   Fiesta: {
     "6th Gen (B299) (2008-2012)": {},
     "6th Gen Facelift (B299 Phase 2) (2013-2017)": {},
