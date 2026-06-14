@@ -180,11 +180,21 @@ const FORD: CarData["Ford"] = {
   },
 };
 
+// ─── Hyundai ────────────────────────────────────────────────────────────────────
+
+const HYUNDAI: CarData["Hyundai"] = {
+  ix35: {
+    "1st Gen (LM) (2010-2013)": {},
+    "1st Gen Facelift (LM/FL) (2013-2015)": {},
+  },
+};
+
 // ─── MAIN EXPORT ──────────────────────────────────────────────────────────────
 export const CAR_DATA: CarData = {
   "Citroën":       CITROEN,
   Cupra:           CUPRA,
   Ford:            FORD,
+  Hyundai:         HYUNDAI,
   Audi:            AUDI,
   BMW:             BMW,
   Fiat:            FIAT,
