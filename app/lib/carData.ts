@@ -7,18 +7,32 @@ export type CarData = Record<
 
 // ─── Audi ─────────────────────────────────────────────────────────────────────
 
-const C6_GEN: Record<string, GenerationData> = {
-  "C6 (2004-2011)": {},
-};
-
-const C7_GEN: Record<string, GenerationData> = {
-  "C7 (2011-2014)": {},
-  "C7 Facelift (2014-2018)": {},
-};
-
 const AUDI: CarData["Audi"] = {
-  "A6 Sedan": { ...C6_GEN, ...C7_GEN, "5th Gen (4K2/C8) (2018-2023)": {}, "5th Gen Facelift (4K2/C8) (2023-)": {} },
-  "A6 Avant": { ...C6_GEN, ...C7_GEN, "5th Gen (4K5/C8) (2018-2023)": {}, "5th Gen Facelift (4K5/C8) (2023-)": {} },
+  "A6 Sedan": {
+    "3rd Gen (4F2/C6) (2004-2008)": {},
+    "3rd Gen Facelift (4F2/C6) (2008-2011)": {},
+    "4th Gen (4G2/C7) (2011-2014)": {},
+    "4th Gen Facelift (4GC/C7.5) (2014-2018)": {},
+    "5th Gen (4K2/C8) (2018-2023)": {},
+    "5th Gen Facelift (4K2/C8) (2023-)": {},
+  },
+  "A6 Avant": {
+    "3rd Gen (4F5/C6) (2005-2008)": {},
+    "3rd Gen Facelift (4F5/C6) (2008-2011)": {},
+    "4th Gen (4G5/C7) (2011-2014)": {},
+    "4th Gen Facelift (4GD/C7.5) (2014-2018)": {},
+    "5th Gen (4K5/C8) (2018-2023)": {},
+    "5th Gen Facelift (4K5/C8) (2023-)": {},
+  },
+  "A8": {
+    "4th Gen (4N/D5) (2017-2021)": {},
+    "4th Gen Facelift (4N/D5.5) (2021-2026)": {},
+  },
+  "A8 L": {
+    "4th Gen (4N/D5) (2017-2021)": {},
+    "4th Gen Facelift (4N/D5.5) (2021-2026)": {},
+    "4th Gen Facelift Horch Founders Edition (4N/D5.5) (2021-2026)": {},
+  },
   "A6 Allroad": {
     "4th Gen (4K9/C8) (2019-2023)": {},
     "4th Gen Facelift (4K9/C8) (2023-)": {},
