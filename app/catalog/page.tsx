@@ -1,5 +1,6 @@
 import { prisma } from "@/app/lib/prisma";
-import { CAR_DATA, BRANDS } from "@/app/lib/carData";
+import { cookies } from "next/headers";
+import { AddBrandButton } from "./CatalogAdminControls";
 
 export const dynamic = "force-dynamic";
 
@@ -7,43 +8,66 @@ function toSlug(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
-async function getCatalogData() {
-  const rows = await prisma.upload.groupBy({
-    by: ["brand"],
-    where: { deletedAt: null, hidden: false, brand: { not: null } },
-    _count: { id: true },
+async function getSessionUser() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("pv_session")?.value;
+  if (!token) return null;
+  const session = await prisma.session.findUnique({
+    where: { token },
+    select: { expiresAt: true, user: { select: { id: true, role: true } } },
   });
-  const countByBrand: Record<string, number> = {};
-  for (const r of rows) if (r.brand) countByBrand[r.brand] = r._count.id;
-  return countByBrand;
+  if (!session || session.expiresAt < new Date()) return null;
+  return session.user;
 }
 
+type BrandRow = { id: number; name: string; models: { id: number; name: string; generations: { id: number }[] }[] };
+
 export default async function CatalogPage() {
-  const counts = await getCatalogData();
+  const [currentUser, brands, spotCounts] = await Promise.all([
+    getSessionUser(),
+    (prisma as any).carBrand.findMany({
+      orderBy: { name: "asc" },
+      include: {
+        models: {
+          orderBy: { name: "asc" },
+          include: { generations: { select: { id: true } } },
+        },
+      },
+    }) as Promise<BrandRow[]>,
+    prisma.upload.groupBy({
+      by: ["brand"],
+      where: { deletedAt: null, hidden: false, brand: { not: null } },
+      _count: { id: true },
+    }),
+  ]);
+
+  const isSuperAdmin = currentUser?.role === "SUPERADMIN";
+  const countByBrand: Record<string, number> = {};
+  for (const r of spotCounts) if (r.brand) countByBrand[r.brand] = r._count.id;
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-12">
-      <div className="mb-8">
-        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2">Catalog</p>
-        <h1 className="text-3xl font-bold">Vehicle Catalog</h1>
-        <p className="mt-2 text-sm text-zinc-400">
-          Browse spotted plates by make and model.
-        </p>
+      <div className="mb-8 flex items-end justify-between gap-4 flex-wrap">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2">Catalog</p>
+          <h1 className="text-3xl font-bold">Vehicle Catalog</h1>
+          <p className="mt-2 text-sm text-zinc-400">Browse spotted plates by make and model.</p>
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {BRANDS.map((brand) => {
-          const models = Object.keys(CAR_DATA[brand] ?? {});
-          const spotted = counts[brand] ?? 0;
+        {brands.map((brand) => {
+          const genCount = brand.models.reduce((n, m) => n + m.generations.length, 0);
+          const spotted  = countByBrand[brand.name] ?? 0;
           return (
             <a
-              key={brand}
-              href={`/catalog/${toSlug(brand)}`}
+              key={brand.id}
+              href={"/catalog/" + toSlug(brand.name)}
               className="group flex flex-col gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 hover:border-zinc-600 hover:bg-zinc-900/70 transition-all"
             >
               <div className="flex items-start justify-between gap-2">
                 <span className="text-base font-semibold text-zinc-100 group-hover:text-white transition-colors">
-                  {brand}
+                  {brand.name}
                 </span>
                 {spotted > 0 && (
                   <span className="shrink-0 rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] font-medium text-zinc-400">
@@ -52,25 +76,27 @@ export default async function CatalogPage() {
                 )}
               </div>
               <p className="text-xs text-zinc-500">
-                {models.length} model{models.length !== 1 ? "s" : ""}
+                {brand.models.length} model{brand.models.length !== 1 ? "s" : ""}
                 {" · "}
-                {models.reduce((n, m) => n + Object.keys(CAR_DATA[brand][m]).length, 0)} generations
+                {genCount} generation{genCount !== 1 ? "s" : ""}
               </p>
               <div className="flex flex-wrap gap-1.5 mt-auto">
-                {models.slice(0, 4).map((m) => (
-                  <span key={m} className="rounded-lg bg-zinc-800/60 px-2 py-0.5 text-[11px] text-zinc-400">
-                    {m}
+                {brand.models.slice(0, 4).map((m) => (
+                  <span key={m.id} className="rounded-lg bg-zinc-800/60 px-2 py-0.5 text-[11px] text-zinc-400">
+                    {m.name}
                   </span>
                 ))}
-                {models.length > 4 && (
+                {brand.models.length > 4 && (
                   <span className="rounded-lg bg-zinc-800/60 px-2 py-0.5 text-[11px] text-zinc-500">
-                    +{models.length - 4} more
+                    +{brand.models.length - 4} more
                   </span>
                 )}
               </div>
             </a>
           );
         })}
+
+        {isSuperAdmin && <AddBrandButton />}
       </div>
     </main>
   );

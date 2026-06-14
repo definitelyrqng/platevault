@@ -1,14 +1,12 @@
 import { prisma } from "@/app/lib/prisma";
-import { CAR_DATA, BRANDS } from "@/app/lib/carData";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import { AddGenerationButton, DeleteGenerationButton } from "../../CatalogAdminControls";
 
 export const dynamic = "force-dynamic";
 
 function toSlug(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-}
-function fromSlug(slug: string, options: string[]) {
-  return options.find((o) => toSlug(o) === slug);
 }
 function relativeDays(d: Date) {
   const ms = Date.now() - d.getTime();
@@ -20,9 +18,51 @@ function relativeDays(d: Date) {
   return months === 1 ? "1 month ago" : `${months} months ago`;
 }
 
-async function getSpots(brand: string, model: string) {
-  return prisma.upload.findMany({
-    where: { brand, model, deletedAt: null, hidden: false },
+async function getSessionUser() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("pv_session")?.value;
+  if (!token) return null;
+  const session = await prisma.session.findUnique({
+    where: { token },
+    select: { expiresAt: true, user: { select: { id: true, role: true } } },
+  });
+  if (!session || session.expiresAt < new Date()) return null;
+  return session.user;
+}
+
+type GenRow = { id: number; name: string };
+type ModelRow = { id: number; name: string; generations: GenRow[] };
+type BrandRow = { id: number; name: string; models: ModelRow[] };
+
+export default async function ModelPage({
+  params,
+}: {
+  params: Promise<{ brand: string; model: string }>;
+}) {
+  const { brand: brandSlug, model: modelSlug } = await params;
+
+  const [currentUser, allBrands] = await Promise.all([
+    getSessionUser(),
+    (prisma as any).carBrand.findMany({
+      include: {
+        models: {
+          include: { generations: { orderBy: { name: "asc" } } },
+        },
+      },
+    }) as Promise<BrandRow[]>,
+  ]);
+
+  const brandData = allBrands.find((b) => toSlug(b.name) === brandSlug);
+  if (!brandData) return notFound();
+
+  const modelData = brandData.models.find((m) => toSlug(m.name) === modelSlug);
+  if (!modelData) return notFound();
+
+  const isSuperAdmin = currentUser?.role === "SUPERADMIN";
+  const gens = modelData.generations;
+
+  const spots = await prisma.upload.findMany({
+    where: { brand: brandData.name, model: modelData.name, deletedAt: null, hidden: false },
     orderBy: { createdAt: "desc" },
     take: 200,
     select: {
@@ -33,26 +73,9 @@ async function getSpots(brand: string, model: string) {
       _count: { select: { likes: true, comments: true } },
     },
   });
-}
-
-export default async function ModelPage({
-  params,
-}: {
-  params: Promise<{ brand: string; model: string }>;
-}) {
-  const { brand: brandSlug, model: modelSlug } = await params;
-  const brand = fromSlug(brandSlug, BRANDS);
-  if (!brand) return notFound();
-
-  const modelKeys = Object.keys(CAR_DATA[brand] ?? {});
-  const model = fromSlug(modelSlug, modelKeys);
-  if (!model) return notFound();
-
-  const gens = Object.keys(CAR_DATA[brand][model] ?? {});
-  const spots = await getSpots(brand, model);
 
   const byGen: Record<string, typeof spots> = {};
-  for (const g of gens) byGen[g] = [];
+  for (const g of gens) byGen[g.name] = [];
   for (const s of spots) {
     const g = s.generation ?? "__other__";
     if (byGen[g]) byGen[g].push(s);
@@ -65,14 +88,14 @@ export default async function ModelPage({
       <div className="mb-1 text-xs text-zinc-500">
         <a href="/catalog" className="hover:text-zinc-300 transition-colors">Catalog</a>
         <span className="mx-1.5 text-zinc-700">&#8250;</span>
-        <a href={"/catalog/" + brandSlug} className="hover:text-zinc-300 transition-colors">{brand}</a>
+        <a href={"/catalog/" + brandSlug} className="hover:text-zinc-300 transition-colors">{brandData.name}</a>
         <span className="mx-1.5 text-zinc-700">&#8250;</span>
-        <span className="text-zinc-400">{model}</span>
+        <span className="text-zinc-400">{modelData.name}</span>
       </div>
 
       <div className="mt-4 mb-10 flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-3xl font-bold">{brand} {model}</h1>
+          <h1 className="text-3xl font-bold">{brandData.name} {modelData.name}</h1>
           <p className="mt-1.5 text-sm text-zinc-500">
             {spots.length === 0
               ? "No spots yet"
@@ -84,18 +107,17 @@ export default async function ModelPage({
         </a>
       </div>
 
-      {/* Generation chip jump links */}
       {gens.length > 1 && (
         <div className="flex flex-wrap gap-2 mb-10">
           {gens.map((g) => {
-            const count = byGen[g]?.length ?? 0;
+            const count = byGen[g.name]?.length ?? 0;
             return (
               <a
-                key={g}
-                href={"#" + toSlug(g)}
+                key={g.id}
+                href={"#" + toSlug(g.name)}
                 className="inline-flex items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-900/60 px-3 py-1 text-xs text-zinc-300 hover:border-zinc-600 hover:bg-zinc-900 transition-colors"
               >
-                {g}
+                {g.name}
                 {count > 0 && <span className="text-zinc-500">{count}</span>}
               </a>
             );
@@ -103,16 +125,16 @@ export default async function ModelPage({
         </div>
       )}
 
-      {/* Per-generation sections */}
       <div className="space-y-14">
         {gens.map((gen) => {
-          const gSpots = byGen[gen] ?? [];
+          const gSpots = byGen[gen.name] ?? [];
           return (
-            <section key={gen} id={toSlug(gen)}>
+            <section key={gen.id} id={toSlug(gen.name)}>
               <div className="flex items-center gap-3 mb-5">
-                <div>
-                  <h2 className="text-xl font-semibold">{gen}</h2>
-                  <p className="text-xs text-zinc-500 mt-0.5">{gSpots.length} spot{gSpots.length !== 1 ? "s" : ""}</p>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-xl font-semibold">{gen.name}</h2>
+                  <p className="text-xs text-zinc-500">{gSpots.length} spot{gSpots.length !== 1 ? "s" : ""}</p>
+                  {isSuperAdmin && <DeleteGenerationButton genId={gen.id} />}
                 </div>
                 <div className="flex-1 border-t border-zinc-800 ml-2" />
               </div>
@@ -126,7 +148,6 @@ export default async function ModelPage({
                 </div>
               ) : (
                 <>
-                  {/* Horizontal thumbnail strip */}
                   <div className="flex gap-2 overflow-x-auto pb-2 mb-5 scrollbar-none">
                     {gSpots.slice(0, 10).map((s) => (
                       <a
@@ -149,7 +170,6 @@ export default async function ModelPage({
                     ))}
                   </div>
 
-                  {/* Full card grid */}
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {gSpots.map((u) => (
                       <div
@@ -200,6 +220,12 @@ export default async function ModelPage({
             </section>
           );
         })}
+
+        {isSuperAdmin && (
+          <div className="pt-2">
+            <AddGenerationButton modelId={modelData.id} />
+          </div>
+        )}
 
         {ungrouped.length > 0 && (
           <section>

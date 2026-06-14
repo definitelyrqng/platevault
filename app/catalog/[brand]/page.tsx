@@ -1,35 +1,60 @@
 import { prisma } from "@/app/lib/prisma";
-import { CAR_DATA, BRANDS } from "@/app/lib/carData";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import { AddModelButton, DeleteBrandButton, DeleteModelButton } from "../CatalogAdminControls";
 
 export const dynamic = "force-dynamic";
 
 function toSlug(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
-function fromSlug(slug: string, options: string[]) {
-  return options.find((o) => toSlug(o) === slug);
+
+async function getSessionUser() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("pv_session")?.value;
+  if (!token) return null;
+  const session = await prisma.session.findUnique({
+    where: { token },
+    select: { expiresAt: true, user: { select: { id: true, role: true } } },
+  });
+  if (!session || session.expiresAt < new Date()) return null;
+  return session.user;
 }
 
-async function getSpots(brand: string) {
-  return prisma.upload.findMany({
-    where: { brand, deletedAt: null, hidden: false },
+type GenRow = { id: number; name: string };
+type ModelRow = { id: number; name: string; generations: GenRow[] };
+type BrandRow = { id: number; name: string; models: ModelRow[] };
+
+export default async function BrandPage({ params }: { params: Promise<{ brand: string }> }) {
+  const { brand: brandSlug } = await params;
+
+  const [currentUser, allBrands] = await Promise.all([
+    getSessionUser(),
+    (prisma as any).carBrand.findMany({
+      orderBy: { name: "asc" },
+      include: {
+        models: {
+          orderBy: { name: "asc" },
+          include: { generations: { orderBy: { name: "asc" }, select: { id: true, name: true } } },
+        },
+      },
+    }) as Promise<BrandRow[]>,
+  ]);
+
+  const brand = allBrands.find((b) => toSlug(b.name) === brandSlug);
+  if (!brand) return notFound();
+
+  const isSuperAdmin = currentUser?.role === "SUPERADMIN";
+
+  const spots = await prisma.upload.findMany({
+    where: { brand: brand.name, deletedAt: null, hidden: false },
     orderBy: { createdAt: "desc" },
     take: 300,
     select: { id: true, numericId: true, imageUrl: true, model: true, plateText: true },
   });
-}
-
-export default async function BrandPage({ params }: { params: Promise<{ brand: string }> }) {
-  const { brand: brandSlug } = await params;
-  const brand = fromSlug(brandSlug, BRANDS);
-  if (!brand) return notFound();
-
-  const models = Object.keys(CAR_DATA[brand] ?? {});
-  const spots = await getSpots(brand);
 
   const byModel: Record<string, typeof spots> = {};
-  for (const m of models) byModel[m] = [];
+  for (const m of brand.models) byModel[m.name] = [];
   for (const s of spots) {
     const m = s.model ?? "";
     if (byModel[m]) byModel[m].push(s);
@@ -42,54 +67,53 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
       <div className="mb-1 text-xs text-zinc-500">
         <a href="/catalog" className="hover:text-zinc-300 transition-colors">Catalog</a>
         <span className="mx-1.5 text-zinc-700">&#8250;</span>
-        <span className="text-zinc-400">{brand}</span>
+        <span className="text-zinc-400">{brand.name}</span>
       </div>
 
       <div className="mt-4 mb-8 flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-3xl font-bold">{brand}</h1>
+          <h1 className="text-3xl font-bold">{brand.name}</h1>
           <p className="mt-1.5 text-sm text-zinc-500">
-            {totalSpots} spot{totalSpots !== 1 ? "s" : ""} across {models.length} model{models.length !== 1 ? "s" : ""}
+            {totalSpots} spot{totalSpots !== 1 ? "s" : ""} across {brand.models.length} model{brand.models.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <a href="/upload" className="rounded-xl bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-white shrink-0 transition-colors">
-          Upload a spot
-        </a>
+        <div className="flex items-center gap-3">
+          {isSuperAdmin && <DeleteBrandButton brandId={brand.id} />}
+          <a href="/upload" className="rounded-xl bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-white shrink-0 transition-colors">
+            Upload a spot
+          </a>
+        </div>
       </div>
 
-      {/* Model chip cloud */}
       <div className="flex flex-wrap gap-2 mb-10">
-        {models.map((m) => {
-          const count = byModel[m]?.length ?? 0;
+        {brand.models.map((m) => {
+          const count = byModel[m.name]?.length ?? 0;
           return (
             <a
-              key={m}
-              href={"#" + toSlug(m)}
+              key={m.id}
+              href={"#" + toSlug(m.name)}
               className="inline-flex items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-900/60 px-3 py-1 text-xs text-zinc-300 hover:border-zinc-600 hover:bg-zinc-900 transition-colors"
             >
-              {m}
-              {count > 0 && (
-                <span className="text-zinc-500">{count}</span>
-              )}
+              {m.name}
+              {count > 0 && <span className="text-zinc-500">{count}</span>}
             </a>
           );
         })}
       </div>
 
-      {/* Per-model sections */}
       <div className="space-y-10">
-        {models.map((m) => {
-          const mSpots = byModel[m] ?? [];
-          const gens = Object.keys(CAR_DATA[brand]?.[m] ?? {});
+        {brand.models.map((m) => {
+          const mSpots = byModel[m.name] ?? [];
           return (
-            <section key={m} id={toSlug(m)}>
+            <section key={m.id} id={toSlug(m.name)}>
               <div className="flex items-baseline justify-between gap-3 mb-4">
                 <div className="flex items-baseline gap-3">
-                  <h2 className="text-xl font-semibold">{m}</h2>
+                  <h2 className="text-xl font-semibold">{m.name}</h2>
                   <span className="text-sm text-zinc-500">{mSpots.length} spot{mSpots.length !== 1 ? "s" : ""}</span>
+                  {isSuperAdmin && <DeleteModelButton modelId={m.id} />}
                 </div>
                 <a
-                  href={"/catalog/" + brandSlug + "/" + toSlug(m)}
+                  href={"/catalog/" + brandSlug + "/" + toSlug(m.name)}
                   className="text-xs text-zinc-500 hover:text-zinc-200 transition-colors"
                 >
                   View all &#8250;
@@ -97,7 +121,7 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
               </div>
 
               <p className="text-xs text-zinc-600 mb-3">
-                {gens.join(" · ")}
+                {m.generations.map((g) => g.name).join(" · ")}
               </p>
 
               {mSpots.length === 0 ? (
@@ -128,7 +152,7 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
                   ))}
                   {mSpots.length > 12 && (
                     <a
-                      href={"/catalog/" + brandSlug + "/" + toSlug(m)}
+                      href={"/catalog/" + brandSlug + "/" + toSlug(m.name)}
                       className="shrink-0 w-36 rounded-xl border border-dashed border-zinc-800 flex items-center justify-center text-xs text-zinc-500 hover:text-zinc-300 hover:border-zinc-600 transition-colors"
                     >
                       +{mSpots.length - 12} more
@@ -139,6 +163,12 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
             </section>
           );
         })}
+
+        {isSuperAdmin && (
+          <div className="pt-4">
+            <AddModelButton brandId={brand.id} />
+          </div>
+        )}
       </div>
     </main>
   );

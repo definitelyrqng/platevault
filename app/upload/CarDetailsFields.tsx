@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { BRANDS, getModels, getGenerations } from "@/app/lib/carData";
+import { useState, useEffect, useCallback } from "react";
+
+type Brand = { id: number; name: string };
+type Model = { id: number; name: string };
+type Gen   = { id: number; name: string };
 
 type Props = {
   onChange: (details: {
@@ -24,22 +27,67 @@ function Label({ children }: { children: React.ReactNode }) {
 }
 
 export default function CarDetailsFields({ onChange }: Props) {
-  const [brand,      setBrand]      = useState("");
-  const [model,      setModel]      = useState("");
-  const [generation, setGeneration] = useState("");
-  const [color,      setColor]      = useState("");
-  const [badge,      setBadge]      = useState("");
+  const [brands,      setBrands]      = useState<Brand[]>([]);
+  const [models,      setModels]      = useState<Model[]>([]);
+  const [generations, setGenerations] = useState<Gen[]>([]);
 
-  const models      = brand ? getModels(brand)             : [];
-  const generations = model ? getGenerations(brand, model) : [];
+  const [brandId,      setBrandId]      = useState<number | "">("");
+  const [modelId,      setModelId]      = useState<number | "">("");
+  const [generationId, setGenerationId] = useState<number | "">("");
 
-  useEffect(() => { setModel(""); setGeneration(""); setColor(""); setBadge(""); }, [brand]);
-  useEffect(() => { setGeneration(""); setColor(""); setBadge(""); }, [model]);
-  useEffect(() => { setColor(""); }, [generation]);
+  const [brandName, setBrandName] = useState("");
+  const [modelName, setModelName] = useState("");
+  const [genName,   setGenName]   = useState("");
+  const [color,     setColor]     = useState("");
+  const [badge,     setBadge]     = useState("");
 
   useEffect(() => {
-    onChange({ brand, model, generation, trim: "", color, badge });
-  }, [brand, model, generation, color, badge, onChange]);
+    fetch("/api/catalog")
+      .then((r) => r.json())
+      .then((data: (Brand & { models: unknown[] })[]) => setBrands(data))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    setModelId(""); setModelName(""); setGenerationId(""); setGenName("");
+    setModels([]); setGenerations([]);
+    if (!brandId) return;
+    fetch("/api/catalog/brands/" + brandId + "/models")
+      .then((r) => r.json())
+      .then((data: Model[]) => setModels(data))
+      .catch(() => {});
+  }, [brandId]);
+
+  useEffect(() => {
+    setGenerationId(""); setGenName(""); setGenerations([]);
+    if (!modelId) return;
+    fetch("/api/catalog/models/" + modelId + "/generations")
+      .then((r) => r.json())
+      .then((data: Gen[]) => setGenerations(data))
+      .catch(() => {});
+  }, [modelId]);
+
+  const handleBrandChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const id = e.target.value ? Number(e.target.value) : "";
+    setBrandId(id);
+    setBrandName(brands.find((b) => b.id === id)?.name ?? "");
+  }, [brands]);
+
+  const handleModelChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const id = e.target.value ? Number(e.target.value) : "";
+    setModelId(id);
+    setModelName(models.find((m) => m.id === id)?.name ?? "");
+  }, [models]);
+
+  const handleGenChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    const id = e.target.value ? Number(e.target.value) : "";
+    setGenerationId(id);
+    setGenName(generations.find((g) => g.id === id)?.name ?? "");
+  }, [generations]);
+
+  useEffect(() => {
+    onChange({ brand: brandName, model: modelName, generation: genName, trim: "", color, badge });
+  }, [brandName, modelName, genName, color, badge, onChange]);
 
   return (
     <div className="rounded-2xl border border-zinc-800/60 bg-zinc-950/40 p-4 space-y-4">
@@ -48,25 +96,25 @@ export default function CarDetailsFields({ onChange }: Props) {
       <div className="grid grid-cols-2 gap-3">
         <div className="col-span-2">
           <Label>Brand</Label>
-          <select value={brand} onChange={(e) => setBrand(e.target.value)} className={FIELD}>
+          <select value={brandId} onChange={handleBrandChange} className={FIELD}>
             <option value="">Select brand...</option>
-            {BRANDS.map((b) => <option key={b} value={b}>{b}</option>)}
+            {brands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
           </select>
         </div>
 
         <div className="col-span-2">
           <Label>Model</Label>
-          <select value={model} onChange={(e) => setModel(e.target.value)} disabled={!brand} className={FIELD}>
+          <select value={modelId} onChange={handleModelChange} disabled={!brandId} className={FIELD}>
             <option value="">Select model...</option>
-            {models.map((m) => <option key={m} value={m}>{m}</option>)}
+            {models.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
           </select>
         </div>
 
         <div className="col-span-2">
           <Label>Generation</Label>
-          <select value={generation} onChange={(e) => setGeneration(e.target.value)} disabled={!model} className={FIELD}>
+          <select value={generationId} onChange={handleGenChange} disabled={!modelId} className={FIELD}>
             <option value="">Select generation...</option>
-            {generations.map((g) => <option key={g} value={g}>{g}</option>)}
+            {generations.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
           </select>
         </div>
 
