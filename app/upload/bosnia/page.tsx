@@ -10,7 +10,7 @@ import ZoomImage from "@/app/components/ZoomImage";
 import TagPicker from "@/app/components/TagPicker";
 import BosniaPlateInput from "@/app/upload/BosniaPlateInput";
 import {
-  BOSNIA_CATEGORIES, BOSNIA_FORMATS, BA_FORMAT_LABELS,
+  BOSNIA_CATEGORIES, BOSNIA_FORMATS_FOR, BA_FORMAT_LABELS,
   type BosniacategoryId,
 } from "@/app/lib/bosniaData";
 
@@ -34,10 +34,10 @@ export default function BosniaUploadPage() {
 
   const [category, setCategory] = useState<BosniacategoryId>("regular");
   const [plateText, setPlateText] = useState("");
-  const [format, setFormat] = useState<string>(BOSNIA_FORMATS[0]);
+  const [format, setFormat] = useState<string>(BOSNIA_FORMATS_FOR["regular"][0]);
 
   function handleCategoryChange(c: BosniacategoryId) {
-    setCategory(c); setPlateText(""); setFormat(BOSNIA_FORMATS[0]);
+    setCategory(c); setPlateText(""); setFormat(BOSNIA_FORMATS_FOR[c][0]);
   }
   function handleCategoryDetected(c: BosniacategoryId) {
     if (c === category) return;

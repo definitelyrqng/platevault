@@ -8,23 +8,21 @@ export const BOSNIA_CATEGORIES: {
   example: string;
   hint: string;
 }[] = [
-  { id: "regular",   label: "Regular plates",       example: "A12-E-345",  hint: "Letter + 2 digits – canton letter – 3 digits" },
-  { id: "taxi",      label: "Taxi",                  example: "TA-123456",  hint: "Starts with TA-" },
-  { id: "provisional",label: "Provisional",          example: "TT-123456",  hint: "Starts with TT- or MT-" },
-  { id: "year-1998", label: "1998 year system",      example: "123-A-456",  hint: "3 digits – letter – 3 digits (pre-reform)" },
+  { id: "regular",     label: "Regular plates",    example: "A12-E-345", hint: "Letter + 2 digits – canton letter – 3 digits" },
+  { id: "taxi",        label: "Taxi",              example: "TA-123456", hint: "Starts with TA-" },
+  { id: "provisional", label: "Provisional",       example: "TT-123456", hint: "Starts with TT- or MT-" },
+  { id: "year-1998",   label: "1998 year system",  example: "123-A-456", hint: "3 digits – letter – 3 digits (pre-reform)" },
 ];
 
-// All categories share the same 4 layout formats
-export const BOSNIA_FORMATS: string[] = [
-  "single-euroband",
-  "single-no-euroband",
-  "two-line-euroband",
-  "two-line-no-euroband",
-];
+// Per-category layout formats
+export const BOSNIA_FORMATS_FOR: Record<BosniacategoryId, string[]> = {
+  regular:     ["two-line-euroband"],
+  taxi:        ["two-line-euroband"],
+  provisional: ["two-line-euroband"],
+  "year-1998": ["two-line-no-euroband"],
+};
 
 export const BA_FORMAT_LABELS: Record<string, string> = {
-  "single-euroband":       "Single-line with euroband",
-  "single-no-euroband":    "Single-line without euroband",
   "two-line-euroband":     "Two-line with euroband",
   "two-line-no-euroband":  "Two-line without euroband",
 };
