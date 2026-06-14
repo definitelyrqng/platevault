@@ -167,10 +167,20 @@ const CUPRA: CarData["Cupra"] = {
   },
 };
 
+// ─── Ford ───────────────────────────────────────────────────────────────────────
+
+const FORD: CarData["Ford"] = {
+  Fiesta: {
+    "6th Gen (B299) (2008-2012)": {},
+    "6th Gen Facelift (B299 Phase 2) (2013-2017)": {},
+  },
+};
+
 // ─── MAIN EXPORT ──────────────────────────────────────────────────────────────
 export const CAR_DATA: CarData = {
   "Citroën":       CITROEN,
   Cupra:           CUPRA,
+  Ford:            FORD,
   Audi:            AUDI,
   BMW:             BMW,
   Fiat:            FIAT,
