@@ -120,7 +120,7 @@ export default async function PollPage({
 
       {/* ─── Header ─── */}
       <div className="mb-2 flex items-center gap-2 text-xs text-zinc-500">
-        <a href="/polls" className="hover:text-zinc-300">Polls</a>
+        <a href="/polls" className="hover:text-indigo-400 transition-colors">Polls</a>
         <span>›</span>
         <span><Flag iso={meta.iso} /> {meta.name}</span>
       </div>

@@ -43,8 +43,11 @@ export default async function CompaniesPage() {
     <main className="mx-auto max-w-4xl px-6 py-12">
       <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-2">Directory</p>
-          <h1 className="text-3xl font-bold">Transport Companies</h1>
+          <div className="flex items-center gap-3 mb-1">
+            <div className="h-6 w-1 rounded-full bg-indigo-500" />
+            <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400">Directory</p>
+          </div>
+          <h1 className="text-3xl font-bold text-zinc-50">Transport Companies</h1>
           <p className="mt-2 text-sm text-zinc-400">
             {companies.length} compan{companies.length !== 1 ? "ies" : "y"} in the database
           </p>
@@ -62,7 +65,7 @@ export default async function CompaniesPage() {
           <div className="flex flex-wrap gap-1.5 mb-8">
             {letters.map((l) => (
               <a key={l} href={"#letter-" + l}
-                className="rounded-lg border border-zinc-800 bg-zinc-900/60 px-2.5 py-1 text-xs font-mono text-zinc-400 hover:border-zinc-600 hover:text-zinc-200 transition-colors">
+                className="rounded-lg border border-zinc-800 bg-zinc-900/60 px-2.5 py-1 text-xs font-mono text-zinc-400 hover:border-indigo-800/60 hover:bg-indigo-950/20 hover:text-indigo-300 transition-colors">
                 {l}
               </a>
             ))}
@@ -73,7 +76,7 @@ export default async function CompaniesPage() {
             {letters.map((letter) => (
               <section key={letter} id={"letter-" + letter}>
                 <div className="flex items-center gap-3 mb-4">
-                  <span className="text-lg font-bold text-zinc-300 w-6">{letter}</span>
+                  <span className="text-base font-bold text-indigo-400 w-6">{letter}</span>
                   <div className="flex-1 border-t border-zinc-800" />
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2">
@@ -81,10 +84,10 @@ export default async function CompaniesPage() {
                     <a
                       key={c.id}
                       href={"/companies/" + c.numericId}
-                      className="group flex items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-3 hover:border-zinc-600 hover:bg-zinc-900/70 transition-all"
+                      className="group flex items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-3 hover:border-indigo-800/60 hover:bg-indigo-950/20 hover:shadow-sm hover:shadow-indigo-950/40 transition-all"
                     >
                       <div className="min-w-0">
-                        <div className="text-sm font-medium text-zinc-200 group-hover:text-white truncate transition-colors">
+                        <div className="text-sm font-medium text-zinc-200 group-hover:text-indigo-200 truncate transition-colors">
                           {c.name}
                         </div>
                         {(c.city || c.country) && (
@@ -94,7 +97,7 @@ export default async function CompaniesPage() {
                         )}
                       </div>
                       {c._count.uploads > 0 && (
-                        <span className="shrink-0 text-xs text-zinc-500 tabular-nums">
+                        <span className="shrink-0 rounded-full border border-indigo-900/40 bg-indigo-950/20 px-2 py-0.5 text-xs text-indigo-400 tabular-nums">
                           {c._count.uploads} spot{c._count.uploads !== 1 ? "s" : ""}
                         </span>
                       )}

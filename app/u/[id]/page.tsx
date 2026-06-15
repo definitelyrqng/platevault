@@ -228,10 +228,10 @@ export default async function UserProfilePage({
       </section>
 
       <section className="mt-6 grid gap-4 sm:grid-cols-3">
-        <a href="#spots" className="rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900/60 to-zinc-900/20 p-5 hover:border-zinc-600 transition-colors group">
-          <div className="text-xs uppercase tracking-wider text-zinc-500">Uploads</div>
-          <div className="mt-1.5 text-3xl font-semibold text-zinc-50">{user._count.uploads}</div>
-          <div className="mt-1 text-xs text-zinc-500 group-hover:text-zinc-400">View all spots ↓</div>
+        <a href="#spots" className="rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900/60 to-zinc-900/20 p-5 hover:border-indigo-800/60 hover:bg-indigo-950/20 hover:shadow-md hover:shadow-indigo-950/40 transition-all group">
+          <div className="text-xs uppercase tracking-wider text-zinc-500 group-hover:text-indigo-500 transition-colors">Uploads</div>
+          <div className="mt-1.5 text-3xl font-semibold text-zinc-50 group-hover:text-indigo-200 transition-colors">{user._count.uploads}</div>
+          <div className="mt-1 text-xs text-zinc-500 group-hover:text-indigo-400 transition-colors">View all spots ↓</div>
         </a>
         {[
           { label: "Likes received", value: likesAgg._count._all, hint: "from the community" },
@@ -246,8 +246,11 @@ export default async function UserProfilePage({
       </section>
 
       <section id="spots" className="mt-10">
-        <div className="mb-4 flex items-baseline justify-between gap-4">
-          <h2 className="text-lg font-semibold text-zinc-100">Spots</h2>
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="h-5 w-1 rounded-full bg-indigo-500" />
+            <h2 className="text-lg font-semibold text-zinc-100">Spots</h2>
+          </div>
           <span className="text-xs text-zinc-500">{user._count.uploads} total</span>
         </div>
         {user.uploads.length === 0 ? (
@@ -262,13 +265,13 @@ export default async function UserProfilePage({
               const meta = getCountryMeta(u.country);
               const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
               return (
-                <a key={u.id} href={`/spot/${u.numericId}`} className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-zinc-700 transition-colors">
+                <a key={u.id} href={`/spot/${u.numericId}`} className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-md hover:shadow-indigo-950/40 transition-all">
                   <div className="aspect-video bg-zinc-950 overflow-hidden">
                     <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
                   </div>
                   <div className="p-4">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-base font-bold tracking-widest text-zinc-100">{u.plateText}</span>
+                      <span className="font-mono text-base font-bold tracking-widest text-zinc-100 group-hover:text-indigo-200 transition-colors">{u.plateText}</span>
                       <span><Flag iso={meta.iso} /></span>
                     </div>
                     {carLabel && <div className="text-xs text-zinc-400 mt-0.5">{carLabel}</div>}
@@ -285,7 +288,7 @@ export default async function UserProfilePage({
           {totalPages > 1 && (
             <div className="mt-8 flex items-center justify-center gap-3">
               {page > 1 ? (
-                <a href={`?page=${page - 1}#spots`} className="rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-2 text-sm text-zinc-400 hover:border-zinc-600 hover:text-zinc-200 transition-colors">
+                <a href={`?page=${page - 1}#spots`} className="rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-2 text-sm text-zinc-400 hover:border-indigo-800/60 hover:bg-indigo-950/20 hover:text-indigo-300 transition-colors">
                   ← Previous
                 </a>
               ) : (
@@ -297,7 +300,7 @@ export default async function UserProfilePage({
               </span>
 
               {page < totalPages ? (
-                <a href={`?page=${page + 1}#spots`} className="rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-2 text-sm text-zinc-400 hover:border-zinc-600 hover:text-zinc-200 transition-colors">
+                <a href={`?page=${page + 1}#spots`} className="rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-2 text-sm text-zinc-400 hover:border-indigo-800/60 hover:bg-indigo-950/20 hover:text-indigo-300 transition-colors">
                   Next →
                 </a>
               ) : (

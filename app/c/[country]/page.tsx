@@ -61,43 +61,47 @@ export default async function CountryPage({
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <div className="text-3xl mb-1"><Flag iso={meta?.iso ?? null} /></div>
-          <h1 className="text-2xl font-semibold">{meta?.name ?? country}</h1>
-          <p className="mt-1 text-sm text-zinc-400">
-            {uploads.length === 0
-              ? "No spots yet — be the first to upload!"
-              : `${uploads.length} spot${uploads.length === 1 ? "" : "s"} archived`}
-          </p>
+
+      {/* ─── Country hero header ─── */}
+      <div className="relative rounded-2xl overflow-hidden border border-indigo-900/30 bg-gradient-to-br from-indigo-950/40 via-zinc-900/60 to-zinc-900/40 px-7 py-7 mb-8">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_0%_50%,rgba(99,102,241,0.12),transparent)]" />
+        <div className="relative flex items-end justify-between gap-4">
+          <div>
+            <div className="text-4xl mb-2"><Flag iso={meta?.iso ?? null} /></div>
+            <h1 className="text-2xl font-bold text-zinc-50">{meta?.name ?? country}</h1>
+            <p className="mt-1 text-sm text-zinc-400">
+              {uploads.length === 0
+                ? "No spots yet — be the first to upload!"
+                : `${uploads.length} spot${uploads.length === 1 ? "" : "s"} archived`}
+            </p>
+          </div>
+          <a href="/upload" className="shrink-0 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-950/60">
+            + Upload
+          </a>
         </div>
-        <a href="/upload" className="rounded-xl bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-white shrink-0">
-          + Upload
-        </a>
       </div>
 
       {uploads.length === 0 ? (
-        <div className="mt-16 text-center">
+        <div className="mt-8 text-center">
           <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-zinc-900 ring-1 ring-zinc-800 text-2xl">
             <Flag iso={meta?.iso ?? null} />
           </div>
           <div className="mt-4 text-sm font-medium text-zinc-200">No spots yet</div>
           <p className="mt-1 text-xs text-zinc-500">Be the first to upload a plate from {meta?.name ?? country}.</p>
-          <a href="/upload" className="mt-4 inline-flex rounded-xl bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-white">
+          <a href="/upload" className="mt-4 inline-flex rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 transition-colors">
             Upload now
           </a>
         </div>
       ) : (
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {uploads.map((u) => {
             const isOwner = currentUser?.id === u.userId;
             const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
             return (
               <div
                 key={u.id}
-                className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-zinc-600 transition-colors"
+                className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-lg hover:shadow-indigo-950/40 transition-all"
               >
-                {/* Stretched link covers the whole card */}
                 <a href={`/spot/${u.numericId}`} className="absolute inset-0 z-0" aria-label={u.plateText} />
 
                 <div className="relative bg-zinc-950 aspect-video overflow-hidden">
@@ -111,20 +115,19 @@ export default async function CountryPage({
                 <div className="p-4 flex flex-col gap-2 flex-1">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <div className="font-mono text-lg font-bold tracking-widest text-zinc-100">{u.plateText}</div>
+                      <div className="font-mono text-lg font-bold tracking-widest text-zinc-100 group-hover:text-indigo-200 transition-colors">{u.plateText}</div>
                       {carLabel && <div className="text-xs text-zinc-400 mt-0.5">{carLabel}</div>}
                     </div>
                     {u.plateType && (
-                      <span className="shrink-0 rounded-full border border-zinc-800 bg-zinc-950/60 px-2 py-0.5 text-[10px] uppercase tracking-wider text-zinc-500">
+                      <span className="shrink-0 rounded-full border border-indigo-900/40 bg-indigo-950/30 px-2 py-0.5 text-[10px] uppercase tracking-wider text-indigo-400">
                         {u.plateType.replace(/-/g, " ")}
                       </span>
                     )}
                   </div>
                   <div className="mt-auto flex items-center justify-between pt-2 border-t border-zinc-800">
-                    {/* Profile link sits above the stretched card link */}
                     <a
                       href={`/u/${u.user.numericId}`}
-                      className="relative z-10 text-xs text-zinc-500 hover:text-zinc-300"
+                      className="relative z-10 text-xs text-zinc-500 hover:text-indigo-300 transition-colors"
                     >
                       @{u.user.username}
                     </a>

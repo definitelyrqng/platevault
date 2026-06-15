@@ -165,7 +165,7 @@ export default function EditProfilePage() {
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-2 text-xs text-zinc-500 mb-2">
-            <a href={`/u/${me.numericId}`} className="hover:text-zinc-300">@{me.username}</a>
+            <a href={`/u/${me.numericId}`} className="hover:text-indigo-400 transition-colors">@{me.username}</a>
             <span>›</span>
             <span className="text-zinc-300">Edit profile</span>
           </div>
@@ -214,7 +214,7 @@ export default function EditProfilePage() {
               maxLength={280}
               rows={4}
               placeholder="Tell the community a bit about yourself…"
-              className="w-full resize-none rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-600 placeholder:text-zinc-600"
+              className="w-full resize-none rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-indigo-700/60 focus:ring-1 focus:ring-indigo-700/20 placeholder:text-zinc-600 transition-colors"
             />
             <div className="mt-1 flex items-center justify-between text-xs text-zinc-600">
               <span>Max 280 characters</span>
@@ -226,7 +226,7 @@ export default function EditProfilePage() {
             <button
               type="submit"
               disabled={saving}
-              className="rounded-xl bg-zinc-100 px-5 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+              className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 shadow-lg shadow-indigo-950/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               {saving ? "Saving…" : "Save profile"}
             </button>

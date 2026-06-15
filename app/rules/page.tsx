@@ -48,7 +48,10 @@ export default function RulesPage() {
     <main className="mx-auto max-w-4xl px-6 pb-20 pt-10">
 
       {/* Header */}
-      <div className="mb-10">
+      <div className="mb-10 flex items-start gap-3">
+        <div className="mt-1.5 h-5 w-1 rounded-full bg-indigo-500 shrink-0" />
+        <div>
+        <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-1">PlateVault</p>
         <h1 className="text-3xl font-bold text-zinc-50">Community Rules</h1>
         <p className="mt-2 text-sm text-zinc-500">
           Last updated: June 2026 · These rules apply to all users of PlateVault.
@@ -57,6 +60,7 @@ export default function RulesPage() {
           By registering an account on PlateVault, you confirm that you have read, understood, and agreed to these rules in their entirety.
           Continued use of the platform constitutes ongoing acceptance of any updated version.
         </p>
+        </div>
       </div>
 
       <div className="flex gap-12 items-start">
@@ -64,13 +68,13 @@ export default function RulesPage() {
         {/* Table of contents — sticky sidebar */}
         <aside className="hidden lg:block shrink-0 w-52 sticky top-8">
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4">
-            <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Contents</div>
+            <div className="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-3">Contents</div>
             <nav className="space-y-1">
               {toc.map((item) => (
                 <a
                   key={item.id}
                   href={`#${item.id}`}
-                  className="block text-xs text-zinc-400 hover:text-zinc-200 py-0.5 transition-colors"
+                  className="block text-xs text-zinc-400 hover:text-indigo-300 py-0.5 transition-colors"
                 >
                   {item.label}
                 </a>

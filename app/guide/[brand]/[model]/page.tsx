@@ -147,7 +147,7 @@ export default async function GuidePage({
           </p>
           <a
             href="/home"
-            className="mt-6 inline-flex rounded-xl border border-zinc-800 bg-zinc-900/40 px-5 py-2.5 text-sm text-zinc-200 hover:bg-zinc-900"
+            className="mt-6 inline-flex rounded-xl border border-zinc-800 bg-zinc-900/40 px-5 py-2.5 text-sm text-zinc-200 hover:border-indigo-800/60 hover:text-indigo-300 hover:bg-indigo-950/20 transition-colors"
           >
             ← Back to PlateVault
           </a>
@@ -162,7 +162,7 @@ export default async function GuidePage({
 
         {/* Breadcrumb */}
         <div className="flex items-center gap-1.5 text-xs text-zinc-500 mb-6">
-          <a href="/home" className="hover:text-zinc-300">PlateVault</a>
+          <a href="/home" className="hover:text-indigo-400 transition-colors">PlateVault</a>
           <span>›</span>
           <span>Guide</span>
           <span>›</span>
@@ -170,15 +170,19 @@ export default async function GuidePage({
         </div>
 
         {/* Hero */}
-        <div className="rounded-3xl border border-zinc-800 bg-gradient-to-br from-zinc-900/80 to-zinc-950 p-8 mb-8">
-          <div className="text-xs uppercase tracking-widest text-zinc-500 mb-2">Model Guide</div>
+        <div className="rounded-3xl border border-indigo-900/30 bg-gradient-to-br from-indigo-950/40 via-zinc-900/80 to-zinc-950 p-8 mb-8 relative overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none" style={{background:"radial-gradient(ellipse at 0% 0%, rgba(99,102,241,0.08) 0%, transparent 60%)"}} />
+          <div className="text-xs uppercase tracking-widest text-indigo-400 mb-2">Model Guide</div>
           <h1 className="text-3xl font-bold">{guide.displayName}</h1>
           <p className="mt-3 text-zinc-400 leading-relaxed max-w-2xl">{guide.intro}</p>
         </div>
 
         {/* Generation timeline */}
         <section className="mb-10">
-          <h2 className="text-lg font-semibold mb-4">Generation timeline</h2>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-4 w-1 rounded-full bg-indigo-500 shrink-0" />
+            <h2 className="text-lg font-semibold">Generation timeline</h2>
+          </div>
           <div className="space-y-4">
             {guide.generations.map((gen, i) => (
               <div key={i} className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 flex gap-5">
@@ -212,14 +216,17 @@ export default async function GuidePage({
         {/* Facelift comparisons */}
         {guide.facelifts.length > 0 && (
           <section className="mb-10">
-            <h2 className="text-lg font-semibold mb-4">How to tell them apart</h2>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-4 w-1 rounded-full bg-indigo-500 shrink-0" />
+              <h2 className="text-lg font-semibold">How to tell them apart</h2>
+            </div>
             {guide.facelifts.map((fl, i) => (
               <div key={i} className="rounded-2xl border border-zinc-800 bg-zinc-900/20 p-5">
                 <div className="text-sm font-semibold text-zinc-200 mb-4">{fl.title}</div>
                 <div className="grid sm:grid-cols-2 gap-4">
                   {[fl.before, fl.after].map((side, j) => (
-                    <div key={j} className={`rounded-xl border p-4 ${j === 0 ? "border-zinc-700 bg-zinc-900/60" : "border-blue-900/50 bg-blue-950/20"}`}>
-                      <div className={`text-xs font-semibold uppercase tracking-wider mb-3 ${j === 0 ? "text-zinc-400" : "text-blue-400"}`}>
+                    <div key={j} className={`rounded-xl border p-4 ${j === 0 ? "border-zinc-700 bg-zinc-900/60" : "border-indigo-900/50 bg-indigo-950/20"}`}>
+                      <div className={`text-xs font-semibold uppercase tracking-wider mb-3 ${j === 0 ? "text-zinc-400" : "text-indigo-400"}`}>
                         {side.label}
                       </div>
                       {side.imagePath
@@ -229,7 +236,7 @@ export default async function GuidePage({
                       <ul className="space-y-1.5">
                         {side.points.map((p, k) => (
                           <li key={k} className="text-sm text-zinc-300 flex gap-2">
-                            <span className={j === 0 ? "text-zinc-600" : "text-blue-700"}>›</span>
+                            <span className={j === 0 ? "text-zinc-600" : "text-indigo-500"}>›</span>
                             {p}
                           </li>
                         ))}

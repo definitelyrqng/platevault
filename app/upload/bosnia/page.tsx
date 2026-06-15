@@ -278,7 +278,7 @@ export default function BosniaUploadPage() {
 
             <div className="flex items-center gap-3 pt-1">
               <button type="submit" disabled={!canSubmit}
-                className="rounded-xl bg-zinc-100 px-5 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-opacity">
+                className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 shadow-lg shadow-indigo-950/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
                 {status === "uploading" ? "Uploading image…" : status === "saving" ? "Saving…" : "Upload spot"}
               </button>
               {status === "idle" && (

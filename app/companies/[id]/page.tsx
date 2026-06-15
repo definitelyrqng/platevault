@@ -77,7 +77,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
   return (
     <main className="mx-auto max-w-5xl px-6 py-12">
       <div className="mb-1 text-xs text-zinc-500">
-        <a href="/companies" className="hover:text-zinc-300 transition-colors">Companies</a>
+        <a href="/companies" className="hover:text-indigo-400 transition-colors">Companies</a>
         <span className="mx-1.5 text-zinc-700">&#8250;</span>
         <span className="text-zinc-400">{company.name}</span>
       </div>
@@ -95,7 +95,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
           )}
           {company.website && (
             <a href={company.website} target="_blank" rel="noopener noreferrer"
-              className="mt-1 inline-block text-xs text-blue-400 hover:text-blue-300 transition-colors">
+              className="mt-1 inline-block text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
               {company.website.replace(/^https?:\/\//, "")}
             </a>
           )}
@@ -128,7 +128,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
                         <span className="text-xs text-zinc-500 shrink-0 tabular-nums">{count}</span>
                       </div>
                       <div className="h-1 rounded-full bg-zinc-800 overflow-hidden">
-                        <div className="h-full rounded-full bg-zinc-500 transition-all"
+                        <div className="h-full rounded-full bg-indigo-500 transition-all"
                           style={{ width: (count / spots.length * 100) + "%" }} />
                       </div>
                     </div>
@@ -149,7 +149,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
                         <span className="text-xs text-zinc-500 shrink-0 tabular-nums">{count}</span>
                       </div>
                       <div className="h-1 rounded-full bg-zinc-800 overflow-hidden">
-                        <div className="h-full rounded-full bg-zinc-600 transition-all"
+                        <div className="h-full rounded-full bg-indigo-400 transition-all"
                           style={{ width: (count / spots.length * 100) + "%" }} />
                       </div>
                     </div>
@@ -188,7 +188,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {spots.map((u) => (
               <div key={u.id}
-                className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-zinc-600 transition-colors">
+                className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-lg hover:shadow-indigo-950/40 transition-all">
                 <a href={"/spot/" + u.numericId} className="absolute inset-0 z-0" aria-label={u.plateText} />
                 <div className="relative bg-zinc-950 aspect-video overflow-hidden">
                   <img src={u.imageUrl} alt={u.plateText + " plate"}

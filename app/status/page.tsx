@@ -22,7 +22,7 @@ export default function StatusPage() {
           </div>
           <a
             href="/home"
-            className="rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-900 transition-colors"
+            className="rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-300 hover:border-indigo-800/60 hover:text-indigo-300 hover:bg-indigo-950/20 transition-colors"
           >
             Back to PlateVault
           </a>

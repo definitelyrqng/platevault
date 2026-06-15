@@ -68,7 +68,7 @@ export default async function PollsPage() {
     return (
       <a
         href={`/polls/${poll.numericId}`}
-        className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-zinc-600 transition-all"
+        className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-lg hover:shadow-indigo-950/40 transition-all"
       >
         {/* Leader thumbnail */}
         {leader && (
@@ -123,17 +123,22 @@ export default async function PollsPage() {
     <main className="mx-auto max-w-6xl px-6 pb-16 pt-8">
 
       {/* ─── Header ─── */}
-      <div className="mb-10">
-        <h1 className="text-3xl font-bold text-zinc-50">🗳️ Community Votes</h1>
-        <p className="mt-2 text-sm text-zinc-400">
-          Every month, the community votes for the best plate per country. Once a year, a Plate of the Year is crowned.
-        </p>
+      <div className="mb-10 flex items-start gap-3">
+        <div className="mt-1.5 h-5 w-1 rounded-full bg-indigo-500 shrink-0" />
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-1">Community</p>
+          <h1 className="text-3xl font-bold text-zinc-50">Community Votes</h1>
+          <p className="mt-2 text-sm text-zinc-400">
+            Every month, the community votes for the best plate per country. Once a year, a Plate of the Year is crowned.
+          </p>
+        </div>
       </div>
 
       {/* ─── Active polls ─── */}
       {open.length > 0 && (
         <section className="mb-12">
           <div className="flex items-center gap-3 mb-4">
+            <div className="h-4 w-1 rounded-full bg-emerald-500 shrink-0" />
             <h2 className="text-lg font-semibold">Open now</h2>
             <span className="rounded-full bg-emerald-950/40 border border-emerald-800 px-2.5 py-0.5 text-xs text-emerald-400 font-medium">
               {open.length} active
@@ -148,7 +153,10 @@ export default async function PollsPage() {
       {/* ─── Past polls ─── */}
       {closed.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold mb-4">Past winners</h2>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-4 w-1 rounded-full bg-indigo-500 shrink-0" />
+            <h2 className="text-lg font-semibold">Past winners</h2>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {closed.map((p) => <PollCard key={p.numericId} poll={p} />)}
           </div>

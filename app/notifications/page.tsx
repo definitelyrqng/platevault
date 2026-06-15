@@ -58,8 +58,11 @@ export default function NotificationsPage() {
   return (
     <main className="mx-auto max-w-2xl px-6 py-10">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Notifications</h1>
-        <Link href="/home" className="text-sm text-zinc-500 hover:text-zinc-300">
+        <div className="flex items-center gap-3">
+          <div className="h-5 w-1 rounded-full bg-indigo-500 shrink-0" />
+          <h1 className="text-2xl font-semibold">Notifications</h1>
+        </div>
+        <Link href="/home" className="text-sm text-zinc-500 hover:text-indigo-400 transition-colors">
           ← Back
         </Link>
       </div>
@@ -88,7 +91,7 @@ export default function NotificationsPage() {
               <div
                 className={`flex gap-4 items-start rounded-2xl border px-5 py-4 transition-colors ${
                   unread
-                    ? "border-zinc-700 bg-zinc-900/60"
+                    ? "border-indigo-900/60 bg-indigo-950/20"
                     : "border-zinc-800 bg-zinc-900/20"
                 }`}
               >
@@ -105,7 +108,7 @@ export default function NotificationsPage() {
                   )}
                 </div>
                 {unread && (
-                  <div className="shrink-0 mt-1.5 h-2 w-2 rounded-full bg-blue-500" />
+                  <div className="shrink-0 mt-1.5 h-2 w-2 rounded-full bg-indigo-500" />
                 )}
               </div>
             );

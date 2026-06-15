@@ -26,7 +26,6 @@ async function searchPlates(rawQuery: string) {
   const normalized = normalize(rawQuery);
   if (!normalized || normalized.length < 1) return [];
 
-  // Step 1: raw SQL to get ordered IDs (PostgreSQL REGEXP_REPLACE strips non-alphanumeric)
   const matchRows = await prisma.$queryRaw<{ id: string; sort_order: number }[]>`
     SELECT u.id,
       CASE
@@ -52,7 +51,6 @@ async function searchPlates(rawQuery: string) {
   const ids = matchRows.map((r) => r.id);
   const sortMap = new Map(matchRows.map((r) => [r.id, r.sort_order]));
 
-  // Step 2: full typed query for the matched IDs
   const uploads = await prisma.upload.findMany({
     where: { id: { in: ids } },
     select: {
@@ -70,21 +68,8 @@ async function searchPlates(rawQuery: string) {
     },
   });
 
-  // Re-sort by SQL order
   uploads.sort((a, b) => (sortMap.get(a.id) ?? 99) - (sortMap.get(b.id) ?? 99));
   return uploads;
-}
-
-async function getCurrentUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("pv_session")?.value;
-  if (!token) return null;
-  const session = await prisma.session.findUnique({
-    where: { token },
-    select: { expiresAt: true, user: { select: { id: true } } },
-  });
-  if (!session || session.expiresAt < new Date()) return null;
-  return session.user;
 }
 
 export default async function SearchPage({
@@ -96,16 +81,17 @@ export default async function SearchPage({
   const query = (q ?? "").trim();
   const hasQuery = query.length > 0;
 
-  const [results] = await Promise.all([
-    hasQuery ? searchPlates(query) : Promise.resolve([]),
-  ]);
+  const results = hasQuery ? await searchPlates(query) : [];
 
   return (
     <main className="mx-auto max-w-6xl px-6 pb-16 pt-8">
 
       {/* ─── Search bar ─── */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-zinc-50 mb-4">Search plates</h1>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="h-6 w-1 rounded-full bg-indigo-500" />
+          <h1 className="text-2xl font-bold text-zinc-50">Search plates</h1>
+        </div>
         <form method="GET" action="/search" className="flex gap-2">
           <input
             name="q"
@@ -113,11 +99,11 @@ export default async function SearchPage({
             placeholder="e.g. AB-123-CD or AB123CD"
             autoFocus
             autoComplete="off"
-            className="flex-1 rounded-2xl border border-zinc-700 bg-zinc-900/60 px-5 py-3 text-sm font-mono tracking-wider text-zinc-100 placeholder:text-zinc-600 placeholder:font-sans placeholder:tracking-normal outline-none focus:border-zinc-500 focus:bg-zinc-900"
+            className="flex-1 rounded-2xl border border-zinc-800 bg-zinc-900/60 px-5 py-3 text-sm font-mono tracking-wider text-zinc-100 placeholder:text-zinc-600 placeholder:font-sans placeholder:tracking-normal outline-none focus:border-indigo-700/60 focus:bg-zinc-900 transition-colors"
           />
           <button
             type="submit"
-            className="rounded-2xl bg-zinc-100 px-6 py-3 text-sm font-semibold text-zinc-950 hover:bg-white transition-colors"
+            className="rounded-2xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors"
           >
             Search
           </button>
@@ -152,7 +138,7 @@ export default async function SearchPage({
             return (
               <div
                 key={u.id}
-                className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-zinc-600 transition-colors"
+                className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-lg hover:shadow-indigo-950/40 transition-all"
               >
                 <a href={`/spot/${u.numericId}`} className="absolute inset-0 z-0" aria-label={u.plateText} />
 
@@ -163,11 +149,10 @@ export default async function SearchPage({
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     loading="lazy"
                   />
-                  {/* Country badge */}
                   <div className="absolute top-2.5 right-2.5">
                     <a
                       href={`/c/${u.country}`}
-                      className="relative z-10 rounded-full bg-zinc-950/80 backdrop-blur border border-zinc-700/60 px-2 py-0.5 text-xs hover:bg-zinc-900"
+                      className="relative z-10 rounded-full bg-zinc-950/80 backdrop-blur border border-zinc-700/60 px-2 py-0.5 text-xs hover:bg-indigo-950/60 hover:border-indigo-700/60 transition-colors"
                     >
                       <Flag iso={meta.iso} /> {meta.name}
                     </a>
@@ -177,7 +162,7 @@ export default async function SearchPage({
                 <div className="p-4 flex flex-col gap-2 flex-1">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <div className="font-mono text-lg font-bold tracking-widest text-zinc-100">{u.plateText}</div>
+                      <div className="font-mono text-lg font-bold tracking-widest text-zinc-100 group-hover:text-indigo-200 transition-colors">{u.plateText}</div>
                       {carLabel && <div className="text-xs text-zinc-400 mt-0.5">{carLabel}</div>}
                       {u.location && <div className="text-xs text-zinc-500 mt-0.5">📍 {u.location}</div>}
                     </div>
@@ -192,7 +177,7 @@ export default async function SearchPage({
                           {u.user.username.slice(0, 2).toUpperCase()}
                         </div>
                       )}
-                      <span className="text-xs text-zinc-500 group-hover/user:text-zinc-300 transition-colors">@{u.user.username}</span>
+                      <span className="text-xs text-zinc-500 group-hover/user:text-indigo-300 transition-colors">@{u.user.username}</span>
                     </a>
                     <span className="text-xs text-zinc-600 flex items-center gap-2">
                       <span>♡ {u._count.likes}</span>

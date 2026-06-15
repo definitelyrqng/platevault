@@ -16,7 +16,6 @@ function countryLabel(key: string) {
 }
 
 async function getCountriesData() {
-  // Get all non-deleted, non-hidden uploads grouped by country
   const countryGroups = await prisma.upload.groupBy({
     by: ["country"],
     where: { deletedAt: null, hidden: false },
@@ -24,7 +23,6 @@ async function getCountriesData() {
     orderBy: { _count: { id: "desc" } },
   });
 
-  // For each country get unique spotter count
   const spotterCounts = await Promise.all(
     countryGroups.map(async (g) => {
       const spotters = await prisma.upload.findMany({
@@ -36,7 +34,6 @@ async function getCountriesData() {
     })
   );
 
-  // Global leaderboard: top 10 users by upload count
   const leaderboard = await prisma.user.findMany({
     select: {
       numericId: true,
@@ -59,9 +56,12 @@ export default async function CountriesPage() {
 
       {/* ─── Header ─── */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-zinc-50 mb-4">Browse by Country</h1>
-        {/* Global search */}
-        <form method="GET" action="/search" className="flex gap-2 max-w-lg">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="h-6 w-1 rounded-full bg-indigo-500" />
+          <h1 className="text-3xl font-bold text-zinc-50">Browse by Country</h1>
+        </div>
+
+        <form method="GET" action="/search" className="flex gap-2 max-w-lg mt-4">
           <div className="relative flex-1">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
@@ -70,10 +70,10 @@ export default async function CountriesPage() {
               name="q"
               placeholder="Search any plate globally…"
               autoComplete="off"
-              className="w-full rounded-xl border border-zinc-800 bg-zinc-900/60 pl-10 pr-4 py-2.5 text-sm text-zinc-200 placeholder:text-zinc-600 outline-none focus:border-zinc-600 transition-colors"
+              className="w-full rounded-xl border border-zinc-800 bg-zinc-900/60 pl-10 pr-4 py-2.5 text-sm text-zinc-200 placeholder:text-zinc-600 outline-none focus:border-indigo-700/60 focus:bg-zinc-900 transition-colors"
             />
           </div>
-          <button type="submit" className="rounded-xl bg-zinc-100 px-5 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-white transition-colors">
+          <button type="submit" className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors">
             Search
           </button>
         </form>
@@ -84,7 +84,7 @@ export default async function CountriesPage() {
         </p>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+      <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
 
         {/* ─── Country grid ─── */}
         <section>
@@ -92,7 +92,7 @@ export default async function CountriesPage() {
             <div className="rounded-2xl border border-dashed border-zinc-800 px-6 py-16 text-center">
               <div className="text-4xl mb-3">🌍</div>
               <p className="text-sm text-zinc-500">No spots uploaded yet.</p>
-              <a href="/upload" className="mt-4 inline-flex rounded-xl bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-white">
+              <a href="/upload" className="mt-4 inline-flex rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 transition-colors">
                 Be the first to upload
               </a>
             </div>
@@ -104,17 +104,17 @@ export default async function CountriesPage() {
                   <a
                     key={country}
                     href={`/c/${country}`}
-                    className="group flex items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/40 px-5 py-4 hover:border-zinc-600 hover:bg-zinc-900/70 transition-all"
+                    className="group flex items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/40 px-5 py-4 hover:border-indigo-800/60 hover:bg-indigo-950/20 hover:shadow-md hover:shadow-indigo-950/40 transition-all"
                   >
-                    <span className="text-3xl shrink-0"><Flag iso={meta.iso} /></span>
+                    <span className="text-3xl shrink-0 group-hover:scale-110 transition-transform duration-200"><Flag iso={meta.iso} /></span>
                     <div className="min-w-0 flex-1">
-                      <div className="font-semibold text-zinc-100 group-hover:text-white truncate">{meta.name}</div>
+                      <div className="font-semibold text-zinc-200 group-hover:text-indigo-200 truncate transition-colors">{meta.name}</div>
                       <div className="mt-0.5 text-xs text-zinc-500">
                         {spotCount} spot{spotCount === 1 ? "" : "s"} · {spotterCount} spotter{spotterCount === 1 ? "" : "s"}
                       </div>
                     </div>
                     <svg
-                      className="h-4 w-4 text-zinc-600 group-hover:text-zinc-400 transition-colors shrink-0"
+                      className="h-4 w-4 text-zinc-700 group-hover:text-indigo-500 transition-colors shrink-0"
                       viewBox="0 0 20 20" fill="currentColor"
                     >
                       <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
@@ -129,8 +129,10 @@ export default async function CountriesPage() {
         {/* ─── Leaderboard sidebar ─── */}
         <aside>
           <div className="sticky top-6 rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden">
-            <div className="px-5 py-4 border-b border-zinc-800">
-              <h2 className="text-sm font-semibold text-zinc-100">🏆 Top spotters</h2>
+            <div className="px-5 py-4 border-b border-zinc-800 bg-gradient-to-r from-indigo-950/30 to-transparent">
+              <h2 className="text-sm font-semibold text-zinc-100 flex items-center gap-2">
+                <span>🏆</span> Top spotters
+              </h2>
               <p className="text-xs text-zinc-500 mt-0.5">All time, all countries</p>
             </div>
             {leaderboard.length === 0 ? (
@@ -141,9 +143,8 @@ export default async function CountriesPage() {
                   <li key={u.numericId}>
                     <a
                       href={`/u/${u.numericId}`}
-                      className="flex items-center gap-3 px-5 py-3 hover:bg-zinc-800/40 transition-colors group"
+                      className="flex items-center gap-3 px-5 py-3 hover:bg-indigo-950/20 transition-colors group"
                     >
-                      {/* Rank */}
                       <span className={`w-5 text-center text-xs font-bold shrink-0 ${
                         idx === 0 ? "text-yellow-400" :
                         idx === 1 ? "text-zinc-300" :
@@ -153,7 +154,6 @@ export default async function CountriesPage() {
                         {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}`}
                       </span>
 
-                      {/* Avatar */}
                       {u.avatarUrl ? (
                         <img src={u.avatarUrl} alt={u.username} className="h-7 w-7 rounded-lg object-cover shrink-0" />
                       ) : (
@@ -162,13 +162,11 @@ export default async function CountriesPage() {
                         </div>
                       )}
 
-                      {/* Name */}
-                      <span className="flex-1 min-w-0 text-sm text-zinc-300 group-hover:text-zinc-100 truncate">
+                      <span className="flex-1 min-w-0 text-sm text-zinc-400 group-hover:text-indigo-300 truncate transition-colors">
                         @{u.username}
                       </span>
 
-                      {/* Count */}
-                      <span className="text-xs text-zinc-500 font-mono shrink-0">
+                      <span className="text-xs text-zinc-500 font-mono shrink-0 group-hover:text-indigo-400 transition-colors">
                         {u._count.uploads}
                       </span>
                     </a>

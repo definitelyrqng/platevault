@@ -86,23 +86,26 @@ export default async function ModelPage({
   return (
     <main className="mx-auto max-w-6xl px-6 py-12">
       <div className="mb-1 text-xs text-zinc-500">
-        <a href="/catalog" className="hover:text-zinc-300 transition-colors">Catalog</a>
+        <a href="/catalog" className="hover:text-indigo-400 transition-colors">Catalog</a>
         <span className="mx-1.5 text-zinc-700">&#8250;</span>
-        <a href={"/catalog/" + brandSlug} className="hover:text-zinc-300 transition-colors">{brandData.name}</a>
+        <a href={"/catalog/" + brandSlug} className="hover:text-indigo-400 transition-colors">{brandData.name}</a>
         <span className="mx-1.5 text-zinc-700">&#8250;</span>
         <span className="text-zinc-400">{modelData.name}</span>
       </div>
 
       <div className="mt-4 mb-10 flex items-end justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-3xl font-bold">{brandData.name} {modelData.name}</h1>
-          <p className="mt-1.5 text-sm text-zinc-500">
-            {spots.length === 0
-              ? "No spots yet"
-              : spots.length + " spot" + (spots.length !== 1 ? "s" : "") + " across " + gens.length + " generation" + (gens.length !== 1 ? "s" : "")}
-          </p>
+        <div className="flex items-start gap-3">
+          <div className="mt-1.5 h-5 w-1 rounded-full bg-indigo-500 shrink-0" />
+          <div>
+            <h1 className="text-3xl font-bold">{brandData.name} {modelData.name}</h1>
+            <p className="mt-1.5 text-sm text-zinc-500">
+              {spots.length === 0
+                ? "No spots yet"
+                : spots.length + " spot" + (spots.length !== 1 ? "s" : "") + " across " + gens.length + " generation" + (gens.length !== 1 ? "s" : "")}
+            </p>
+          </div>
         </div>
-        <a href="/upload" className="rounded-xl bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-white shrink-0 transition-colors">
+        <a href="/upload" className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 shrink-0 shadow-lg shadow-indigo-950/50 transition-colors">
           Upload a spot
         </a>
       </div>
@@ -115,7 +118,7 @@ export default async function ModelPage({
               <a
                 key={g.id}
                 href={"#" + toSlug(g.name)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-900/60 px-3 py-1 text-xs text-zinc-300 hover:border-zinc-600 hover:bg-zinc-900 transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-900/60 px-3 py-1 text-xs text-zinc-300 hover:border-indigo-800/60 hover:bg-indigo-950/20 hover:text-indigo-300 transition-colors"
               >
                 {g.name}
                 {count > 0 && <span className="text-zinc-500">{count}</span>}
@@ -142,7 +145,7 @@ export default async function ModelPage({
               {gSpots.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-zinc-800 py-10 text-center">
                   <p className="text-sm text-zinc-600">No spots for this generation yet.</p>
-                  <a href="/upload" className="mt-1 inline-block text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+                  <a href="/upload" className="mt-1 inline-block text-xs text-zinc-500 hover:text-indigo-400 transition-colors">
                     Upload one &#8250;
                   </a>
                 </div>
@@ -153,7 +156,7 @@ export default async function ModelPage({
                       <a
                         key={s.id + "-thumb"}
                         href={"/spot/" + s.numericId}
-                        className="group shrink-0 w-32 rounded-xl overflow-hidden border border-zinc-800 hover:border-zinc-600 transition-colors"
+                        className="group shrink-0 w-32 rounded-xl overflow-hidden border border-zinc-800 hover:border-indigo-800/60 transition-all"
                       >
                         <div className="aspect-video bg-zinc-900 overflow-hidden">
                           <img
@@ -174,7 +177,7 @@ export default async function ModelPage({
                     {gSpots.map((u) => (
                       <div
                         key={u.id}
-                        className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-zinc-600 transition-colors"
+                        className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-lg hover:shadow-indigo-950/40 transition-all"
                       >
                         <a href={"/spot/" + u.numericId} className="absolute inset-0 z-0" aria-label={u.plateText} />
                         <div className="relative bg-zinc-950 aspect-video overflow-hidden">
@@ -202,7 +205,7 @@ export default async function ModelPage({
                             )}
                           </div>
                           <div className="mt-auto flex items-center justify-between pt-2 border-t border-zinc-800">
-                            <a href={"/u/" + u.user.numericId} className="relative z-10 text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+                            <a href={"/u/" + u.user.numericId} className="relative z-10 text-xs text-zinc-500 hover:text-indigo-400 transition-colors">
                               @{u.user.username}
                             </a>
                             <div className="flex items-center gap-2 text-xs text-zinc-600">
@@ -236,7 +239,7 @@ export default async function ModelPage({
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {ungrouped.map((u) => (
                 <a key={u.id} href={"/spot/" + u.numericId}
-                  className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-zinc-600 transition-colors">
+                  className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-lg hover:shadow-indigo-950/40 transition-all">
                   <div className="bg-zinc-950 aspect-video overflow-hidden">
                     <img src={u.imageUrl} alt={u.plateText}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />

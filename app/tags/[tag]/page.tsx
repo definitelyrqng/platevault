@@ -32,15 +32,18 @@ export default async function TagPage({ params }: { params: Promise<{ tag: strin
 
         {/* Header */}
         <div className="flex items-center gap-1.5 text-xs text-zinc-500 mb-6">
-          <a href="/home" className="hover:text-zinc-300">Home</a>
+          <a href="/home" className="hover:text-indigo-400 transition-colors">Home</a>
           <span>›</span>
           <span className="text-zinc-300">#{tagDef.label}</span>
         </div>
 
-        <div className="mb-8">
-          <div className="text-xs uppercase tracking-widest text-zinc-500 mb-1">{tagDef.group}</div>
+        <div className="mb-8 flex items-start gap-3">
+          <div className="mt-1.5 h-5 w-1 rounded-full bg-indigo-500 shrink-0" />
+          <div>
+          <div className="text-xs uppercase tracking-widest text-indigo-400 mb-1">{tagDef.group}</div>
           <h1 className="text-3xl font-bold">#{tagDef.label}</h1>
           <p className="mt-2 text-zinc-400 text-sm">{spots.length} spot{spots.length !== 1 ? "s" : ""} tagged</p>
+          </div>
         </div>
 
         {spots.length === 0 ? (
@@ -51,7 +54,7 @@ export default async function TagPage({ params }: { params: Promise<{ tag: strin
               <a
                 key={s.numericId}
                 href={`/spot/${s.numericId}`}
-                className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-blue-800 transition-colors"
+                className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-lg hover:shadow-indigo-950/40 transition-all"
               >
                 <div className="aspect-video bg-zinc-950 overflow-hidden">
                   <img

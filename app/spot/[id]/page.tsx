@@ -107,7 +107,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
           <div className="text-4xl mb-4">🚫</div>
           <h1 className="text-xl font-semibold">This spot has been hidden</h1>
           <p className="mt-3 text-zinc-400 text-sm">This content has been temporarily hidden by a moderator pending review.</p>
-          <a href="/home" className="mt-6 inline-flex rounded-xl border border-zinc-800 bg-zinc-900/40 px-5 py-2.5 text-sm text-zinc-200 hover:bg-zinc-900">
+          <a href="/home" className="mt-6 inline-flex rounded-xl border border-indigo-900/40 bg-indigo-950/20 px-5 py-2.5 text-sm text-indigo-300 hover:bg-indigo-950/40 transition-colors">
             ← Back to PlateVault
           </a>
         </div>
@@ -150,9 +150,9 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
 
         {/* Breadcrumb */}
         <div className="flex items-center gap-1.5 text-xs text-zinc-500 mb-6">
-          <a href="/home" className="hover:text-zinc-300">Home</a>
+          <a href="/home" className="hover:text-indigo-300 transition-colors">Home</a>
           <span>›</span>
-          <a href={`/c/${upload.country}`} className="hover:text-zinc-300 inline-flex items-center gap-1"><Flag iso={meta.iso} />{meta.name}</a>
+          <a href={`/c/${upload.country}`} className="hover:text-indigo-300 transition-colors inline-flex items-center gap-1"><Flag iso={meta.iso} />{meta.name}</a>
           {albaniaRegion && (
             <>
               <span>›</span>
@@ -162,7 +162,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
           <span>›</span>
           <span className="font-mono text-zinc-300">{upload.plateText}</span>
           {otherSightings.length > 0 && (
-            <span className="ml-1 rounded-full bg-blue-500/20 border border-blue-500/30 px-2 py-0.5 text-[10px] text-blue-400 font-medium">
+            <span className="ml-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 px-2 py-0.5 text-[10px] text-indigo-400 font-medium">
               📍 {otherSightings.length + 1} sightings
             </span>
           )}
@@ -229,7 +229,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                     <a
                       key={tag}
                       href={"/tags/" + tag}
-                      className="rounded-full px-2.5 py-0.5 text-xs font-medium border border-zinc-700 bg-zinc-900/60 text-zinc-300 hover:border-zinc-500 hover:text-zinc-100 transition-colors"
+                      className="rounded-full px-2.5 py-0.5 text-xs font-medium border border-indigo-900/50 bg-indigo-950/20 text-indigo-300 hover:border-indigo-700/60 hover:bg-indigo-950/40 hover:text-indigo-200 transition-colors"
                     >
                       #{def.label}
                     </a>
@@ -263,14 +263,14 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
               <div className="flex items-center gap-3 mb-4">
                 <a href={`/u/${upload.user.numericId}`} className="flex items-center gap-3 group">
                   {upload.user.avatarUrl ? (
-                    <img src={upload.user.avatarUrl} alt={upload.user.username} className="h-9 w-9 rounded-xl object-cover ring-2 ring-zinc-700 group-hover:ring-zinc-500 transition-all" />
+                    <img src={upload.user.avatarUrl} alt={upload.user.username} className="h-9 w-9 rounded-xl object-cover ring-2 ring-zinc-700 group-hover:ring-indigo-700/60 transition-all" />
                   ) : (
-                    <div className="h-9 w-9 rounded-xl bg-zinc-800 grid place-items-center text-xs font-bold text-zinc-400 ring-2 ring-zinc-700">
+                    <div className="h-9 w-9 rounded-xl bg-zinc-800 grid place-items-center text-xs font-bold text-zinc-400 ring-2 ring-zinc-700 group-hover:ring-indigo-700/60 transition-all">
                       {upload.user.username.slice(0, 2).toUpperCase()}
                     </div>
                   )}
                   <div>
-                    <div className="text-sm font-medium text-zinc-200 group-hover:text-white transition-colors">@{upload.user.username}</div>
+                    <div className="text-sm font-medium text-zinc-200 group-hover:text-indigo-300 transition-colors">@{upload.user.username}</div>
                     <div className="text-xs text-zinc-500">{relativeDays(upload.createdAt)}</div>
                   </div>
                 </a>
@@ -356,21 +356,22 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
         {/* ─── Multi Spot section ─── */}
         {otherSightings.length > 0 && (
           <section className="mt-12">
-            <div className="flex items-center gap-3 mb-5">
-              <h2 className="text-lg font-semibold">📍 Multi Spots</h2>
-              <span className="rounded-full bg-blue-500/20 border border-blue-500/30 px-2.5 py-0.5 text-xs text-blue-400 font-medium">
-                {otherSightings.length} other sighting{otherSightings.length !== 1 ? "s" : ""}
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-5 w-1 rounded-full bg-indigo-500" />
+              <h2 className="text-lg font-semibold text-zinc-100">Multi Spots</h2>
+              <span className="rounded-full bg-indigo-500/20 border border-indigo-500/30 px-2.5 py-0.5 text-xs text-indigo-400 font-medium">
+                📍 {otherSightings.length} other sighting{otherSightings.length !== 1 ? "s" : ""}
               </span>
             </div>
             <p className="text-sm text-zinc-400 mb-5">
-              <span className="font-mono font-bold text-zinc-200">{upload.plateText}</span> has been spotted {otherSightings.length + 1} times in {meta.name} by the community.
+              <span className="font-mono font-bold text-indigo-200">{upload.plateText}</span> has been spotted {otherSightings.length + 1} times in {meta.name} by the community.
             </p>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {otherSightings.map((s) => (
                 <a
                   key={s.numericId}
                   href={`/spot/${s.numericId}`}
-                  className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-blue-800 transition-colors"
+                  className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-md hover:shadow-indigo-950/40 transition-all"
                 >
                   <div className="aspect-video bg-zinc-950 overflow-hidden">
                     <img
@@ -389,7 +390,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                           {s.user.username.slice(0, 2).toUpperCase()}
                         </div>
                       )}
-                      <span className="text-xs text-zinc-400">@{s.user.username}</span>
+                      <span className="text-xs text-zinc-400 group-hover:text-indigo-300 transition-colors">@{s.user.username}</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-zinc-500">
                       <span>{fmtShort(s.createdAt)}</span>

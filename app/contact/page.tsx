@@ -37,11 +37,15 @@ export default function ContactPage() {
   return (
     <main className="mx-auto max-w-xl px-6 pb-20 pt-14">
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-zinc-50">Contact</h1>
-        <p className="mt-2 text-sm text-zinc-400">
-          Got a question, spotted an issue, or just want to say hi? Send a message and we&apos;ll reply to your email.
-        </p>
+      <div className="mb-8 flex items-start gap-3">
+        <div className="mt-1.5 h-5 w-1 rounded-full bg-indigo-500 shrink-0" />
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-1">Get in touch</p>
+          <h1 className="text-3xl font-bold text-zinc-50">Contact</h1>
+          <p className="mt-2 text-sm text-zinc-400">
+            Got a question, spotted an issue, or just want to say hi? Send a message and we&apos;ll reply to your email.
+          </p>
+        </div>
       </div>
 
       {status === "sent" ? (
@@ -70,7 +74,7 @@ export default function ContactPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3 text-sm text-zinc-200 placeholder:text-zinc-600 outline-none focus:border-zinc-600 transition-colors"
+              className="w-full rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3 text-sm text-zinc-200 placeholder:text-zinc-600 outline-none focus:border-indigo-700/60 focus:ring-1 focus:ring-indigo-700/20 transition-colors"
             />
           </div>
 
@@ -97,7 +101,7 @@ export default function ContactPage() {
           <button
             type="submit"
             disabled={status === "loading"}
-            className="w-full rounded-xl bg-zinc-100 py-3 text-sm font-semibold text-zinc-950 hover:bg-white disabled:opacity-40 transition-colors"
+            className="w-full rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-500 shadow-lg shadow-indigo-950/50 disabled:opacity-40 transition-colors"
           >
             {status === "loading" ? "Sending…" : "Send message"}
           </button>

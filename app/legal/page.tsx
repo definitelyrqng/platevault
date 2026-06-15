@@ -46,24 +46,28 @@ export default function LegalPage() {
     <main className="mx-auto max-w-4xl px-6 pb-20 pt-10">
 
       {/* Header */}
-      <div className="mb-10">
-        <h1 className="text-3xl font-bold text-zinc-50">Terms of Service &amp; Privacy Policy</h1>
-        <p className="mt-2 text-sm text-zinc-500">
-          Last updated: June 2026 · These terms govern your use of PlateVault.
-        </p>
-        <p className="mt-3 text-sm text-zinc-400">
-          By registering an account or using PlateVault, you confirm that you have read and agreed to both the Terms of Service
-          and the Privacy Policy set out below. If you do not agree, please do not use the platform.
-        </p>
+      <div className="mb-10 flex items-start gap-3">
+        <div className="mt-1.5 h-5 w-1 rounded-full bg-indigo-500 shrink-0" />
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-1">PlateVault</p>
+          <h1 className="text-3xl font-bold text-zinc-50">Terms of Service &amp; Privacy Policy</h1>
+          <p className="mt-2 text-sm text-zinc-500">
+            Last updated: June 2026 · These terms govern your use of PlateVault.
+          </p>
+          <p className="mt-3 text-sm text-zinc-400">
+            By registering an account or using PlateVault, you confirm that you have read and agreed to both the Terms of Service
+            and the Privacy Policy set out below. If you do not agree, please do not use the platform.
+          </p>
 
-        {/* Tab-like pills */}
-        <div className="mt-5 flex gap-2">
-          <a href="#tos-general" className="rounded-full border border-zinc-700 bg-zinc-900/60 px-3 py-1 text-xs text-zinc-300 hover:border-zinc-500">
-            Terms of Service ↓
-          </a>
-          <a href="#privacy-controller" className="rounded-full border border-zinc-700 bg-zinc-900/60 px-3 py-1 text-xs text-zinc-300 hover:border-zinc-500">
-            Privacy Policy ↓
-          </a>
+          {/* Tab-like pills */}
+          <div className="mt-5 flex gap-2">
+            <a href="#tos-general" className="rounded-full border border-indigo-800/60 bg-indigo-950/20 px-3 py-1 text-xs text-indigo-300 hover:border-indigo-600 transition-colors">
+              Terms of Service ↓
+            </a>
+            <a href="#privacy-controller" className="rounded-full border border-zinc-700 bg-zinc-900/60 px-3 py-1 text-xs text-zinc-300 hover:border-indigo-800/60 hover:text-indigo-300 transition-colors">
+              Privacy Policy ↓
+            </a>
+          </div>
         </div>
       </div>
 
@@ -72,13 +76,13 @@ export default function LegalPage() {
         {/* Sidebar */}
         <aside className="hidden lg:block shrink-0 w-52 sticky top-8">
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4">
-            <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Contents</div>
+            <div className="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-3">Contents</div>
             <nav className="space-y-0.5">
               {toc.map((item, i) => (
                 <a
                   key={item.id}
                   href={`#${item.id}`}
-                  className="block text-[11px] text-zinc-400 hover:text-zinc-200 py-0.5 transition-colors"
+                  className="block text-[11px] text-zinc-400 hover:text-indigo-300 py-0.5 transition-colors"
                 >
                   {item.label}
                 </a>
