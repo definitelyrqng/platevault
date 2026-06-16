@@ -69,7 +69,7 @@ export async function POST(req: Request) {
     // ── Streak logic ──────────────────────────────────────────────────────────
     const fullUser = await prisma.user.findUnique({
       where: { id: user.id },
-      select: { currentStreak: true, longestStreak: true, lastUploadDate: true },
+      select: { numericId: true, currentStreak: true, longestStreak: true, lastUploadDate: true },
     });
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -103,7 +103,7 @@ export async function POST(req: Request) {
           type: "STREAK",
           title: `🔥 ${newStreak}-day streak!`,
           message: `You've uploaded ${newStreak} days in a row. Keep it up!`,
-          url: `/u/${user.numericId}`,
+          url: `/u/${fullUser?.numericId}`,
         },
       });
     }
