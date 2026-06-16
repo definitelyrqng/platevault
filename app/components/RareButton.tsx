@@ -38,7 +38,7 @@ export default function RareButton({ spotNumericId }: { spotNumericId: number })
       onClick={loggedIn ? toggle : undefined}
       disabled={busy}
       title={loggedIn ? (state.voted ? "Remove rare vote" : "Mark as rare") : "Sign in to vote"}
-      className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm font-medium transition-all disabled:opacity-50 ${
+      className={`inline-flex items-center gap-1.5 rounded-xl border px-3 h-10 text-sm font-medium transition-all disabled:opacity-50 ${
         state.voted
           ? "border-amber-700/60 bg-amber-950/30 text-amber-300 hover:bg-amber-950/50"
           : "border-zinc-700 bg-zinc-900/60 text-zinc-400 hover:border-amber-700/40 hover:bg-amber-950/10 hover:text-amber-300"

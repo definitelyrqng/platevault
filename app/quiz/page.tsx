@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+function cap(s: string) {
+  return s.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 // Map country string → ISO code for flags
 const COUNTRY_ISO: Record<string, string> = {
   "Albania": "al",
@@ -184,15 +188,13 @@ export default function QuizPage() {
           </div>
         ) : current ? (
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden">
-            {/* Plate image */}
-            <div className="relative aspect-video bg-zinc-950">
+            {/* Plate image — object-contain so full plate is always visible */}
+            <div className="relative bg-zinc-950 flex items-center justify-center" style={{ minHeight: "260px", maxHeight: "380px" }}>
               <img
                 src={current.imageUrl}
                 alt="Spot"
-                className="w-full h-full object-cover"
+                className="max-h-[380px] w-full object-contain"
               />
-              {/* Blur plate text to not give away location */}
-              <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-zinc-950/80 to-transparent" />
             </div>
 
             <div className="p-5">
@@ -222,7 +224,7 @@ export default function QuizPage() {
                       {flag && (
                         <img src={flag} alt={choice} width={24} height={18} className="rounded-sm shrink-0" />
                       )}
-                      <span>{choice}</span>
+                      <span>{cap(choice)}</span>
                       {answerState !== "unanswered" && choice === current.correctAnswer && (
                         <span className="ml-auto text-green-400">✓</span>
                       )}
@@ -243,7 +245,7 @@ export default function QuizPage() {
                   }`}>
                     {answerState === "correct"
                       ? streak >= 3 ? `🔥 Correct! ×${streak} streak!` : "✓ Correct!"
-                      : `✗ It was ${current.correctAnswer}`}
+                      : `✗ It was ${cap(current.correctAnswer)}`}
                   </div>
                   <div className="flex gap-2">
                     <a

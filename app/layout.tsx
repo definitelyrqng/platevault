@@ -39,9 +39,16 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <div className="min-h-screen flex flex-col">
             <HeaderGate />
             <main className="flex-1">{children}</main>
-            <footer className="py-8 text-center text-xs text-zinc-600 space-y-2 border-t border-zinc-800/40">
-              <div className="flex items-center justify-center gap-4 flex-wrap">
-                <span>&#169; {new Date().getFullYear()} PlateVault</span>
+            <footer className="py-8 text-center text-xs text-zinc-600 space-y-3 border-t border-zinc-800/40">
+              <div className="flex items-center justify-center gap-1 mb-2">
+                <span className="text-zinc-700 font-mono tracking-widest text-[10px]">PV</span>
+                <span className="h-1 w-1 rounded-full bg-indigo-800 mx-1" />
+                <span className="text-zinc-700 text-[10px]">PLATEVAULT</span>
+              </div>
+              <div className="flex items-center justify-center gap-5 flex-wrap">
+                <span className="text-zinc-700">&#169; {new Date().getFullYear()}</span>
+                <a href="/leaderboard" className="hover:text-amber-400 transition-colors">🏆 Leaderboard</a>
+                <a href="/quiz" className="hover:text-indigo-400 transition-colors">🎮 Quiz</a>
                 <a href="/rules" className="hover:text-indigo-400 transition-colors">Rules</a>
                 <a href="/legal" className="hover:text-indigo-400 transition-colors">Terms &amp; Privacy</a>
                 <a href="/contact" className="hover:text-indigo-400 transition-colors">Contact</a>

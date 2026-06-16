@@ -160,6 +160,20 @@ export default function SiteHeader() {
             </Link>
 
             <Link
+              href="/feed"
+              className="hidden lg:block rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-400 hover:border-indigo-800/60 hover:text-indigo-300 hover:bg-indigo-950/20 transition-colors"
+            >
+              Feed
+            </Link>
+
+            <Link
+              href="/leaderboard"
+              className="hidden lg:block rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-400 hover:border-amber-700/40 hover:text-amber-300 hover:bg-amber-950/10 transition-colors"
+            >
+              🏆
+            </Link>
+
+            <Link
               href={`/u/${me.user.numericId}`}
               className="rounded-xl border border-indigo-900/50 bg-indigo-950/30 px-4 py-2 text-sm text-indigo-300 hover:border-indigo-700 hover:bg-indigo-950/50 transition-colors"
             >

@@ -16,7 +16,7 @@ function relativeDays(d: Date) {
 }
 
 async function getStats() {
-  const [totalUploads, totalUsers, countryGroups, recentUploads, rareSpots] = await Promise.all([
+  const [totalUploads, totalUsers, countryGroups, recentUploads, hotSpots, rareSpots] = await Promise.all([
     prisma.upload.count({ where: { deletedAt: null } }),
     prisma.user.count(),
     prisma.upload.groupBy({
@@ -40,6 +40,22 @@ async function getStats() {
         model: true,
         user: { select: { username: true, numericId: true, avatarUrl: true } },
         _count: { select: { likes: true, comments: true } },
+      },
+    }),
+    // Hot spots: most likes in the last 7 days
+    prisma.upload.findMany({
+      where: {
+        deletedAt: null,
+        hidden: false,
+        createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+      },
+      orderBy: { likes: { _count: "desc" } },
+      take: 3,
+      select: {
+        id: true, numericId: true, plateText: true, country: true,
+        imageUrl: true, brand: true, model: true,
+        user: { select: { username: true, numericId: true } },
+        _count: { select: { likes: true } },
       },
     }),
     // Rare spots: most ✨ votes
@@ -68,11 +84,11 @@ async function getStats() {
     }),
   ]);
   const countryCount = countryGroups.length;
-  return { totalUploads, totalUsers, countryCount, countryGroups, recentUploads, rareSpots };
+  return { totalUploads, totalUsers, countryCount, countryGroups, recentUploads, hotSpots, rareSpots };
 }
 
 export default async function HomePage() {
-  const { totalUploads, totalUsers, countryCount, countryGroups, recentUploads, rareSpots } = await getStats();
+  const { totalUploads, totalUsers, countryCount, countryGroups, recentUploads, hotSpots, rareSpots } = await getStats();
 
   const randomCountry = countryGroups.length > 0
     ? countryGroups[Math.floor(Math.random() * countryGroups.length)]
@@ -121,18 +137,22 @@ export default async function HomePage() {
       {/* ─── Stats ─── */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4 mb-8">
         {[
-          { label: "Spots archived", value: totalUploads.toLocaleString(), icon: "📷", href: null },
-          { label: "Spotters",       value: totalUsers.toLocaleString(),   icon: "👤", href: null },
-          { label: "Countries",      value: countryCount.toLocaleString(), icon: "🌍", href: "/countries" },
-          { label: "Plate formats",  value: "7+",                          icon: "📋", href: null },
+          { label: "Spots archived", value: totalUploads.toLocaleString(), icon: "📷", href: null, accent: null },
+          { label: "Spotters",       value: totalUsers.toLocaleString(),   icon: "👤", href: "/leaderboard", accent: "amber" },
+          { label: "Countries",      value: countryCount.toLocaleString(), icon: "🌍", href: "/countries",  accent: "indigo" },
+          { label: "Quiz",           value: "Play →",                      icon: "🎮", href: "/quiz",       accent: "indigo" },
         ].map((s) => (
           s.href ? (
             <a key={s.label} href={s.href}
-              className="group rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900/80 to-zinc-900/30 px-5 py-5 hover:border-indigo-800/60 hover:bg-indigo-950/20 transition-all hover:shadow-lg hover:shadow-indigo-950/40"
+              className={`group rounded-2xl border bg-gradient-to-b px-5 py-5 transition-all hover:shadow-lg ${
+                s.accent === "amber"
+                  ? "border-zinc-800 from-zinc-900/80 to-zinc-900/30 hover:border-amber-700/40 hover:bg-amber-950/10 hover:shadow-amber-950/30"
+                  : "border-zinc-800 from-zinc-900/80 to-zinc-900/30 hover:border-indigo-800/60 hover:bg-indigo-950/20 hover:shadow-indigo-950/40"
+              }`}
             >
               <div className="text-lg mb-1">{s.icon}</div>
-              <div className="text-2xl font-bold text-zinc-100 group-hover:text-indigo-300 transition-colors">{s.value}</div>
-              <div className="mt-0.5 text-xs text-zinc-500 group-hover:text-indigo-400 transition-colors">{s.label} →</div>
+              <div className={`text-2xl font-bold text-zinc-100 transition-colors ${s.accent === "amber" ? "group-hover:text-amber-300" : "group-hover:text-indigo-300"}`}>{s.value}</div>
+              <div className={`mt-0.5 text-xs text-zinc-500 transition-colors ${s.accent === "amber" ? "group-hover:text-amber-500" : "group-hover:text-indigo-400"}`}>{s.label}</div>
             </a>
           ) : (
             <div key={s.label}
@@ -173,6 +193,52 @@ export default async function HomePage() {
                   <span className="text-3xl group-hover:scale-110 transition-transform duration-200"><Flag iso={m.iso} /></span>
                   <span className="text-sm font-medium text-zinc-300 group-hover:text-indigo-200 truncate w-full transition-colors">{m.name}</span>
                   <span className="text-xs text-zinc-600 group-hover:text-indigo-500 transition-colors">{_count.id} spot{_count.id === 1 ? "" : "s"}</span>
+                </a>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* ─── Hot Spots (last 7 days) ─── */}
+      {hotSpots.length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-baseline justify-between gap-4 mb-5">
+            <div className="flex items-center gap-4">
+              <div className="h-5 w-1 rounded-full bg-rose-500 shrink-0" />
+              <div>
+                <h2 className="text-xl font-semibold text-zinc-100">🔥 Hot This Week</h2>
+                <p className="text-xs text-zinc-500 mt-0.5">Most liked spots in the last 7 days</p>
+              </div>
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {(hotSpots as any[]).map((u, i) => {
+              const meta = getCountryMeta(u.country);
+              const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
+              return (
+                <a key={u.id} href={`/spot/${u.numericId}`} className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-rose-800/60 hover:shadow-md hover:shadow-rose-950/40 transition-all">
+                  {i === 0 && (
+                    <div className="absolute top-2 left-2 z-10 rounded-full bg-rose-600/90 px-2 py-0.5 text-[10px] font-bold text-white shadow">
+                      🔥 #1
+                    </div>
+                  )}
+                  <div className="aspect-video bg-zinc-950 overflow-hidden">
+                    <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
+                  </div>
+                  <div className="p-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono text-base font-bold tracking-widest text-zinc-100 group-hover:text-rose-200 transition-colors">{u.plateText}</span>
+                      <span className="rounded-md px-1.5 py-1 inline-flex items-center gap-1 bg-zinc-800/60 text-xs text-zinc-400">
+                        <Flag iso={meta.iso} size="sm" />
+                      </span>
+                    </div>
+                    {carLabel && <div className="text-xs text-zinc-400 mt-0.5">{carLabel}</div>}
+                    <div className="mt-2 flex items-center justify-between text-xs text-zinc-500">
+                      <span>by @{u.user.username}</span>
+                      <span className="text-rose-400 font-semibold">♥ {u._count.likes}</span>
+                    </div>
+                  </div>
                 </a>
               );
             })}

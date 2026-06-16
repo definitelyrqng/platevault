@@ -131,6 +131,18 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
     },
   });
 
+  // More from this country
+  const moreFromCountry = await prisma.upload.findMany({
+    where: { country: upload.country, deletedAt: null, hidden: false, NOT: { id: upload.id } },
+    orderBy: { createdAt: "desc" },
+    take: 4,
+    select: {
+      id: true, numericId: true, plateText: true, imageUrl: true, brand: true, model: true,
+      user: { select: { username: true } },
+      _count: { select: { likes: true } },
+    },
+  });
+
   const meta = getCountryMeta(upload.country);
 
   // Albania region lookup
@@ -278,7 +290,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 </a>
               </div>
 
-              <div className="flex gap-2 items-stretch">
+              <div className="flex gap-2 items-center">
                 <div className="flex-1">
                   <SpotActions
                     uploadId={upload.id}
@@ -404,6 +416,38 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                       <span>{fmtShort(s.createdAt)}</span>
                       <span>♡ {s._count.likes}</span>
                     </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ─── More from this country ─── */}
+        {moreFromCountry.length > 0 && (
+          <section className="mt-10">
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="h-5 w-1 rounded-full bg-indigo-500" />
+                <h2 className="text-lg font-semibold text-zinc-100">More from {meta.name}</h2>
+              </div>
+              <a href={`/c/${upload.country}`} className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
+                Browse all →
+              </a>
+            </div>
+            <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+              {moreFromCountry.map((s) => (
+                <a
+                  key={s.id}
+                  href={`/spot/${s.numericId}`}
+                  className="group rounded-xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-md hover:shadow-indigo-950/40 transition-all"
+                >
+                  <div className="aspect-video bg-zinc-950 overflow-hidden">
+                    <img src={s.imageUrl} alt={s.plateText} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
+                  </div>
+                  <div className="p-2.5">
+                    <div className="font-mono text-xs font-bold tracking-widest text-zinc-300 group-hover:text-indigo-200 transition-colors truncate">{s.plateText}</div>
+                    <div className="text-[10px] text-zinc-600 mt-0.5">♡ {s._count.likes}</div>
                   </div>
                 </a>
               ))}

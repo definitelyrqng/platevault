@@ -51,7 +51,7 @@ export default function SpotActions({
       onClick={toggle}
       disabled={disabled}
       title={title}
-      className={`flex items-center gap-2.5 rounded-xl px-5 py-3 text-base font-semibold transition-all w-full justify-center
+      className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all w-full justify-center h-10
         ${liked
           ? "bg-pink-500/10 border border-pink-500/40 text-pink-400 hover:bg-pink-500/20"
           : disabled
@@ -59,7 +59,7 @@ export default function SpotActions({
           : "border border-zinc-700 bg-zinc-900/40 text-zinc-300 hover:border-pink-500/40 hover:text-pink-400"
         }`}
     >
-      <span className="text-xl" aria-hidden>{liked ? "♥" : "♡"}</span>
+      <span aria-hidden>{liked ? "♥" : "♡"}</span>
       {liked ? "Liked" : "Like"}
     </button>
   );

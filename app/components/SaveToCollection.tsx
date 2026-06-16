@@ -96,7 +96,7 @@ export default function SaveToCollection({ spotNumericId }: { spotNumericId: num
     <div className="relative" ref={ref}>
       <button
         onClick={open ? () => setOpen(false) : openDropdown}
-        className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-700 bg-zinc-900/60 px-3 py-1.5 text-sm text-zinc-400 hover:border-indigo-700/40 hover:text-indigo-300 transition-all"
+        className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-700 bg-zinc-900/60 px-3 h-10 text-sm text-zinc-400 hover:border-indigo-700/40 hover:text-indigo-300 transition-all"
       >
         <span>🗂️</span>
         <span>Save</span>
