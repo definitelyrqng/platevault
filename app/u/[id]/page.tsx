@@ -80,6 +80,8 @@ export default async function UserProfilePage({
       bannedAt: true,
       banExpiresAt: true,
       banReason: true,
+      currentStreak: true,
+      longestStreak: true,
       uploads: {
         select: {
           id: true,
@@ -215,7 +217,17 @@ export default async function UserProfilePage({
                   Edit profile
                 </a>
               ) : (
-                <FollowButton targetNumericId={user.numericId} />
+                <>
+                  <FollowButton targetNumericId={user.numericId} />
+                  {sessionUserId && (
+                    <a
+                      href={`/messages?with=${user.numericId}`}
+                      className="rounded-xl border border-zinc-700 bg-zinc-900/60 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-800 transition-colors"
+                    >
+                      💬 Message
+                    </a>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -268,7 +280,7 @@ export default async function UserProfilePage({
         </div>
       </section>
 
-      <section className="mt-6 grid gap-4 sm:grid-cols-3">
+      <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <a href="#spots" className="rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900/60 to-zinc-900/20 p-5 hover:border-indigo-800/60 hover:bg-indigo-950/20 hover:shadow-md hover:shadow-indigo-950/40 transition-all group">
           <div className="text-xs uppercase tracking-wider text-zinc-500 group-hover:text-indigo-500 transition-colors">Uploads</div>
           <div className="mt-1.5 text-3xl font-semibold text-zinc-50 group-hover:text-indigo-200 transition-colors">{user._count.uploads}</div>
@@ -284,6 +296,22 @@ export default async function UserProfilePage({
             <div className="mt-1 text-xs text-zinc-500">{s.hint}</div>
           </div>
         ))}
+        {/* Streak card */}
+        <div className={`rounded-2xl border p-5 transition-colors ${
+          user.currentStreak > 0
+            ? "border-amber-800/50 bg-gradient-to-b from-amber-950/30 to-zinc-900/20 hover:border-amber-700/60"
+            : "border-zinc-800 bg-gradient-to-b from-zinc-900/60 to-zinc-900/20 hover:border-zinc-700"
+        }`}>
+          <div className="text-xs uppercase tracking-wider text-zinc-500">Upload Streak</div>
+          <div className={`mt-1.5 text-3xl font-semibold flex items-center gap-2 ${user.currentStreak > 0 ? "text-amber-300" : "text-zinc-50"}`}>
+            {user.currentStreak > 0 && <span>🔥</span>}
+            {user.currentStreak}
+            <span className="text-base font-normal text-zinc-500">days</span>
+          </div>
+          <div className="mt-1 text-xs text-zinc-500">
+            Best: {user.longestStreak} day{user.longestStreak !== 1 ? "s" : ""}
+          </div>
+        </div>
       </section>
 
       {/* ─── Achievements ─────────────────────────────────────────────────────── */}

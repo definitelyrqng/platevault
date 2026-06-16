@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Comment = {
   id: string;
@@ -24,6 +24,29 @@ function relativeTime(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
+// Render comment text with @mentions as clickable links
+function CommentText({ content }: { content: string }) {
+  const parts = content.split(/(@[a-zA-Z0-9_]{1,20})/g);
+  return (
+    <p className="mt-0.5 text-sm text-zinc-300 leading-relaxed break-words">
+      {parts.map((part, i) => {
+        if (/^@[a-zA-Z0-9_]{1,20}$/.test(part)) {
+          return (
+            <a
+              key={i}
+              href={`/search?q=${encodeURIComponent(part.slice(1))}`}
+              className="text-indigo-400 hover:text-indigo-300 transition-colors font-medium"
+            >
+              {part}
+            </a>
+          );
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </p>
+  );
+}
+
 export default function CommentSection({
   uploadId,
   initialComments,
@@ -39,6 +62,39 @@ export default function CommentSection({
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [suggestions, setSuggestions] = useState<{ username: string; numericId: number; avatarUrl: string | null }[]>([]);
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Detect @mention being typed
+  const handleTextChange = useCallback(async (val: string) => {
+    setText(val);
+    const match = val.match(/@([a-zA-Z0-9_]*)$/);
+    if (match) {
+      const q = match[1];
+      setMentionQuery(q);
+      if (q.length >= 1) {
+        const res = await fetch(`/api/users/search?q=${encodeURIComponent(q)}&limit=5`);
+        if (res.ok) {
+          const data = await res.json();
+          setSuggestions(data.users ?? []);
+        }
+      } else {
+        setSuggestions([]);
+      }
+    } else {
+      setMentionQuery(null);
+      setSuggestions([]);
+    }
+  }, []);
+
+  function insertMention(username: string) {
+    const newText = text.replace(/@([a-zA-Z0-9_]*)$/, `@${username} `);
+    setText(newText);
+    setSuggestions([]);
+    setMentionQuery(null);
+    inputRef.current?.focus();
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -102,7 +158,7 @@ export default function CommentSection({
                     </button>
                   )}
                 </div>
-                <p className="mt-0.5 text-sm text-zinc-300 leading-relaxed break-words">{c.content}</p>
+                <CommentText content={c.content} />
               </div>
             </div>
           ))}
@@ -110,22 +166,51 @@ export default function CommentSection({
       )}
 
       {isLoggedIn ? (
-        <form onSubmit={submit} className="flex gap-2">
-          <input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Write a comment…"
-            maxLength={1000}
-            className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600 min-w-0"
-          />
-          <button
-            type="submit"
-            disabled={!text.trim() || submitting}
-            className="shrink-0 rounded-xl bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {submitting ? "…" : "Post"}
-          </button>
-        </form>
+        <div className="relative">
+          <form onSubmit={submit} className="flex gap-2">
+            <input
+              ref={inputRef}
+              value={text}
+              onChange={(e) => handleTextChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") { setSuggestions([]); setMentionQuery(null); }
+              }}
+              placeholder="Write a comment… use @username to mention"
+              maxLength={1000}
+              className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600 min-w-0"
+            />
+            <button
+              type="submit"
+              disabled={!text.trim() || submitting}
+              className="shrink-0 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              {submitting ? "…" : "Post"}
+            </button>
+          </form>
+
+          {/* @mention autocomplete dropdown */}
+          {suggestions.length > 0 && (
+            <div className="absolute bottom-full left-0 mb-1 w-56 rounded-xl border border-zinc-700 bg-zinc-900 shadow-xl shadow-zinc-950/60 overflow-hidden z-50">
+              {suggestions.map((s) => (
+                <button
+                  key={s.numericId}
+                  type="button"
+                  onClick={() => insertMention(s.username)}
+                  className="flex items-center gap-2.5 w-full px-3 py-2 text-sm text-zinc-300 hover:bg-indigo-950/40 hover:text-indigo-200 transition-colors"
+                >
+                  {s.avatarUrl ? (
+                    <img src={s.avatarUrl} alt={s.username} className="h-6 w-6 rounded-lg object-cover shrink-0" />
+                  ) : (
+                    <div className="h-6 w-6 rounded-lg bg-zinc-800 grid place-items-center text-[9px] font-bold text-zinc-400 shrink-0">
+                      {s.username.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <span>@{s.username}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       ) : (
         <p className="text-sm text-zinc-500">
           <a href="/login" className="text-zinc-300 hover:text-white underline">Sign in</a> to leave a comment.

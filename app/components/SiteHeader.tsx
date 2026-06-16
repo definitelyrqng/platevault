@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ThemeToggle from "./ThemeToggle";
@@ -8,6 +8,68 @@ import ThemeToggle from "./ThemeToggle";
 type MeResponse =
   | { user: null }
   | { user: { id: string; numericId: number; username: string; email: string } };
+
+function MoreMenu({ loggedIn }: { loggedIn: boolean }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const links = [
+    { href: "/catalog",     label: "Catalog",     emoji: "📋" },
+    { href: "/companies",   label: "Companies",   emoji: "🚌" },
+    { href: "/quiz",        label: "Quiz",        emoji: "🎮" },
+    { href: "/leaderboard", label: "Leaderboard", emoji: "🏆" },
+    ...(loggedIn ? [
+      { href: "/feed",        label: "Feed",        emoji: "🌐" },
+      { href: "/messages",    label: "Messages",    emoji: "💬" },
+      { href: "/collections", label: "Collections", emoji: "🗂️" },
+      { href: "/roadtrips",   label: "Road Trips",  emoji: "🗺️" },
+      { href: "/challenges",  label: "Challenges",  emoji: "🎯" },
+      { href: "/polls",       label: "Polls",       emoji: "🗳️" },
+    ] : []),
+  ];
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className={`grid h-9 w-9 place-items-center rounded-xl border transition-colors ${
+          open
+            ? "border-indigo-700/60 bg-indigo-950/30 text-indigo-300"
+            : "border-zinc-800 bg-zinc-900/40 text-zinc-400 hover:border-indigo-800/60 hover:text-indigo-300 hover:bg-indigo-950/20"
+        }`}
+        aria-label="More"
+      >
+        <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-2 z-50 w-44 rounded-2xl border border-zinc-800 bg-zinc-900 shadow-xl shadow-zinc-950/60 overflow-hidden">
+          {links.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 hover:bg-indigo-950/30 hover:text-indigo-200 transition-colors"
+            >
+              <span className="text-base">{l.emoji}</span>
+              {l.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function SiteHeader() {
   const [me, setMe] = useState<MeResponse>({ user: null });
@@ -50,21 +112,21 @@ export default function SiteHeader() {
   }
 
   return (
-    <header className="mx-auto flex w-full max-w-6xl items-center gap-4 px-6 py-5">
+    <header className="mx-auto flex w-full max-w-6xl items-center gap-3 px-6 py-5">
       {/* Logo */}
       <Link href="/home" className="flex items-center gap-3 shrink-0 group">
         <div className="grid h-9 w-9 place-items-center rounded-xl overflow-hidden bg-zinc-900 ring-1 ring-zinc-800 group-hover:ring-indigo-700/60 transition-all">
           <img src="/logo.png" alt="PlateVault" className="h-7 w-7 object-contain" />
         </div>
-        <div>
+        <div className="hidden sm:block">
           <div className="text-lg font-semibold leading-none text-zinc-100 group-hover:text-indigo-300 transition-colors">PlateVault</div>
           <div className="text-xs text-zinc-500">Spot. Tag. Archive.</div>
         </div>
       </Link>
 
-      {/* Search bar */}
-      <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-sm items-center gap-2">
-        <div className="relative flex-1">
+      {/* Search bar — flex-1, no max-width cap, grows to fill available space */}
+      <form onSubmit={handleSearch} className="hidden md:flex flex-1 items-center">
+        <div className="relative w-full">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
           </svg>
@@ -78,7 +140,8 @@ export default function SiteHeader() {
         </div>
       </form>
 
-      <nav className="flex items-center gap-2 shrink-0 ml-auto">
+      {/* Nav — shrink-0, only essential items + More dropdown */}
+      <nav className="flex items-center gap-2 shrink-0">
         {/* Mobile search icon */}
         <Link
           href="/search"
@@ -90,41 +153,20 @@ export default function SiteHeader() {
           </svg>
         </Link>
 
-        <Link
-          href="/catalog"
-          className="hidden sm:block rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-400 hover:border-indigo-800/60 hover:text-indigo-300 hover:bg-indigo-950/20 transition-colors"
-        >
-          Catalog
-        </Link>
-
-        <Link
-          href="/companies"
-          className="hidden lg:block rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-400 hover:border-indigo-800/60 hover:text-indigo-300 hover:bg-indigo-950/20 transition-colors"
-        >
-          Companies
-        </Link>
-
-        <Link
-          href="/quiz"
-          className="hidden lg:block rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-400 hover:border-indigo-800/60 hover:text-indigo-300 hover:bg-indigo-950/20 transition-colors"
-        >
-          Quiz
-        </Link>
-
         <ThemeToggle />
 
         <Link
           href="/upload"
-          className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-950/50"
+          className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-950/50 whitespace-nowrap"
         >
           + Upload
         </Link>
 
         {loading ? (
           <>
-            <div className="h-9 w-8 rounded-xl bg-zinc-900 animate-pulse" />
-            <div className="h-9 w-24 rounded-xl bg-zinc-900 animate-pulse" />
+            <div className="h-9 w-9 rounded-xl bg-zinc-900 animate-pulse" />
             <div className="h-9 w-20 rounded-xl bg-zinc-900 animate-pulse" />
+            <div className="h-9 w-16 rounded-xl bg-zinc-900 animate-pulse" />
           </>
         ) : me.user ? (
           <>
@@ -146,45 +188,20 @@ export default function SiteHeader() {
             </Link>
 
             <Link
-              href="/polls"
-              className="hidden sm:block rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-400 hover:border-indigo-800/60 hover:text-indigo-300 hover:bg-indigo-950/20 transition-colors"
-            >
-              Polls
-            </Link>
-
-            <Link
-              href="/collections"
-              className="hidden lg:block rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-400 hover:border-indigo-800/60 hover:text-indigo-300 hover:bg-indigo-950/20 transition-colors"
-            >
-              Collections
-            </Link>
-
-            <Link
-              href="/feed"
-              className="hidden lg:block rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-400 hover:border-indigo-800/60 hover:text-indigo-300 hover:bg-indigo-950/20 transition-colors"
-            >
-              Feed
-            </Link>
-
-            <Link
-              href="/leaderboard"
-              className="hidden lg:block rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-400 hover:border-amber-700/40 hover:text-amber-300 hover:bg-amber-950/10 transition-colors"
-            >
-              🏆
-            </Link>
-
-            <Link
               href={`/u/${me.user.numericId}`}
-              className="rounded-xl border border-indigo-900/50 bg-indigo-950/30 px-4 py-2 text-sm text-indigo-300 hover:border-indigo-700 hover:bg-indigo-950/50 transition-colors"
+              className="rounded-xl border border-indigo-900/50 bg-indigo-950/30 px-4 py-2 text-sm text-indigo-300 hover:border-indigo-700 hover:bg-indigo-950/50 transition-colors whitespace-nowrap"
             >
               @{me.user.username}
             </Link>
+
             <button
               onClick={logout}
-              className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2 text-sm text-zinc-400 hover:border-zinc-700 hover:text-zinc-200 transition-colors"
+              className="hidden sm:block rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-2 text-sm text-zinc-400 hover:border-zinc-700 hover:text-zinc-200 transition-colors"
             >
               Log out
             </button>
+
+            <MoreMenu loggedIn={true} />
           </>
         ) : (
           <>
@@ -200,6 +217,7 @@ export default function SiteHeader() {
             >
               Sign up
             </Link>
+            <MoreMenu loggedIn={false} />
           </>
         )}
       </nav>

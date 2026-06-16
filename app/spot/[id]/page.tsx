@@ -131,6 +131,32 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
     },
   });
 
+  // ─── Rarity score ─────────────────────────────────────────────────────────
+  const [sightingsCount, countryTotalSpots, rareVotesCount] = await Promise.all([
+    // How many times has THIS plate text been spotted (including this spot)?
+    prisma.upload.count({ where: { plateText: upload.plateText, country: upload.country, deletedAt: null } }),
+    // How many spots total from this country?
+    prisma.upload.count({ where: { country: upload.country, deletedAt: null, hidden: false } }),
+    // Rare votes on this spot
+    (prisma as any).rareVote.count({ where: { uploadId: upload.id } }),
+  ]);
+
+  // Compute rarity score 0-100
+  // Fewer sightings = rarer. Each extra sighting -15 pts (capped at 0)
+  const sightingPenalty = Math.min(75, (sightingsCount - 1) * 15);
+  // Common country = less rare. Scale 0-20 based on country total (capped at 200 spots)
+  const countryPenalty = Math.min(20, Math.floor((countryTotalSpots / 200) * 20));
+  // Rare votes boost (up to +20)
+  const rareBoost = Math.min(20, rareVotesCount * 2);
+
+  const rarityScore = Math.max(0, Math.min(100, 80 - sightingPenalty - countryPenalty + rareBoost));
+
+  const rarityLabel =
+    rarityScore >= 80 ? { text: "Ultra Rare", color: "text-amber-300", bg: "bg-amber-950/30 border-amber-800/50", dot: "bg-amber-400" } :
+    rarityScore >= 55 ? { text: "Rare",       color: "text-purple-300", bg: "bg-purple-950/30 border-purple-800/50", dot: "bg-purple-400" } :
+    rarityScore >= 30 ? { text: "Uncommon",   color: "text-indigo-300", bg: "bg-indigo-950/30 border-indigo-800/50", dot: "bg-indigo-400" } :
+                        { text: "Common",     color: "text-zinc-400",   bg: "bg-zinc-900/30 border-zinc-700/50",     dot: "bg-zinc-500" };
+
   // More from this country
   const moreFromCountry = await prisma.upload.findMany({
     where: { country: upload.country, deletedAt: null, hidden: false, NOT: { id: upload.id } },
@@ -339,6 +365,30 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
               {upload.generation && <Detail label="Generation" value={upload.generation} />}
               <div className="border-t border-zinc-800 pt-3">
                 <Detail label="Date" value={fmt(upload.createdAt)} />
+              </div>
+            </div>
+
+            {/* Rarity score */}
+            <div className={`rounded-2xl border p-4 ${rarityLabel.bg}`}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className={`h-2 w-2 rounded-full ${rarityLabel.dot}`} />
+                  <span className={`text-sm font-semibold ${rarityLabel.color}`}>{rarityLabel.text}</span>
+                </div>
+                <span className={`text-lg font-bold tabular-nums ${rarityLabel.color}`}>{rarityScore}</span>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-zinc-800 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${
+                    rarityScore >= 80 ? "bg-amber-400" :
+                    rarityScore >= 55 ? "bg-purple-400" :
+                    rarityScore >= 30 ? "bg-indigo-400" : "bg-zinc-500"
+                  }`}
+                  style={{ width: `${rarityScore}%` }}
+                />
+              </div>
+              <div className="mt-2 text-[10px] text-zinc-600 space-y-0.5">
+                <div>{sightingsCount} sighting{sightingsCount !== 1 ? "s" : ""} · {rareVotesCount} rare vote{rareVotesCount !== 1 ? "s" : ""}</div>
               </div>
             </div>
 

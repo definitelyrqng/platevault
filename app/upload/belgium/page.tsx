@@ -9,6 +9,7 @@ import CompanyPicker from "@/app/components/CompanyPicker";
 import ZoomImage from "@/app/components/ZoomImage";
 import TagPicker from "@/app/components/TagPicker";
 import BelgiumPlateInput from "@/app/upload/BelgiumPlateInput";
+import MilestonePopup from "@/app/components/MilestonePopup";
 import {
   BELGIUM_CATEGORIES, BELGIUM_FORMATS_FOR, BE_FORMAT_LABELS,
   BE_COLOR_CLASSES, BELGIUM_1951_ERAS,
@@ -70,6 +71,8 @@ export default function BelgiumUploadPage() {
   const [fileError, setFileError]     = useState("");
   const [status, setStatus]           = useState<"idle"|"uploading"|"saving"|"done"|"error">("idle");
   const [errorMsg, setErrorMsg]       = useState("");
+  const [milestoneData, setMilestoneData] = useState<{ uploadCount: number; streak: { current: number; isNewDay: boolean } } | null>(null);
+  const redirectCountry = "/c/belgium";
 
   type ExistingSpot = { numericId: number; plateText: string; username: string; userNumericId: number };
   const [multiSpotWarning, setMultiSpotWarning] = useState<ExistingSpot | null>(null);
@@ -136,7 +139,15 @@ export default function BelgiumUploadPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not save upload.");
       setStatus("done");
-      setTimeout(() => router.push("/c/belgium"), 1500);
+      const UPLOAD_MILESTONES = [1, 10, 50, 100, 500, 1000];
+      const STREAK_MILESTONES = [3, 7, 14, 30, 100];
+      const isMilestone = UPLOAD_MILESTONES.includes(data.uploadCount) ||
+        (data.streak?.isNewDay && STREAK_MILESTONES.includes(data.streak?.current));
+      if (isMilestone) {
+        setMilestoneData({ uploadCount: data.uploadCount, streak: data.streak });
+      } else {
+        setTimeout(() => router.push(redirectCountry), 1500);
+      }
     } catch (err) {
       setStatus("error");
       setErrorMsg(err instanceof Error ? err.message : "Something went wrong.");
@@ -158,6 +169,11 @@ export default function BelgiumUploadPage() {
   }
 
   return (
+    <>
+    <MilestonePopup
+      data={milestoneData}
+      onDone={() => { setMilestoneData(null); router.push(redirectCountry); }}
+    />
     <main className="min-h-screen bg-zinc-950 text-zinc-100 px-4 py-10">
       <div className="mx-auto max-w-5xl">
 
@@ -365,5 +381,6 @@ export default function BelgiumUploadPage() {
         </div>
       </div>
     </main>
+    </>
   );
 }

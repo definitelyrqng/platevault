@@ -15,6 +15,11 @@ enum NotificationType {
   MULTISPOT
   POLL
   SYSTEM
+  MENTION
+  DM
+  MILESTONE
+  CHALLENGE
+  STREAK
 }
 
 enum PollType {
@@ -48,17 +53,26 @@ model User {
   banExpiresAt DateTime?          // null = permanent
   banReason    String?  @db.VarChar(500)
 
-  sessions      Session[]
-  uploads       Upload[]
-  likes         Like[]
-  comments      Comment[]
-  notifications Notification[]
-  pollVotes     PollVote[]
-  companies     TransportCompany[]
-  followers     Follow[]          @relation("Following")
-  following     Follow[]          @relation("Follower")
-  collections   Collection[]
-  rareVotes     RareVote[]
+  // Streaks
+  currentStreak   Int       @default(0)
+  longestStreak   Int       @default(0)
+  lastUploadDate  DateTime?
+
+  sessions            Session[]
+  uploads             Upload[]
+  likes               Like[]
+  comments            Comment[]
+  notifications       Notification[]
+  pollVotes           PollVote[]
+  companies           TransportCompany[]
+  followers           Follow[]              @relation("Following")
+  following           Follow[]              @relation("Follower")
+  collections         Collection[]
+  rareVotes           RareVote[]
+  sentMessages        DirectMessage[]       @relation("Sender")
+  receivedMessages    DirectMessage[]       @relation("Receiver")
+  roadTrips           RoadTrip[]
+  challengeCompletions ChallengeCompletion[]
 
   @@index([createdAt])
 }
@@ -99,8 +113,11 @@ model Upload {
 
   imageUrl  String   @db.VarChar(500)
 
-  companyId String?
-  company   TransportCompany? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  companyId  String?
+  company    TransportCompany? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  roadTripId String?
+  roadTrip   RoadTrip?         @relation(fields: [roadTripId], references: [id], onDelete: SetNull)
 
   hidden    Boolean  @default(false)
   deletedAt DateTime?
@@ -320,5 +337,55 @@ model RareVote {
 
   @@unique([userId, uploadId])
   @@index([uploadId])
+  @@index([userId])
+}
+
+// ─── Direct messages ─────────────────────────────────────────────────────────
+
+model DirectMessage {
+  id          String    @id @default(cuid())
+  numericId   Int       @unique @default(autoincrement())
+  senderId    String
+  receiverId  String
+  content     String    @db.VarChar(2000)
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  sender      User      @relation("Sender",   fields: [senderId],   references: [id], onDelete: Cascade)
+  receiver    User      @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([senderId, receiverId])
+  @@index([receiverId, createdAt])
+}
+
+// ─── Road trips ──────────────────────────────────────────────────────────────
+
+model RoadTrip {
+  id          String    @id @default(cuid())
+  numericId   Int       @unique @default(autoincrement())
+  userId      String
+  name        String    @db.VarChar(100)
+  description String?   @db.VarChar(500)
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  uploads     Upload[]
+
+  @@index([userId])
+}
+
+// ─── Weekly challenges ────────────────────────────────────────────────────────
+
+model ChallengeCompletion {
+  id           String   @id @default(cuid())
+  userId       String
+  challengeKey String   @db.VarChar(80)  // e.g. "2025-W22-spot5"
+  completedAt  DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, challengeKey])
   @@index([userId])
 }

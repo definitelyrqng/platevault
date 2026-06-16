@@ -66,6 +66,48 @@ export async function POST(req: Request) {
       select: { id: true, numericId: true, userId: true, plateText: true },
     });
 
+    // ── Streak logic ──────────────────────────────────────────────────────────
+    const fullUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { currentStreak: true, longestStreak: true, lastUploadDate: true },
+    });
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+    const lastDate = fullUser?.lastUploadDate ? new Date(fullUser.lastUploadDate) : null;
+    if (lastDate) lastDate.setHours(0, 0, 0, 0);
+
+    let newStreak = 1;
+    if (lastDate) {
+      if (lastDate.getTime() === today.getTime()) {
+        newStreak = fullUser!.currentStreak; // already uploaded today
+      } else if (lastDate.getTime() === yesterday.getTime()) {
+        newStreak = (fullUser!.currentStreak) + 1; // consecutive day
+      } else {
+        newStreak = 1; // streak broken
+      }
+    }
+    const newLongest = Math.max(newStreak, fullUser?.longestStreak ?? 0);
+    const isNewStreakDay = !lastDate || lastDate.getTime() !== today.getTime();
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { currentStreak: newStreak, longestStreak: newLongest, lastUploadDate: new Date() },
+    });
+
+    // Notify on streak milestones (3, 7, 14, 30, 100 days)
+    if (isNewStreakDay && [3, 7, 14, 30, 100].includes(newStreak)) {
+      await prisma.notification.create({
+        data: {
+          userId: user.id,
+          type: "STREAK",
+          title: `🔥 ${newStreak}-day streak!`,
+          message: `You've uploaded ${newStreak} days in a row. Keep it up!`,
+          url: `/u/${user.numericId}`,
+        },
+      });
+    }
+
     const upload = await prisma.upload.create({
       data: { userId: user.id, country, plateText, plateType, imageUrl: finalImageUrl, location, plateRegion, badge, brand, model, generation, trim, color, tags, companyId },
       select: { id: true, numericId: true, country: true, plateText: true, plateType: true, imageUrl: true, createdAt: true },
@@ -92,7 +134,14 @@ export async function POST(req: Request) {
       numericId: upload.numericId,
     });
 
-    return NextResponse.json({ upload }, { status: 201 });
+    // Upload count for milestone check (client shows popup)
+    const uploadCount = await prisma.upload.count({ where: { userId: user.id, deletedAt: null } });
+
+    return NextResponse.json({
+      upload,
+      streak: { current: newStreak, longest: newLongest, isNewDay: isNewStreakDay },
+      uploadCount,
+    }, { status: 201 });
   } catch (err) {
     console.error("Upload error:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

@@ -52,7 +52,23 @@ export default async function CollectionPage({
           {collection.description && (
             <p className="ml-4 text-sm text-zinc-400">{collection.description}</p>
           )}
-          <p className="ml-4 mt-1 text-xs text-zinc-600">{collection._count.items} spots · by @{collection.user.username}</p>
+          <div className="ml-4 mt-2 flex items-center gap-3 flex-wrap">
+            <p className="text-xs text-zinc-600">{collection._count.items} spots · by @{collection.user.username}</p>
+            <div className="flex gap-2 ml-auto">
+              <a
+                href={`/api/collections/export?id=${numericId}&format=csv`}
+                className="rounded-lg border border-zinc-700 bg-zinc-900 px-2.5 py-1 text-xs text-zinc-300 hover:border-indigo-700/60 hover:text-indigo-300 transition-colors"
+              >
+                ↓ CSV
+              </a>
+              <a
+                href={`/api/collections/export?id=${numericId}&format=json`}
+                className="rounded-lg border border-zinc-700 bg-zinc-900 px-2.5 py-1 text-xs text-zinc-300 hover:border-indigo-700/60 hover:text-indigo-300 transition-colors"
+              >
+                ↓ JSON
+              </a>
+            </div>
+          </div>
         </div>
 
         {collection.items.length === 0 ? (

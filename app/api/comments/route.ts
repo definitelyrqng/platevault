@@ -59,6 +59,33 @@ export async function POST(req: Request) {
     });
   }
 
+  // Parse @mentions and notify each mentioned user (skip author & spot owner already notified)
+  const mentionedUsernames = [...new Set(
+    [...trimmed.matchAll(/@([a-zA-Z0-9_]{1,20})/g)].map((m) => m[1].toLowerCase())
+  )].filter((u) => u !== user.username.toLowerCase());
+
+  if (mentionedUsernames.length > 0) {
+    const mentionedUsers = await prisma.user.findMany({
+      where: { username: { in: mentionedUsernames, mode: "insensitive" } },
+      select: { id: true, username: true },
+    });
+    const notifyIds = mentionedUsers
+      .map((u) => u.id)
+      .filter((id) => id !== upload.userId); // owner already notified above
+    if (notifyIds.length > 0) {
+      await prisma.notification.createMany({
+        data: notifyIds.map((uid) => ({
+          userId:  uid,
+          type:    "MENTION" as const,
+          title:   `@${user.username} mentioned you in a comment`,
+          message: trimmed.slice(0, 100) + (trimmed.length > 100 ? "…" : ""),
+          url:     `/spot/${upload.numericId}`,
+        })),
+        skipDuplicates: true,
+      });
+    }
+  }
+
   return NextResponse.json({
     comment: {
       id: comment.id,
