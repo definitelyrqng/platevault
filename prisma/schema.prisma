@@ -55,6 +55,10 @@ model User {
   notifications Notification[]
   pollVotes     PollVote[]
   companies     TransportCompany[]
+  followers     Follow[]          @relation("Following")
+  following     Follow[]          @relation("Follower")
+  collections   Collection[]
+  rareVotes     RareVote[]
 
   @@index([createdAt])
 }
@@ -102,9 +106,11 @@ model Upload {
   deletedAt DateTime?
   createdAt DateTime @default(now())
 
-  likes         Like[]
-  comments      Comment[]
-  pollNominees  PollNominee[]
+  likes            Like[]
+  comments         Comment[]
+  pollNominees     PollNominee[]
+  collectionItems  CollectionItem[]
+  rareVotes        RareVote[]
 
   @@index([userId, createdAt])
   @@index([country, createdAt])
@@ -250,5 +256,69 @@ model PollVote {
 
   @@unique([pollId, userId])
   @@index([nomineeId])
+  @@index([userId])
+}
+
+// ─── Follow system ──────────────────────────────────────────────────────────
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower    User     @relation("Follower",  fields: [followerId],  references: [id], onDelete: Cascade)
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+// ─── Collections ────────────────────────────────────────────────────────────
+
+model Collection {
+  id          String   @id @default(cuid())
+  numericId   Int      @unique @default(autoincrement())
+  userId      String
+  name        String   @db.VarChar(80)
+  description String?  @db.VarChar(280)
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       CollectionItem[]
+
+  @@index([userId])
+}
+
+model CollectionItem {
+  id           String     @id @default(cuid())
+  collectionId String
+  uploadId     String
+  addedAt      DateTime   @default(now())
+
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  upload       Upload     @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, uploadId])
+  @@index([collectionId])
+  @@index([uploadId])
+}
+
+// ─── Rare plate voting ───────────────────────────────────────────────────────
+
+model RareVote {
+  id        String   @id @default(cuid())
+  userId    String
+  uploadId  String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  upload    Upload   @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, uploadId])
+  @@index([uploadId])
   @@index([userId])
 }

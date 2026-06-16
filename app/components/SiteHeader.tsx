@@ -104,6 +104,13 @@ export default function SiteHeader() {
           Companies
         </Link>
 
+        <Link
+          href="/quiz"
+          className="hidden lg:block rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-400 hover:border-indigo-800/60 hover:text-indigo-300 hover:bg-indigo-950/20 transition-colors"
+        >
+          Quiz
+        </Link>
+
         <ThemeToggle />
 
         <Link
@@ -143,6 +150,13 @@ export default function SiteHeader() {
               className="hidden sm:block rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-400 hover:border-indigo-800/60 hover:text-indigo-300 hover:bg-indigo-950/20 transition-colors"
             >
               Polls
+            </Link>
+
+            <Link
+              href="/collections"
+              className="hidden lg:block rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-400 hover:border-indigo-800/60 hover:text-indigo-300 hover:bg-indigo-950/20 transition-colors"
+            >
+              Collections
             </Link>
 
             <Link

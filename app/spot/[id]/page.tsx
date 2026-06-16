@@ -5,6 +5,8 @@ import SpotActions from "./SpotActions";
 import CommentSection from "./CommentSection";
 import AdminPanel from "./AdminPanel";
 import ReportButton from "./ReportButton";
+import RareButton from "@/app/components/RareButton";
+import SaveToCollection from "@/app/components/SaveToCollection";
 import TagEditor from "./TagEditor";
 import { tagById } from "@/app/lib/tags";
 import { getAlbaniaRegion, ALBANIA_PLATE_TYPE_LABELS } from "@/app/lib/albaniaRegions";
@@ -276,13 +278,19 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 </a>
               </div>
 
-              <SpotActions
-                uploadId={upload.id}
-                initialLikes={upload._count.likes}
-                hasLiked={hasLiked}
-                isOwner={isOwner}
-                isLoggedIn={!!currentUser}
-              />
+              <div className="flex gap-2 items-stretch">
+                <div className="flex-1">
+                  <SpotActions
+                    uploadId={upload.id}
+                    initialLikes={upload._count.likes}
+                    hasLiked={hasLiked}
+                    isOwner={isOwner}
+                    isLoggedIn={!!currentUser}
+                  />
+                </div>
+                <RareButton spotNumericId={upload.numericId} />
+                <SaveToCollection spotNumericId={upload.numericId} />
+              </div>
               <div className="mt-3 flex items-center justify-between gap-4 text-xs text-zinc-500">
                 <div className="flex gap-4">
                   <span>{upload._count.likes} like{upload._count.likes !== 1 ? "s" : ""}</span>

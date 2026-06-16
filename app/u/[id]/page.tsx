@@ -4,6 +4,7 @@ import { prisma } from "@/app/lib/prisma";
 import UserAdminPanel from "./UserAdminPanel";
 import Flag from "@/app/components/Flag";
 import { getCountryMeta } from "@/app/lib/countries";
+import FollowButton from "@/app/components/FollowButton";
 
 
 export const dynamic = "force-dynamic";
@@ -108,10 +109,46 @@ export default async function UserProfilePage({
 
   const totalPages = Math.ceil(user._count.uploads / PER_PAGE);
 
-  const likesAgg = await prisma.like.aggregate({
-    where: { upload: { user: { numericId }, deletedAt: null } },
-    _count: { _all: true },
+  const [likesAgg, allUploadsForStats, pollVoteCount] = await Promise.all([
+    prisma.like.aggregate({
+      where: { upload: { user: { numericId }, deletedAt: null } },
+      _count: { _all: true },
+    }),
+    // For achievements + country completion, fetch lightweight data for ALL uploads
+    prisma.upload.findMany({
+      where: { userId: user.id, deletedAt: null, hidden: false },
+      select: { country: true, createdAt: true },
+    }),
+    prisma.pollVote.count({ where: { userId: user.id } }),
+  ]);
+
+  // ─── Achievements (computed, no extra tables) ──────────────────────────────
+  const totalSpots = allUploadsForStats.length;
+  const countriesSpotted = new Set(allUploadsForStats.map((u) => u.country)).size;
+
+  type Achievement = { icon: string; label: string; desc: string; earned: boolean };
+  const ACHIEVEMENTS: Achievement[] = [
+    { icon: "📷", label: "First Spot",      desc: "Upload your first plate",        earned: totalSpots >= 1 },
+    { icon: "🔟", label: "Ten Spots",        desc: "Upload 10 plates",               earned: totalSpots >= 10 },
+    { icon: "💯", label: "Century",          desc: "Upload 100 plates",              earned: totalSpots >= 100 },
+    { icon: "5️⃣0️⃣0️⃣", label: "Half Thousand", desc: "Upload 500 plates",           earned: totalSpots >= 500 },
+    { icon: "🌍", label: "Globe Trotter",   desc: "Spot plates from 3 countries",   earned: countriesSpotted >= 3 },
+    { icon: "🗺️", label: "World Explorer",  desc: "Spot plates from 10 countries",  earned: countriesSpotted >= 10 },
+    { icon: "🗳️", label: "Voter",           desc: "Cast your first poll vote",      earned: pollVoteCount >= 1 },
+    { icon: "❤️", label: "Crowd Pleaser",   desc: "Receive 50 likes",               earned: likesAgg._count._all >= 50 },
+    { icon: "🏆", label: "Fan Favourite",   desc: "Receive 500 likes",              earned: likesAgg._count._all >= 500 },
+  ];
+
+  // ─── Country completion ────────────────────────────────────────────────────
+  // Total countries that have at least one spot in the archive
+  const archiveCountries = await prisma.upload.groupBy({
+    by: ["country"],
+    where: { deletedAt: null, hidden: false },
   });
+  const totalArchiveCountries = archiveCountries.length;
+  const completionPct = totalArchiveCountries > 0
+    ? Math.round((countriesSpotted / totalArchiveCountries) * 100)
+    : 0;
 
   const isOwnProfile = sessionUserId === user.id;
   const isAdmin = viewerRole === "SUPERADMIN" || viewerRole === "ADMIN";
@@ -168,15 +205,19 @@ export default async function UserProfilePage({
               </div>
             </div>
 
-            {/* Edit profile button — only shown to the profile owner */}
-            {isOwnProfile && (
-              <a
-                href="/settings/profile"
-                className="shrink-0 self-end rounded-xl border border-zinc-700 bg-zinc-900/60 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-800 transition-colors"
-              >
-                Edit profile
-              </a>
-            )}
+            {/* Buttons — edit for owner, follow for others */}
+            <div className="shrink-0 self-end flex items-center gap-3">
+              {isOwnProfile ? (
+                <a
+                  href="/settings/profile"
+                  className="rounded-xl border border-zinc-700 bg-zinc-900/60 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-800 transition-colors"
+                >
+                  Edit profile
+                </a>
+              ) : (
+                <FollowButton targetNumericId={user.numericId} />
+              )}
+            </div>
           </div>
 
           {/* Bio */}
@@ -243,6 +284,60 @@ export default async function UserProfilePage({
             <div className="mt-1 text-xs text-zinc-500">{s.hint}</div>
           </div>
         ))}
+      </section>
+
+      {/* ─── Achievements ─────────────────────────────────────────────────────── */}
+      <section className="mt-6">
+        <div className="mb-3 flex items-center gap-3">
+          <div className="h-5 w-1 rounded-full bg-indigo-500" />
+          <h2 className="text-lg font-semibold text-zinc-100">Achievements</h2>
+          <span className="ml-auto text-xs text-zinc-500">
+            {ACHIEVEMENTS.filter((a) => a.earned).length}/{ACHIEVEMENTS.length} earned
+          </span>
+        </div>
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-9">
+          {ACHIEVEMENTS.map((a) => (
+            <div
+              key={a.label}
+              title={a.desc}
+              className={`relative flex flex-col items-center gap-1 rounded-2xl border p-3 text-center transition-all ${
+                a.earned
+                  ? "border-indigo-800/50 bg-indigo-950/20 hover:border-indigo-700/60 hover:bg-indigo-950/30"
+                  : "border-zinc-800/60 bg-zinc-900/20 opacity-40 grayscale"
+              }`}
+            >
+              <span className="text-2xl">{a.icon}</span>
+              <span className={`text-[10px] font-semibold leading-tight ${a.earned ? "text-indigo-300" : "text-zinc-500"}`}>
+                {a.label}
+              </span>
+              {a.earned && (
+                <span className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 rounded-full bg-indigo-500 ring-2 ring-zinc-950" />
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── Country completion ───────────────────────────────────────────────── */}
+      <section className="mt-4 rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900/60 to-zinc-900/20 p-5">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div className="h-5 w-1 rounded-full bg-indigo-500" />
+            <h2 className="text-sm font-semibold text-zinc-100">Country Completion</h2>
+          </div>
+          <span className="text-xs text-zinc-400">
+            <span className="font-semibold text-indigo-300">{countriesSpotted}</span>
+            <span className="text-zinc-600"> / {totalArchiveCountries}</span>
+            <span className="ml-1.5 text-zinc-500">countries</span>
+          </span>
+        </div>
+        <div className="h-2 w-full rounded-full bg-zinc-800 overflow-hidden">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-400 transition-all"
+            style={{ width: `${completionPct}%` }}
+          />
+        </div>
+        <div className="mt-1.5 text-right text-xs text-zinc-500">{completionPct}%</div>
       </section>
 
       <section id="spots" className="mt-10">

@@ -16,7 +16,7 @@ function relativeDays(d: Date) {
 }
 
 async function getStats() {
-  const [totalUploads, totalUsers, countryGroups, recentUploads] = await Promise.all([
+  const [totalUploads, totalUsers, countryGroups, recentUploads, rareSpots] = await Promise.all([
     prisma.upload.count({ where: { deletedAt: null } }),
     prisma.user.count(),
     prisma.upload.groupBy({
@@ -42,13 +42,37 @@ async function getStats() {
         _count: { select: { likes: true, comments: true } },
       },
     }),
+    // Rare spots: most ✨ votes
+    (prisma as any).rareVote.groupBy({
+      by: ["uploadId"],
+      _count: { id: true },
+      orderBy: { _count: { id: "desc" } },
+      take: 6,
+    }).then(async (groups: { uploadId: string; _count: { id: number } }[]) => {
+      if (!groups.length) return [];
+      const uploadIds = groups.map((g) => g.uploadId);
+      const uploads = await prisma.upload.findMany({
+        where: { id: { in: uploadIds }, deletedAt: null, hidden: false },
+        select: {
+          id: true, numericId: true, plateText: true, country: true,
+          imageUrl: true, brand: true, model: true,
+          user: { select: { username: true, numericId: true } },
+          _count: { select: { likes: true } },
+        },
+      });
+      // Attach vote count and sort
+      const countMap = Object.fromEntries(groups.map((g) => [g.uploadId, g._count.id]));
+      return uploads
+        .map((u) => ({ ...u, rareVotes: countMap[u.id] ?? 0 }))
+        .sort((a, b) => b.rareVotes - a.rareVotes);
+    }),
   ]);
   const countryCount = countryGroups.length;
-  return { totalUploads, totalUsers, countryCount, countryGroups, recentUploads };
+  return { totalUploads, totalUsers, countryCount, countryGroups, recentUploads, rareSpots };
 }
 
 export default async function HomePage() {
-  const { totalUploads, totalUsers, countryCount, countryGroups, recentUploads } = await getStats();
+  const { totalUploads, totalUsers, countryCount, countryGroups, recentUploads, rareSpots } = await getStats();
 
   const randomCountry = countryGroups.length > 0
     ? countryGroups[Math.floor(Math.random() * countryGroups.length)]
@@ -156,12 +180,57 @@ export default async function HomePage() {
         </section>
       )}
 
+      {/* ─── Rare spots ─── */}
+      {rareSpots.length > 0 && (
+        <section>
+          <div className="flex items-baseline justify-between gap-4 mb-5">
+            <div className="flex items-center gap-4">
+              <div className="h-5 w-1 rounded-full bg-amber-500 shrink-0" />
+              <div>
+                <h2 className="text-xl font-semibold text-zinc-100">✨ Rare Plates</h2>
+                <p className="text-xs text-zinc-500 mt-0.5">Community-voted rare finds</p>
+              </div>
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {(rareSpots as any[]).map((u) => {
+              const meta = getCountryMeta(u.country);
+              const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
+              return (
+                <a key={u.id} href={`/spot/${u.numericId}`} className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-amber-800/60 hover:shadow-md hover:shadow-amber-950/40 transition-all">
+                  <div className="aspect-video bg-zinc-950 overflow-hidden">
+                    <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
+                  </div>
+                  <div className="p-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono text-base font-bold tracking-widest text-zinc-100 group-hover:text-amber-200 transition-colors">{u.plateText}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="rounded-md px-1.5 py-1 inline-flex items-center gap-1 bg-zinc-800/60 text-xs text-zinc-400">
+                          <Flag iso={meta.iso} size="sm" />
+                        </span>
+                        <span className="rounded-md px-1.5 py-1 inline-flex items-center gap-1 bg-amber-950/40 border border-amber-800/40 text-xs text-amber-400">
+                          ✨ {u.rareVotes}
+                        </span>
+                      </div>
+                    </div>
+                    {carLabel && <div className="text-xs text-zinc-400 mt-0.5">{carLabel}</div>}
+                    <div className="mt-2 text-xs text-zinc-500">
+                      <span>by @{u.user.username}</span>
+                    </div>
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {/* ─── Recent spots ─── */}
       {recentUploads.length > 0 && (
         <section>
           <div className="flex items-baseline justify-between gap-4 mb-5">
-            <div className="flex items-center gap-3">
-              <div className="h-5 w-1 rounded-full bg-violet-500" />
+            <div className="flex items-center gap-4">
+              <div className="h-5 w-1 rounded-full bg-violet-500 shrink-0" />
               <div>
                 <h2 className="text-xl font-semibold text-zinc-100">Recent spots</h2>
                 <p className="text-xs text-zinc-500 mt-0.5">Latest from the community</p>
@@ -187,8 +256,8 @@ export default async function HomePage() {
                   </div>
 
                   <div className="absolute top-2.5 right-2.5 z-10">
-                    <span className="rounded-full bg-zinc-950/80 backdrop-blur border border-zinc-700/60 px-2 py-0.5 text-xs">
-                      <Flag iso={meta.iso} />
+                    <span className="rounded-md bg-zinc-950/80 backdrop-blur border border-zinc-700/60 px-1.5 py-1 inline-flex">
+                      <Flag iso={meta.iso} size="sm" />
                     </span>
                   </div>
 
