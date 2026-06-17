@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import HeaderGate from "./components/HeaderGate";
 import ThemeProvider from "./components/ThemeProvider";
+import AnnouncementBanner from "./components/AnnouncementBanner";
 import { siteStatus, statusInfo } from "./status-config";
 
 export const metadata: Metadata = {
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="min-h-screen bg-zinc-950 text-zinc-100 transition-colors duration-200">
         <ThemeProvider>
           <div className="min-h-screen flex flex-col">
+            <AnnouncementBanner />
             <HeaderGate />
             <main className="flex-1">{children}</main>
             <footer className="py-8 text-center text-xs text-zinc-600 space-y-3 border-t border-zinc-800/40">

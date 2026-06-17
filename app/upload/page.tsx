@@ -25,6 +25,12 @@ const COUNTRIES = [
     iso: "ba",
     desc: "Regular, taxi, provisional and 1998 year system plates",
   },
+  {
+    href: "/upload/germany",
+    name: "Germany",
+    iso: "de",
+    desc: "Single-line, two-line, US-style, motorcycles — modern euroband & historical DIN plates with all district codes",
+  },
 ];
 
 export default function UploadPage() {
@@ -72,16 +78,6 @@ export default function UploadPage() {
           </a>
         ))}
 
-        {/* Coming soon */}
-        <div className="flex items-center gap-5 rounded-2xl border border-zinc-800/40 bg-zinc-900/20 px-5 py-4 opacity-40">
-          <span className="shrink-0">
-            <Flag iso="de" size="lg" />
-          </span>
-          <div>
-            <div className="font-semibold text-zinc-300">Germany</div>
-            <div className="mt-0.5 text-sm text-zinc-600">Coming soon</div>
-          </div>
-        </div>
       </div>
     </main>
   );
