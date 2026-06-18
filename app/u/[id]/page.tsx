@@ -210,12 +210,20 @@ export default async function UserProfilePage({
             {/* Buttons — edit for owner, follow for others */}
             <div className="shrink-0 self-end flex items-center gap-3">
               {isOwnProfile ? (
+                <>
                 <a
                   href="/settings/profile"
                   className="rounded-xl border border-zinc-700 bg-zinc-900/60 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-800 transition-colors"
                 >
                   Edit profile
                 </a>
+                <a
+                  href="/stats"
+                  className="rounded-xl border border-zinc-700 bg-zinc-900/60 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-800 transition-colors"
+                >
+                  My Stats
+                </a>
+                </>
               ) : (
                 <>
                   <FollowButton targetNumericId={user.numericId} />

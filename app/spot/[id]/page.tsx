@@ -7,6 +7,7 @@ import AdminPanel from "./AdminPanel";
 import ReportButton from "./ReportButton";
 import RareButton from "@/app/components/RareButton";
 import SaveToCollection from "@/app/components/SaveToCollection";
+import ShareCardButton from "@/app/components/ShareCardButton";
 import TagEditor from "./TagEditor";
 import { tagById } from "@/app/lib/tags";
 import { getAlbaniaRegion, ALBANIA_PLATE_TYPE_LABELS } from "@/app/lib/albaniaRegions";
@@ -328,6 +329,12 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 </div>
                 <RareButton spotNumericId={upload.numericId} />
                 <SaveToCollection spotNumericId={upload.numericId} />
+                <ShareCardButton
+                  imageUrl={upload.imageUrl}
+                  plateText={upload.plateText}
+                  countryName={meta.name}
+                  carLabel={carLabel}
+                />
               </div>
               <div className="mt-3 flex items-center justify-between gap-4 text-xs text-zinc-500">
                 <div className="flex gap-4">
@@ -516,9 +523,11 @@ function Detail({ label, value, href }: { label: string; value: string; href?: s
     <div className="flex items-start justify-between gap-3 text-sm">
       <span className="text-zinc-500 shrink-0">{label}</span>
       {href ? (
-        <a href={href} className="text-zinc-200 hover:text-white font-medium text-right">{value}</a>
+        <a href={href} className="text-right text-zinc-200 hover:text-indigo-300 transition-colors break-all">
+          {value}
+        </a>
       ) : (
-        <span className="text-zinc-200 capitalize text-right">{value}</span>
+        <span className="text-right text-zinc-200 break-all">{value}</span>
       )}
     </div>
   );

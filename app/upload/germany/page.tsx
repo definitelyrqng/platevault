@@ -9,6 +9,7 @@ import CompanyPicker from "@/app/components/CompanyPicker";
 import ZoomImage from "@/app/components/ZoomImage";
 import TagPicker from "@/app/components/TagPicker";
 import MilestonePopup from "@/app/components/MilestonePopup";
+import OcrHint from "@/app/components/OcrHint";
 import {
   GERMANY_REGIONS,
   GERMANY_CATEGORIES,
@@ -70,9 +71,23 @@ function RegionPicker({
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     if (!q) return GERMANY_REGIONS.slice(0, 80);
-    return GERMANY_REGIONS.filter(
-      (r) => r.code.toLowerCase().startsWith(q) || r.name.toLowerCase().includes(q)
-    ).slice(0, 60);
+
+    const codeStartsWith = GERMANY_REGIONS.filter((r) => r.code.toLowerCase().startsWith(q));
+    const nameIncludes   = GERMANY_REGIONS.filter((r) =>
+      !r.code.toLowerCase().startsWith(q) && r.name.toLowerCase().includes(q)
+    );
+
+    // Within code matches: exact code match first, then shorter codes first (N before NÜ before NAB),
+    // active before historical within same length
+    codeStartsWith.sort((a, b) => {
+      if (a.code.toLowerCase() === q && b.code.toLowerCase() !== q) return -1;
+      if (b.code.toLowerCase() === q && a.code.toLowerCase() !== q) return  1;
+      if (a.code.length !== b.code.length) return a.code.length - b.code.length;
+      if (a.active !== b.active) return a.active ? -1 : 1;
+      return a.code.localeCompare(b.code, "de");
+    });
+
+    return [...codeStartsWith, ...nameIncludes].slice(0, 60);
   }, [search]);
 
   const selectedRegion = GERMANY_REGIONS.find((r) => r.code === value);
@@ -496,6 +511,7 @@ export default function GermanyUploadPage() {
                     <input type="file" accept="image/jpeg,image/png" className="sr-only" onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)} />
                   </label>
                   {fileError && <p className="mt-1.5 text-xs text-red-400">{fileError}</p>}
+                  <OcrHint file={file} />
                 </div>
 
                 {/* ── Plate format (regular / din only) ── */}
@@ -1022,12 +1038,11 @@ export default function GermanyUploadPage() {
                   </>}
                   {category === "federal" && federalSub === "thw" && <>
                     <p><span className="font-mono text-zinc-200">THW-123456</span></p>
-                    <p className="text-zinc-600">Federal Technical Relief Organisation</p>
+                    <p className="text-zinc-600">THW + serial, no space</p>
                   </>}
                   {category === "diplomatic" && <>
                     <p><span className="font-mono text-zinc-200">0-42-123456A</span></p>
-                    <p><span className="font-mono text-zinc-200">B-42-123456A</span> / <span className="font-mono text-zinc-200">BN-42-123456</span></p>
-                    <p className="text-zinc-600">Prefix · country code 10–317 · serial · check letter</p>
+                    <p className="text-zinc-600">0 · country code · serial · check letter</p>
                   </>}
                 </div>
               </div>

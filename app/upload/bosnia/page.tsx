@@ -10,6 +10,7 @@ import ZoomImage from "@/app/components/ZoomImage";
 import TagPicker from "@/app/components/TagPicker";
 import BosniaPlateInput from "@/app/upload/BosniaPlateInput";
 import MilestonePopup from "@/app/components/MilestonePopup";
+import OcrHint from "@/app/components/OcrHint";
 import {
   BOSNIA_CATEGORIES, BOSNIA_FORMATS_FOR, BA_FORMAT_LABELS,
   type BosniacategoryId,
@@ -149,32 +150,29 @@ export default function BosniaUploadPage() {
 
   return (
     <>
-    <MilestonePopup
-      data={milestoneData}
-      onDone={() => { setMilestoneData(null); router.push(redirectCountry); }}
-    />
+    <MilestonePopup data={milestoneData} onDone={() => { setMilestoneData(null); router.push(redirectCountry); }} />
     <main className="min-h-screen bg-zinc-950 text-zinc-100 px-4 py-10">
       <div className="mx-auto max-w-5xl">
 
         <div>
           <div className="flex items-center gap-2 text-xs text-zinc-500">
-            <a href="/upload" className="hover:text-zinc-300">Upload</a>
+            <a href="/upload" className="hover:text-zinc-300 transition-colors">Upload</a>
             <span>›</span>
-            <span className="text-zinc-300">Bosnia & Herzegovina 🇧🇦</span>
+            <span className="text-zinc-300">Bosnia &amp; Herzegovina 🇧🇦</span>
           </div>
-          <h1 className="mt-2 text-2xl font-semibold">Upload — Bosnia & Herzegovina</h1>
-          <p className="mt-1 text-sm text-zinc-400">Photo · plate text · city & country. Done in seconds.</p>
+          <h1 className="mt-2 text-2xl font-semibold">Upload — Bosnia &amp; Herzegovina</h1>
+          <p className="mt-1 text-sm text-zinc-400">Regular, diplomatic, dealer, export &amp; old-format plates.</p>
         </div>
 
         {status === "done" && (
           <div className="mt-6 rounded-2xl border border-emerald-800 bg-emerald-950/40 px-5 py-4 text-sm text-emerald-300">
-            ✓ Uploaded! Redirecting to the Bosnia gallery…
+            Uploaded! Redirecting to the Bosnia gallery…
           </div>
         )}
         {status === "error" && (
           <div className="mt-6 rounded-2xl border border-red-800 bg-red-950/40 px-5 py-4 text-sm text-red-300">
-            ✗ {errorMsg}
-            <button onClick={() => setStatus("idle")} className="ml-3 underline hover:no-underline">Try again</button>
+            {errorMsg}
+            <button onClick={() => setStatus("idle")} className="ml-3 underline">Try again</button>
           </div>
         )}
         {multiSpotWarning && (
@@ -184,70 +182,81 @@ export default function BosniaUploadPage() {
               <div>
                 <p className="text-sm font-semibold text-amber-300">This plate has already been spotted!</p>
                 <p className="mt-1 text-sm text-amber-200/70">
-                  <a href={`/spot/${multiSpotWarning.numericId}`} className="underline hover:text-amber-200" target="_blank" rel="noreferrer">{multiSpotWarning.plateText}</a>
-                  {" "}was first spotted by{" "}
-                  <a href={`/u/${multiSpotWarning.userNumericId}`} className="underline hover:text-amber-200" target="_blank" rel="noreferrer">@{multiSpotWarning.username}</a>.
-                  This will count as a Multi Spot.
+                  <a href={`/spot/${multiSpotWarning.numericId}`} className="underline hover:text-amber-200" target="_blank" rel="noreferrer">{multiSpotWarning.plateText}</a>{" "}was first spotted by{" "}
+                  <a href={`/u/${multiSpotWarning.userNumericId}`} className="underline hover:text-amber-200" target="_blank" rel="noreferrer">@{multiSpotWarning.username}</a>. This will count as a Multi Spot.
                 </p>
               </div>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => setMultiSpotWarning(null)}
-                className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 py-2 text-sm font-medium text-zinc-300 hover:bg-zinc-800">Cancel</button>
-              <button onClick={doUpload}
-                className="flex-1 rounded-xl border border-amber-800 bg-amber-950/60 py-2 text-sm font-medium text-amber-300 hover:bg-amber-950">Yes, upload as Multi Spot</button>
+              <button onClick={() => setMultiSpotWarning(null)} className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 py-2 text-sm font-medium text-zinc-300 hover:bg-zinc-800 transition-colors">Cancel</button>
+              <button onClick={doUpload} className="flex-1 rounded-xl border border-amber-800 bg-amber-950/60 py-2 text-sm font-medium text-amber-300 hover:bg-amber-950 transition-colors">Yes, upload as Multi Spot</button>
             </div>
           </div>
         )}
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
-          <form onSubmit={handleSubmit} className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
 
-            {/* Photo */}
-            <div>
-              <span className="block text-sm text-zinc-300 mb-2">Photo <span className="text-zinc-600 text-xs">(JPG or PNG, max 8 MB)</span></span>
-              <label
-                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                onDragLeave={() => setIsDragging(false)}
-                onDrop={onDrop}
-                className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden
-                  ${isDragging ? "border-zinc-400 bg-zinc-800/60" : fileError ? "border-red-800 bg-red-950/20" : "border-zinc-700 bg-zinc-950/40 hover:border-zinc-500"}`}
-                style={{ minHeight: preview ? "auto" : "150px" }}
-              >
-                {preview ? (
-                  <div className="relative w-full group">
-                    <ZoomImage src={preview} alt="Preview" className="rounded-xl" />
-                    <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/0 group-hover:bg-zinc-950/50 transition-colors rounded-xl pointer-events-none">
-                      <span className="opacity-0 group-hover:opacity-100 text-xs text-zinc-200 transition-opacity">Click to change</span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="py-8 text-center px-4">
-                    <div className="text-2xl mb-2">📷</div>
-                    <div className="text-sm text-zinc-400">Drag & drop or <span className="text-zinc-200 underline">browse</span></div>
-                  </div>
-                )}
-                <input type="file" accept="image/jpeg,image/png" className="sr-only"
-                  onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)} />
-              </label>
-              {fileError && <p className="mt-1.5 text-xs text-red-400">{fileError}</p>}
+            {/* ── Category picker card ── */}
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-zinc-200">Plate category</span>
+                <span className="text-[10px] text-zinc-600 italic">auto-detected from plate text</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {BOSNIA_CATEGORIES.map((c) => (
+                  <button key={c.id} type="button" onClick={() => handleCategoryChange(c.id as BosniacategoryId)}
+                    className={`rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${
+                      category === c.id
+                        ? "border-indigo-600 bg-indigo-950/50 text-indigo-200"
+                        : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
+                    }`}>
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+              {catMeta?.hint && <p className="text-xs text-zinc-600">{catMeta.hint}</p>}
             </div>
 
-            <div className="grid gap-4">
-              {/* Category */}
-              <label className="grid gap-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-zinc-300">Plate category</span>
-                  <span className="text-[10px] text-zinc-600 italic">auto-detected from plate text</span>
-                </div>
-                <select value={category} onChange={(e) => handleCategoryChange(e.target.value as BosniacategoryId)}
-                  className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600">
-                  {BOSNIA_CATEGORIES.map((c) => (
-                    <option key={c.id} value={c.id}>{c.label}</option>
-                  ))}
-                </select>
-                {catMeta && <span className="text-xs text-zinc-600">{catMeta.hint}</span>}
-              </label>
+            {/* ── Description ── */}
+            <div className="rounded-xl border border-zinc-800/60 bg-zinc-900/20 px-4 py-3 text-sm text-zinc-400 leading-relaxed">
+              <strong className="text-zinc-200">{catMeta?.label ?? category}</strong>
+              {catMeta?.example && <span className="ml-2 text-indigo-400">· e.g. {catMeta.example}</span>}
+            </div>
+
+            {/* ── Main fields card ── */}
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-5">
+
+              {/* Photo */}
+              <div>
+                <span className="block text-sm text-zinc-300 mb-2">Photo <span className="text-zinc-600 text-xs">(JPG or PNG, max 8 MB)</span></span>
+                <label
+                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={onDrop}
+                  className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden ${
+                    isDragging ? "border-zinc-400 bg-zinc-800/60" : fileError ? "border-red-800 bg-red-950/20" : "border-zinc-700 bg-zinc-950/40 hover:border-zinc-500"
+                  }`}
+                  style={{ minHeight: preview ? "auto" : "150px" }}
+                >
+                  {preview ? (
+                    <div className="relative w-full group">
+                      <ZoomImage src={preview} alt="Preview" className="rounded-xl" />
+                      <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/0 group-hover:bg-zinc-950/50 transition-colors rounded-xl pointer-events-none">
+                        <span className="opacity-0 group-hover:opacity-100 text-xs text-zinc-200 transition-opacity">Click to change</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-8 text-center px-4">
+                      <div className="text-2xl mb-2">📷</div>
+                      <div className="text-sm text-zinc-400">Drag &amp; drop or <span className="text-zinc-200 underline">browse</span></div>
+                    </div>
+                  )}
+                  <input type="file" accept="image/jpeg,image/png" className="sr-only" onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)} />
+                </label>
+                {fileError && <p className="mt-1.5 text-xs text-red-400">{fileError}</p>}
+                <OcrHint file={file} onSuggest={setPlateText} />
+              </div>
 
               {/* Plate input */}
               <div className="grid gap-1.5">
@@ -273,39 +282,37 @@ export default function BosniaUploadPage() {
 
               {/* Car details */}
               <div className="pt-2 border-t border-zinc-800">
-                <CarDetailsFields
-                  onChange={useCallback((d) => {
-                    setBrand(d.brand); setModel(d.model); setGeneration(d.generation);
-                    setTrim(d.trim); setColor(d.color); setBadge(d.badge);
-                  }, [])}
-                />
+                <CarDetailsFields onChange={useCallback((d) => {
+                  setBrand(d.brand); setModel(d.model); setGeneration(d.generation);
+                  setTrim(d.trim); setColor(d.color); setBadge(d.badge);
+                }, [])} />
               </div>
-            </div>
 
-            {/* Tags & company */}
-            <div className="pt-2 border-t border-zinc-800 space-y-2">
-              <div className="text-sm text-zinc-300">Tags <span className="text-zinc-600 text-xs">(optional, up to 6)</span></div>
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-zinc-500 mb-1.5">Transport company</p>
-                <CompanyPicker value={companyId} onChange={(id) => setCompanyId(id)} />
+              {/* Tags */}
+              <div className="pt-2 border-t border-zinc-800 space-y-2">
+                <div className="text-sm text-zinc-300">Tags <span className="text-zinc-600 text-xs">(optional, up to 6)</span></div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wider text-zinc-500 mb-1.5">Transport company</p>
+                  <CompanyPicker value={companyId} onChange={(id) => setCompanyId(id)} />
+                </div>
+                <TagPicker selected={tags} onChange={setTags} max={6} />
               </div>
-              <TagPicker selected={tags} onChange={setTags} max={6} />
-            </div>
 
-            <div className="flex items-center gap-3 pt-1">
-              <button type="submit" disabled={!canSubmit}
-                className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 shadow-lg shadow-indigo-950/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-                {status === "uploading" ? "Uploading image…" : status === "saving" ? "Saving…" : "Upload spot"}
-              </button>
-              {status === "idle" && (
-                <span className="text-xs text-zinc-500">
-                  {!file ? "Add a photo" : plateText.trim().length < 2 ? "Enter plate text" : location.trim().length < 2 ? "Enter a location" : "Ready ✓"}
-                </span>
-              )}
+              <div className="flex items-center gap-3 pt-1">
+                <button type="submit" disabled={!canSubmit}
+                  className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 shadow-lg shadow-indigo-950/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                  {status === "uploading" ? "Uploading image…" : status === "saving" ? "Saving…" : "Upload spot"}
+                </button>
+                {status === "idle" && (
+                  <span className="text-xs text-zinc-500">
+                    {!file ? "Add a photo" : plateText.trim().length < 2 ? "Enter plate text" : location.trim().length < 2 ? "Enter a location" : "Ready"}
+                  </span>
+                )}
+              </div>
             </div>
           </form>
 
-          {/* Sidebar */}
+          {/* ── Sidebar ── */}
           <aside className="space-y-4">
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5">
               <div className="text-xs uppercase tracking-wider text-zinc-500 mb-3">Live preview</div>
@@ -314,19 +321,17 @@ export default function BosniaUploadPage() {
                   {plateText.trim() || catMeta?.example || "A12-E-345"}
                 </div>
                 <div className="mt-2 text-xs text-zinc-500">
-                  {catMeta?.label} · Bosnia & Herzegovina 🇧🇦
+                  {catMeta?.label} · Bosnia &amp; Herzegovina 🇧🇦
                 </div>
                 <div className="mt-1 text-[10px] text-zinc-600">{BA_FORMAT_LABELS[format]}</div>
               </div>
             </div>
 
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/20 p-5">
-              <div className="text-sm font-medium text-zinc-200 mb-2">📍 Location rule</div>
-              <p className="text-sm text-zinc-400 leading-relaxed">
-                City + country required — e.g. <span className="text-zinc-300">Sarajevo, Bosnia</span> or <span className="text-zinc-300">Banja Luka, Bosnia</span>.
-              </p>
+              <div className="text-sm font-medium text-zinc-200 mb-1">📋 Stored as</div>
+              <p className="text-xs text-indigo-400 font-mono">{format}</p>
+              <p className="mt-1 text-xs text-zinc-500 leading-relaxed">{BA_FORMAT_LABELS[format] ?? format}</p>
             </div>
-
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/20 p-5">
               <div className="text-xs uppercase tracking-wider text-zinc-500 mb-3">Plate formats</div>
               <div className="space-y-2">

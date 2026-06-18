@@ -26,6 +26,12 @@ const COUNTRIES = [
     desc: "Regular, taxi, provisional and 1998 year system plates",
   },
   {
+    href: "/upload/bulgaria",
+    name: "Bulgaria",
+    iso: "bg",
+    desc: "Standard, motorcycle, military, vanity, temporary, diplomatic and foreign registered plates",
+  },
+  {
     href: "/upload/germany",
     name: "Germany",
     iso: "de",
@@ -36,7 +42,6 @@ const COUNTRIES = [
 export default function UploadPage() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
-      {/* Header */}
       <div className="mb-8 flex items-start gap-3">
         <div className="mt-1 h-6 w-1 rounded-full bg-indigo-500 shrink-0" />
         <div>
@@ -54,7 +59,6 @@ export default function UploadPage() {
             href={c.href}
             className="group flex items-center gap-5 rounded-2xl border border-zinc-800 bg-zinc-900/40 px-5 py-4 hover:border-indigo-800/60 hover:bg-indigo-950/20 hover:shadow-md hover:shadow-indigo-950/40 transition-all"
           >
-            {/* Flag PNG */}
             <span className="shrink-0 group-hover:scale-110 transition-transform duration-200">
               <Flag iso={c.iso} size="lg" />
             </span>
@@ -77,7 +81,6 @@ export default function UploadPage() {
             </svg>
           </a>
         ))}
-
       </div>
     </main>
   );

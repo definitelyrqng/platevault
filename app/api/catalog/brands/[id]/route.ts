@@ -14,7 +14,28 @@ async function getSessionUser() {
   return session.user;
 }
 
-// DELETE /api/catalog/brands/[id] — delete brand (superadmin only)
+// PATCH /api/catalog/brands/[id] - rename brand (superadmin only)
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const user = await getSessionUser();
+  if (!user || user.role !== "SUPERADMIN")
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const { id } = await params;
+  const { name } = await req.json();
+  if (!name?.trim()) return NextResponse.json({ error: "Name required" }, { status: 400 });
+
+  try {
+    const brand = await (prisma as any).carBrand.update({
+      where: { id: Number(id) },
+      data: { name: name.trim() },
+    });
+    return NextResponse.json(brand);
+  } catch {
+    return NextResponse.json({ error: "Brand name already exists" }, { status: 409 });
+  }
+}
+
+// DELETE /api/catalog/brands/[id] - delete brand (superadmin only)
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser();
   if (!user || user.role !== "SUPERADMIN")

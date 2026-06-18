@@ -20,6 +20,7 @@ export async function GET() {
             bio: true,
             avatarUrl: true,
             bannerUrl: true,
+            role: true,
           },
         },
       },

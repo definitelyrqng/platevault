@@ -14,7 +14,28 @@ async function getSessionUser() {
   return session.user;
 }
 
-// DELETE /api/catalog/generations/[id] — delete generation (superadmin only)
+// PATCH /api/catalog/generations/[id] - rename generation (superadmin only)
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const user = await getSessionUser();
+  if (!user || user.role !== "SUPERADMIN")
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const { id } = await params;
+  const { name } = await req.json();
+  if (!name?.trim()) return NextResponse.json({ error: "Name required" }, { status: 400 });
+
+  try {
+    const gen = await (prisma as any).carGeneration.update({
+      where: { id: Number(id) },
+      data: { name: name.trim() },
+    });
+    return NextResponse.json(gen);
+  } catch {
+    return NextResponse.json({ error: "Generation name already exists for this model" }, { status: 409 });
+  }
+}
+
+// DELETE /api/catalog/generations/[id] - delete generation (superadmin only)
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getSessionUser();
   if (!user || user.role !== "SUPERADMIN")
