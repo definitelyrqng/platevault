@@ -11,17 +11,20 @@ export default function OcrHint({
 }) {
   const [status, setStatus] = useState<"idle" | "scanning" | "done" | "error">("idle");
   const [detected, setDetected] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
     if (!file) {
       setStatus("idle");
       setDetected("");
+      setErrorMsg("");
       return;
     }
 
     let cancelled = false;
     setStatus("scanning");
     setDetected("");
+    setErrorMsg("");
 
     (async () => {
       try {
@@ -29,14 +32,27 @@ export default function OcrHint({
         form.append("image", file);
         const res = await fetch("/api/ocr", { method: "POST", body: form });
         if (cancelled) return;
-        if (!res.ok) { setStatus("error"); return; }
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          setErrorMsg(body.error ?? `Server error ${res.status}`);
+          setStatus("error");
+          return;
+        }
         const data = await res.json();
         if (cancelled) return;
         const text = (data.text ?? "").trim();
+        if (!text) {
+          setErrorMsg("No text detected");
+          setStatus("error");
+          return;
+        }
         setDetected(text);
         setStatus("done");
-      } catch {
-        if (!cancelled) setStatus("error");
+      } catch (e: unknown) {
+        if (!cancelled) {
+          setErrorMsg(e instanceof Error ? e.message : "Request failed");
+          setStatus("error");
+        }
       }
     })();
 
@@ -48,16 +64,23 @@ export default function OcrHint({
   if (status === "scanning") {
     return (
       <div className="mt-2 flex items-center gap-2 rounded-lg border border-zinc-700/50 bg-zinc-900/60 px-3 py-2 text-xs text-zinc-500">
-        <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none">
+        <svg className="h-3 w-3 animate-spin shrink-0" viewBox="0 0 24 24" fill="none">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
         </svg>
         Scanning plate text…
+        <span className="text-zinc-600">(first scan downloads model ~10 MB)</span>
       </div>
     );
   }
 
-  if (status === "error" || !detected) return null;
+  if (status === "error") {
+    return (
+      <div className="mt-2 flex items-center gap-2 rounded-lg border border-red-900/40 bg-red-950/20 px-3 py-2 text-xs text-red-400">
+        <span>⚠ OCR: {errorMsg}</span>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-2 flex items-center gap-2 rounded-lg border border-indigo-900/60 bg-indigo-950/30 px-3 py-2 text-xs">

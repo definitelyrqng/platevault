@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import path from "path";
+import fs from "fs";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {
@@ -11,20 +13,28 @@ export async function POST(req: Request) {
 
     const buffer = Buffer.from(await imageFile.arrayBuffer());
 
-    // Dynamic import so it's only loaded at runtime (not during build)
+    // Cache the trained data in public/tessdata (local dev) or /tmp (serverless)
+    const localCache = path.join(process.cwd(), "public", "tessdata");
+    const tmpCache = "/tmp/tessdata";
+    let cachePath = tmpCache;
+    try {
+      fs.mkdirSync(localCache, { recursive: true });
+      // Quick write-access test
+      fs.accessSync(localCache, fs.constants.W_OK);
+      cachePath = localCache;
+    } catch {
+      try { fs.mkdirSync(tmpCache, { recursive: true }); } catch { /* /tmp may already exist */ }
+    }
+
     const { createWorker } = await import("tesseract.js");
-    const worker = await createWorker("eng");
+    const worker = await createWorker("eng", 1, { cachePath });
     await worker.setParameters({
-      // Only allow characters found on plates
       tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789- ",
     });
 
-    const {
-      data: { text },
-    } = await worker.recognize(buffer);
+    const { data: { text } } = await worker.recognize(buffer);
     await worker.terminate();
 
-    // Clean: collapse whitespace, uppercase, strip non-plate chars
     const cleaned = text
       .toUpperCase()
       .replace(/[^A-Z0-9 -]/g, " ")

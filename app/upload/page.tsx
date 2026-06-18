@@ -32,6 +32,12 @@ const COUNTRIES = [
     desc: "Standard, motorcycle, military, vanity, temporary, diplomatic and foreign registered plates",
   },
   {
+    href: "/upload/croatia",
+    name: "Croatia",
+    iso: "hr",
+    desc: "Regular, foreign, exceptional, motorcycle, vanity, dealer, oldtimer, military, export and police plates",
+  },
+  {
     href: "/upload/germany",
     name: "Germany",
     iso: "de",

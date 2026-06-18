@@ -329,33 +329,35 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 </div>
                 <RareButton spotNumericId={upload.numericId} />
                 <SaveToCollection spotNumericId={upload.numericId} />
-                <ShareCardButton
-                  imageUrl={upload.imageUrl}
-                  plateText={upload.plateText}
-                  countryName={meta.name}
-                  carLabel={carLabel}
-                />
               </div>
               <div className="mt-3 flex items-center justify-between gap-4 text-xs text-zinc-500">
                 <div className="flex gap-4">
                   <span>{upload._count.likes} like{upload._count.likes !== 1 ? "s" : ""}</span>
                   <span>{upload._count.comments} comment{upload._count.comments !== 1 ? "s" : ""}</span>
                 </div>
-                {currentUser && !isOwner && (
-                  <ReportButton uploadNumericId={upload.numericId} />
-                )}
+                <div className="flex items-center gap-3">
+                  <ShareCardButton
+                    imageUrl={upload.imageUrl}
+                    plateText={upload.plateText}
+                    countryName={meta.name}
+                    carLabel={carLabel}
+                  />
+                  {currentUser && !isOwner && (
+                    <ReportButton uploadNumericId={upload.numericId} />
+                  )}
+                </div>
               </div>
             </div>
 
             {/* Details */}
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
-              <div className="text-xs uppercase tracking-wider text-zinc-500 mb-1">Details</div>
-              <div className="flex items-start justify-between gap-3 text-sm"><span className="text-zinc-500 shrink-0">Country</span><span className="inline-flex items-center gap-1.5 text-zinc-200"><Flag iso={meta.iso} />{meta.name}</span></div>
+              <div className="text-xs uppercase tracking-wider text-zinc-500 mb-2">Details</div>
+              <div className="flex items-start justify-between gap-3 text-base"><span className="text-zinc-400 shrink-0">Country</span><span className="inline-flex items-center gap-1.5 text-zinc-200"><Flag iso={meta.iso} />{meta.name}</span></div>
               {albaniaRegion && (
                 <Detail label="Region" value={albaniaRegion.district} />
               )}
               {upload.location  && <Detail label="Location"   value={upload.location} />}
-              {upload.plateType && <Detail label="Plate type" value={ALBANIA_PLATE_TYPE_LABELS[upload.plateType] ?? AUSTRIA_PLATE_TYPE_LABELS[upload.plateType] ?? upload.plateType.replace(/-/g, " ")} />}
+              {upload.plateType && <Detail label="Plate type" value={ALBANIA_PLATE_TYPE_LABELS[upload.plateType] ?? AUSTRIA_PLATE_TYPE_LABELS[upload.plateType] ?? upload.plateType.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())} />}
               {upload.badge      && <Detail label="Badge"      value={upload.badge} />}
               {upload.color      && <Detail label="Color"      value={upload.color} />}
               {upload.trim       && <Detail label="Trim"       value={upload.trim} />}
@@ -520,8 +522,8 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
 
 function Detail({ label, value, href }: { label: string; value: string; href?: string }) {
   return (
-    <div className="flex items-start justify-between gap-3 text-sm">
-      <span className="text-zinc-500 shrink-0">{label}</span>
+    <div className="flex items-start justify-between gap-3 text-base">
+      <span className="text-zinc-400 shrink-0">{label}</span>
       {href ? (
         <a href={href} className="text-right text-zinc-200 hover:text-indigo-300 transition-colors break-all">
           {value}
