@@ -388,15 +388,15 @@ export default function BulgariaUploadPage() {
               {/* Live preview */}
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5">
                 <div className="text-xs uppercase tracking-wider text-zinc-500 mb-3">Live preview</div>
-                <div className="rounded-xl border border-zinc-200 bg-white px-4 py-5 text-center shadow-inner">
-                  <div className="font-mono text-xl font-bold tracking-widest text-zinc-900">
+                <div className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-5 text-center">
+                  <div className="font-mono text-xl font-bold tracking-widest text-zinc-100">
                     {plateText.trim() || catMeta?.example || "A 1234 BC"}
                   </div>
-                  <div className="mt-2 text-xs text-zinc-400">
+                  <div className="mt-2 text-xs text-zinc-500">
                     {catMeta?.label} · Bulgaria 🇧🇬
                   </div>
                   {availableFormats.length > 1 && (
-                    <div className="mt-1 text-[10px] text-zinc-400">{BG_FORMAT_LABELS[format]}</div>
+                    <div className="mt-1 text-[10px] text-zinc-600">{BG_FORMAT_LABELS[format]}</div>
                   )}
                 </div>
               </div>
