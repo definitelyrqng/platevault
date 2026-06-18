@@ -153,16 +153,16 @@ export default function CroatiaUploadPage() {
   }
 
   const previewColors: Record<CroatiacategoryId, { bg: string; text: string; border: string }> = {
-    regular:     { bg: "bg-white",      text: "text-zinc-900",   border: "border-zinc-300" },
-    foreign:     { bg: "bg-white",      text: "text-green-700",  border: "border-green-400" },
-    exceptional: { bg: "bg-white",      text: "text-red-600",    border: "border-red-400" },
-    motorcycle:  { bg: "bg-white",      text: "text-zinc-900",   border: "border-zinc-300" },
-    vanity:      { bg: "bg-white",      text: "text-zinc-900",   border: "border-zinc-300" },
-    dealer:      { bg: "bg-white",      text: "text-zinc-900",   border: "border-zinc-300" },
-    oldtimer:    { bg: "bg-white",      text: "text-zinc-900",   border: "border-zinc-300" },
-    military:    { bg: "bg-yellow-400", text: "text-zinc-900",   border: "border-yellow-600" },
-    export:      { bg: "bg-green-700",  text: "text-yellow-300", border: "border-green-900" },
-    police:      { bg: "bg-white",      text: "text-blue-700",   border: "border-zinc-300" },
+    regular:     { bg: "bg-zinc-950", text: "text-zinc-100",   border: "border-zinc-700" },
+    foreign:     { bg: "bg-zinc-950", text: "text-green-400",  border: "border-green-900/50" },
+    exceptional: { bg: "bg-zinc-950", text: "text-red-400",    border: "border-red-900/50" },
+    motorcycle:  { bg: "bg-zinc-950", text: "text-zinc-100",   border: "border-zinc-700" },
+    vanity:      { bg: "bg-zinc-950", text: "text-zinc-100",   border: "border-zinc-700" },
+    dealer:      { bg: "bg-zinc-950", text: "text-zinc-100",   border: "border-zinc-700" },
+    oldtimer:    { bg: "bg-zinc-950", text: "text-amber-300",  border: "border-amber-900/50" },
+    military:    { bg: "bg-zinc-950", text: "text-yellow-400", border: "border-yellow-900/50" },
+    export:      { bg: "bg-zinc-950", text: "text-green-400",  border: "border-green-900/50" },
+    police:      { bg: "bg-zinc-950", text: "text-blue-400",   border: "border-blue-900/50" },
   };
   const pc = previewColors[category];
 
