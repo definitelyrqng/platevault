@@ -167,7 +167,7 @@ export default function CroatiaUploadPage() {
   const pc = previewColors[category];
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10">
+    <main className="min-h-screen bg-zinc-950 text-zinc-100 px-4 py-10">
       {milestoneData && (
         <MilestonePopup
           data={milestoneData}
