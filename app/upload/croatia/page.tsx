@@ -176,59 +176,58 @@ export default function CroatiaUploadPage() {
       )}
 
       {/* Header */}
-      <div className="mb-8 flex items-start gap-3">
-        <div className="mt-1 h-6 w-1 rounded-full bg-indigo-500 shrink-0" />
-        <div>
-          <a href="/upload" className="text-xs text-zinc-500 hover:text-zinc-400 transition-colors">← Back to countries</a>
-          <h1 className="mt-1 text-2xl font-bold text-zinc-50">Upload — Croatia 🇭🇷</h1>
-          <p className="mt-1 text-sm text-zinc-400">
-            Regular, foreign, exceptional, motorcycle, vanity, dealer, oldtimer, military, export and police plates
-          </p>
+      <div className="mb-6">
+        <div className="flex items-center gap-2 text-xs text-zinc-500 mb-1">
+          <a href="/upload" className="hover:text-zinc-300 transition-colors">Upload</a>
+          <span>›</span>
+          <span className="text-zinc-300">Croatia 🇭🇷</span>
         </div>
+        <h1 className="text-2xl font-semibold">Upload — Croatia</h1>
+        <p className="mt-1 text-sm text-zinc-400">Regular, foreign, exceptional, motorcycle, vanity, dealer, oldtimer, military, export and police plates</p>
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
           {/* ── Left column ── */}
-          <div className="space-y-5">
+          <div className="space-y-4">
 
             {/* Category picker */}
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
-              <div className="mb-3 text-xs uppercase tracking-wider text-zinc-500">Plate category</div>
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-3">
+              <span className="text-sm font-medium text-zinc-200">Plate type</span>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {CROATIA_CATEGORIES.map((cat) => (
                   <button
                     key={cat.id}
                     type="button"
                     onClick={() => handleCategoryChange(cat.id)}
-                    className={`rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${
+                    className={`rounded-xl border px-3 py-2 text-left text-sm transition-all ${
                       category === cat.id
-                        ? "border-indigo-600 bg-indigo-950/40 text-indigo-200"
-                        : "border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+                        ? "border-indigo-600 bg-indigo-950/50 text-indigo-200"
+                        : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
                     }`}
                   >
-                    <div className="font-medium">{cat.label}</div>
-                    <div className="mt-0.5 font-mono text-[11px] text-zinc-500">{cat.example}</div>
+                    <span className="font-medium">{cat.label}</span>
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Category hint */}
-            <div className="rounded-2xl border border-indigo-900/40 bg-indigo-950/10 px-4 py-3 text-sm text-indigo-300">
-              <span className="font-medium">{catMeta.label}:</span> {catMeta.hint}
+            <div className="rounded-xl border border-zinc-800/60 bg-zinc-900/20 px-4 py-3 text-sm text-zinc-400 leading-relaxed">
+              <span className="mr-1">🇭🇷</span>
+              <strong className="text-zinc-200">{catMeta.label}:</strong> {catMeta.hint}
             </div>
 
             {/* Plate fields */}
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
-              <div className="mb-3 text-xs uppercase tracking-wider text-zinc-500">Plate details</div>
+              <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Plate details</div>
               <CroatiaPlateInput category={category} onChange={setPlateText} />
             </div>
 
             {/* Format */}
             {formats.length > 1 && (
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
-                <div className="mb-3 text-xs uppercase tracking-wider text-zinc-500">Plate layout</div>
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4">
+                <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">Plate layout</div>
                 <div className="flex flex-wrap gap-2">
                   {formats.map((f) => (
                     <button
@@ -250,7 +249,7 @@ export default function CroatiaUploadPage() {
 
             {/* Photo */}
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
-              <div className="mb-3 text-xs uppercase tracking-wider text-zinc-500">Photo</div>
+              <span className="block text-sm text-zinc-300 mb-2">Photo <span className="text-zinc-600 text-xs">(JPG or PNG, max 8 MB)</span></span>
               <div
                 className={`relative flex min-h-[180px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed transition-colors ${
                   isDragging ? "border-indigo-500 bg-indigo-950/20" : "border-zinc-700 hover:border-zinc-600"
@@ -283,7 +282,7 @@ export default function CroatiaUploadPage() {
 
             {/* Location */}
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
-              <div className="mb-3 text-xs uppercase tracking-wider text-zinc-500">Location spotted</div>
+              <span className="block text-sm text-zinc-300 mb-2">Location spotted</span>
               <input
                 className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600"
                 placeholder="e.g. Zagreb, Split, Dubrovnik…"
@@ -295,7 +294,7 @@ export default function CroatiaUploadPage() {
 
             {/* Car details */}
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
-              <div className="mb-3 text-xs uppercase tracking-wider text-zinc-500">Vehicle details (optional)</div>
+              <span className="block text-sm text-zinc-300 mb-3">Vehicle details <span className="text-zinc-600 text-xs">(optional)</span></span>
               <CarDetailsFields onChange={useCallback((d) => {
                 setBrand(d.brand); setModel(d.model); setGeneration(d.generation);
                 setTrim(d.trim); setColor(d.color); setBadge(d.badge);
@@ -303,14 +302,14 @@ export default function CroatiaUploadPage() {
             </div>
 
             {/* Company */}
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
-              <div className="mb-3 text-xs uppercase tracking-wider text-zinc-500">Company (optional)</div>
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4">
+              <span className="block text-sm text-zinc-300 mb-2">Company <span className="text-zinc-600 text-xs">(optional)</span></span>
               <CompanyPicker value={companyId} onChange={(id) => setCompanyId(id)} />
             </div>
 
             {/* Tags */}
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
-              <div className="mb-3 text-xs uppercase tracking-wider text-zinc-500">Tags (optional)</div>
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4">
+              <span className="block text-sm text-zinc-300 mb-2">Tags <span className="text-zinc-600 text-xs">(optional, up to 6)</span></span>
               <TagPicker selected={tags} onChange={setTags} max={6} />
             </div>
 
