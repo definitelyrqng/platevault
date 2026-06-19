@@ -59,17 +59,18 @@ export const CROATIA_CATEGORIES: {
   label: string;
   example: string;
   hint: string;
+  emoji: string;
 }[] = [
-  { id: "regular",     label: "Regular",           example: "ZG 1234 AB",  hint: "Standard passenger vehicle plate" },
-  { id: "foreign",     label: "Foreign Citizens",  example: "ZG 1234 AB",  hint: "Green text — foreign registered vehicles & enterprises" },
-  { id: "exceptional", label: "Exceptional",       example: "ZG 1234 AB",  hint: "Red text — exceptional/special purpose vehicles" },
-  { id: "motorcycle",  label: "Motorcycle",        example: "ZG 1234 AB",  hint: "White background, single-line, two-line or triple-row layout" },
-  { id: "vanity",      label: "Vanity",            example: "ZG BIRTHDAY", hint: "Custom text plate — up to 7 characters" },
-  { id: "dealer",      label: "Dealer",            example: "ZG PP 1234",  hint: "Dealer transit plates — PP is fixed" },
-  { id: "oldtimer",    label: "Oldtimer",          example: "ZG PV 1234",  hint: "Historic vehicle plates — PV is fixed" },
-  { id: "military",    label: "Military",          example: "HV 1234 AB",  hint: "Croatian Armed Forces — HV prefix, yellow plate" },
-  { id: "export",      label: "Export",            example: "RH 1234 AB",  hint: "Export plates — RH prefix, green plate with yellow text" },
-  { id: "police",      label: "Police",            example: "123 456",     hint: "Police vehicle plates — two 3-digit groups" },
+  { id: "regular",     label: "Regular",           example: "ZG 1234 AB",  hint: "Standard passenger vehicle plate",                          emoji: "⬜" },
+  { id: "foreign",     label: "Foreign Citizens",  example: "ZG 1234 AB",  hint: "Green text — foreign registered vehicles & enterprises",    emoji: "🟢" },
+  { id: "exceptional", label: "Exceptional",       example: "ZG 1234 AB",  hint: "Red text — exceptional/special purpose vehicles",           emoji: "🔴" },
+  { id: "motorcycle",  label: "Motorcycle",        example: "ZG 1234 AB",  hint: "White background, single-line, two-line or triple-row",     emoji: "🏍️" },
+  { id: "vanity",      label: "Vanity",            example: "ZG BIRTHDAY", hint: "Custom text plate — up to 7 characters",                    emoji: "✨" },
+  { id: "dealer",      label: "Dealer",            example: "ZG PP 1234",  hint: "Dealer transit plates — PP is fixed",                       emoji: "⬜" },
+  { id: "oldtimer",    label: "Oldtimer",          example: "ZG PV 1234",  hint: "Historic vehicle plates — PV is fixed",                     emoji: "🏛️" },
+  { id: "military",    label: "Military",          example: "HV 1234 AB",  hint: "Croatian Armed Forces — HV prefix, yellow plate",           emoji: "🟡" },
+  { id: "export",      label: "Export",            example: "RH 1234 AB",  hint: "Export plates — RH prefix, green plate with yellow text",   emoji: "🟩" },
+  { id: "police",      label: "Police",            example: "123 456",     hint: "Police vehicle plates — two 3-digit groups",                emoji: "🔵" },
 ];
 
 export const CROATIA_FORMATS_FOR: Record<CroatiacategoryId, string[]> = {

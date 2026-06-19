@@ -207,7 +207,7 @@ export default function CroatiaUploadPage() {
                         : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
                     }`}
                   >
-                    <span className="font-medium">{cat.label}</span>
+                    <span className="flex items-center gap-2"><span className="text-base shrink-0">{cat.emoji}</span><span className="font-medium">{cat.label}</span></span>
                   </button>
                 ))}
               </div>
@@ -215,7 +215,7 @@ export default function CroatiaUploadPage() {
 
             {/* Category hint */}
             <div className="rounded-xl border border-zinc-800/60 bg-zinc-900/20 px-4 py-3 text-sm text-zinc-400 leading-relaxed">
-              <span className="mr-1">🇭🇷</span>
+              <span className="mr-1">{catMeta.emoji}</span>
               <strong className="text-zinc-200">{catMeta.label}:</strong> {catMeta.hint}
             </div>
 
