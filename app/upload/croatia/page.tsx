@@ -100,56 +100,52 @@ export default function CroatiaUploadPage() {
 
   const { startUpload } = useUploadThing("plateImageUploader");
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!canSubmit || !file) return;
-    setStatus("uploading"); setErrorMsg("");
+  const UPLOAD_MILESTONES = [1, 10, 50, 100, 500, 1000];
+  const STREAK_MILESTONES = [3, 7, 14, 30, 100];
 
-    const checkRes = await fetch(
-      `/api/check-existing-spot?plate=${encodeURIComponent(plateText)}&country=croatia`
-    ).then((r) => r.json()).catch(() => null);
-    if (checkRes?.exists) {
-      setMultiSpotWarning(checkRes.spot);
-      setStatus("idle");
-      return;
-    }
-
+  async function doUpload() {
+    setMultiSpotWarning(null); setStatus("uploading"); setErrorMsg("");
     try {
-      const uploaded = await startUpload([file]);
+      const uploaded = await startUpload([file!]);
       if (!uploaded?.[0]?.ufsUrl) throw new Error("Image upload failed — please try again.");
       const imageUrl = uploaded[0].ufsUrl;
       setStatus("saving");
-      const res = await fetch("/api/upload", {
+      const res = await fetch("/api/uploads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          imageUrl,
-          plateText: plateText.trim(),
-          plateType: format,
-          country: "croatia",
-          location: location.trim(),
-          brand: brand.trim() || undefined,
-          model: model.trim() || undefined,
-          generation: generation.trim() || undefined,
-          trim: trim.trim() || undefined,
-          color: color.trim() || undefined,
-          badge: badge.trim() || undefined,
-          companyId: companyId || undefined,
-          tags,
+          country: "croatia", plateText: plateText.trim().toUpperCase(),
+          plateType: format, imageUrl, location: location.trim(),
+          brand: brand.trim(), model: model.trim(), generation: generation.trim(),
+          trim: trim.trim(), color: color.trim(), badge: badge.trim(),
+          tags, companyId,
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Save failed");
+      if (!res.ok) throw new Error(data.error ?? "Could not save upload.");
       setStatus("done");
-      if (data.uploadCount) {
+      const isMilestone = UPLOAD_MILESTONES.includes(data.uploadCount) ||
+        (data.streak?.isNewDay && STREAK_MILESTONES.includes(data.streak?.current));
+      if (isMilestone) {
         setMilestoneData({ uploadCount: data.uploadCount, streak: data.streak });
       } else {
-        router.push(`/spot/${data.numericId}`);
+        router.push(`/spot/${data.upload.numericId}`);
       }
     } catch (err: unknown) {
       setStatus("error");
-      setErrorMsg(err instanceof Error ? err.message : "Something went wrong");
+      setErrorMsg(err instanceof Error ? err.message : "Something went wrong.");
     }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!canSubmit || !file) return;
+    setErrorMsg("");
+    try {
+      const r = await fetch(`/api/uploads/check?plateText=${encodeURIComponent(plateText.trim())}&country=croatia`);
+      if (r.ok) { const d = await r.json(); if (d.exists) { setMultiSpotWarning(d.spot); return; } }
+    } catch { /* proceed */ }
+    await doUpload();
   }
 
   const previewColors: Record<CroatiacategoryId, { bg: string; text: string; border: string }> = {

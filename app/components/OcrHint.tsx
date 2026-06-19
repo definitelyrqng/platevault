@@ -28,29 +28,35 @@ export default function OcrHint({
 
     (async () => {
       try {
-        const form = new FormData();
-        form.append("image", file);
-        const res = await fetch("/api/ocr", { method: "POST", body: form });
+        // Run OCR in the browser — model is cached in IndexedDB after first load
+        const Tesseract = await import("tesseract.js");
+        const worker = await Tesseract.createWorker("eng", 1, {
+          logger: () => {}, // suppress progress logs
+        });
+        await worker.setParameters({
+          tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789- ",
+        });
+        const { data: { text } } = await worker.recognize(file);
+        await worker.terminate();
+
         if (cancelled) return;
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          setErrorMsg(body.error ?? `Server error ${res.status}`);
-          setStatus("error");
-          return;
-        }
-        const data = await res.json();
-        if (cancelled) return;
-        const text = (data.text ?? "").trim();
-        if (!text) {
+
+        const cleaned = text
+          .toUpperCase()
+          .replace(/[^A-Z0-9 -]/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        if (!cleaned) {
           setErrorMsg("No text detected");
           setStatus("error");
           return;
         }
-        setDetected(text);
+        setDetected(cleaned);
         setStatus("done");
       } catch (e: unknown) {
         if (!cancelled) {
-          setErrorMsg(e instanceof Error ? e.message : "Request failed");
+          setErrorMsg(e instanceof Error ? e.message : "OCR failed");
           setStatus("error");
         }
       }
@@ -68,8 +74,7 @@ export default function OcrHint({
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
         </svg>
-        Scanning plate text…
-        <span className="text-zinc-600">(first scan downloads model ~10 MB)</span>
+        Scanning plate text… <span className="text-zinc-700">(first scan downloads model)</span>
       </div>
     );
   }
@@ -77,14 +82,14 @@ export default function OcrHint({
   if (status === "error") {
     return (
       <div className="mt-2 flex items-center gap-2 rounded-lg border border-red-900/40 bg-red-950/20 px-3 py-2 text-xs text-red-400">
-        <span>⚠ OCR: {errorMsg}</span>
+        ⚠ OCR: {errorMsg}
       </div>
     );
   }
 
   return (
     <div className="mt-2 flex items-center gap-2 rounded-lg border border-indigo-900/60 bg-indigo-950/30 px-3 py-2 text-xs">
-      <span className="text-zinc-500">OCR detected:</span>
+      <span className="text-zinc-500">Detected:</span>
       <span className="font-mono font-semibold tracking-widest text-indigo-300">{detected}</span>
       {onSuggest && (
         <button
