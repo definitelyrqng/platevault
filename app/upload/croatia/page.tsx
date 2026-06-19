@@ -168,6 +168,7 @@ export default function CroatiaUploadPage() {
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100 px-4 py-10">
+      <div className="mx-auto max-w-5xl">
       {milestoneData && (
         <MilestonePopup
           data={milestoneData}
@@ -406,6 +407,7 @@ export default function CroatiaUploadPage() {
           </div>
         </div>
       </form>
+      </div>
     </main>
   );
 }
