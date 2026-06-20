@@ -28,7 +28,7 @@ async function getStats() {
     prisma.upload.findMany({
       where: { deletedAt: null, hidden: false },
       orderBy: { createdAt: "desc" },
-      take: 9,
+      take: 12,
       select: {
         id: true,
         numericId: true,
@@ -99,7 +99,18 @@ export default async function HomePage() {
   const heroCountry = randomCountry?.country ?? "albania";
 
   return (
-    <main className="mx-auto max-w-6xl px-6 pb-16 pt-4">
+    <div className="mx-auto max-w-6xl px-4 sm:px-6 pb-16 pt-4">
+
+      {/* ─── Mobile search bar ─── */}
+      <div className="md:hidden mb-4">
+        <a href="/search"
+          className="flex items-center gap-2 w-full rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-2.5 text-sm text-zinc-500 hover:border-indigo-700/50 hover:text-zinc-400 transition-all">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          Search plates or users…
+        </a>
+      </div>
 
       {/* ─── Hero ─── */}
       <div className="relative rounded-3xl overflow-hidden border border-indigo-900/40 bg-gradient-to-br from-indigo-950/60 via-zinc-900/80 to-zinc-900/60 px-8 py-14 mb-8">
@@ -217,26 +228,28 @@ export default async function HomePage() {
               const meta = getCountryMeta(u.country);
               const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
               return (
-                <a key={u.id} href={`/spot/${u.numericId}`} className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-rose-800/60 hover:shadow-md hover:shadow-rose-950/40 transition-all">
-                  {i === 0 && (
-                    <div className="absolute top-2 left-2 z-10 rounded-full bg-rose-600/90 px-2 py-0.5 text-[10px] font-bold text-white shadow">
-                      🔥 #1
+                <a key={u.id} href={`/spot/${u.numericId}`}
+                  className="group relative rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-rose-700/50 hover:shadow-xl hover:shadow-rose-950/30 transition-all">
+                  <div className="relative aspect-[4/5] overflow-hidden bg-zinc-950">
+                    <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/95 via-zinc-950/30 to-transparent" />
+                    {i === 0 && (
+                      <div className="absolute top-3 left-3 z-10 rounded-full bg-rose-600/90 backdrop-blur px-2.5 py-1 text-[10px] font-bold text-white shadow-lg">
+                        🔥 #1 this week
+                      </div>
+                    )}
+                    <div className="absolute top-3 right-3 z-10 rounded-lg bg-zinc-950/70 backdrop-blur border border-zinc-700/50 px-2 py-1 text-sm">
+                      <Flag iso={meta.iso} />
                     </div>
-                  )}
-                  <div className="aspect-video bg-zinc-950 overflow-hidden">
-                    <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-base font-bold tracking-widest text-zinc-100 group-hover:text-rose-200 transition-colors">{u.plateText}</span>
-                      <span className="rounded-md px-1.5 py-1 inline-flex items-center gap-1 bg-zinc-800/60 text-xs text-zinc-400">
-                        <Flag iso={meta.iso} size="sm" />
-                      </span>
-                    </div>
-                    {carLabel && <div className="text-xs text-zinc-400 mt-0.5">{carLabel}</div>}
-                    <div className="mt-2 flex items-center justify-between text-xs text-zinc-500">
-                      <span>by @{u.user.username}</span>
-                      <span className="text-rose-400 font-semibold">♥ {u._count.likes}</span>
+                    <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
+                      <div className="font-mono text-lg font-black tracking-widest text-white drop-shadow-lg leading-tight">
+                        {u.plateText}
+                      </div>
+                      {carLabel && <div className="text-xs text-zinc-400 mt-0.5">{carLabel}</div>}
+                      <div className="mt-3 flex items-center justify-between">
+                        <span className="text-xs text-zinc-500">@{u.user.username}</span>
+                        <span className="text-rose-400 font-bold text-sm">♥ {u._count.likes}</span>
+                      </div>
                     </div>
                   </div>
                 </a>
@@ -263,25 +276,23 @@ export default async function HomePage() {
               const meta = getCountryMeta(u.country);
               const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
               return (
-                <a key={u.id} href={`/spot/${u.numericId}`} className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-amber-800/60 hover:shadow-md hover:shadow-amber-950/40 transition-all">
-                  <div className="aspect-video bg-zinc-950 overflow-hidden">
-                    <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-base font-bold tracking-widest text-zinc-100 group-hover:text-amber-200 transition-colors">{u.plateText}</span>
-                      <div className="flex items-center gap-1.5">
-                        <span className="rounded-md px-1.5 py-1 inline-flex items-center gap-1 bg-zinc-800/60 text-xs text-zinc-400">
-                          <Flag iso={meta.iso} size="sm" />
-                        </span>
-                        <span className="rounded-md px-1.5 py-1 inline-flex items-center gap-1 bg-amber-950/40 border border-amber-800/40 text-xs text-amber-400">
-                          ✨ {u.rareVotes}
-                        </span>
-                      </div>
+                <a key={u.id} href={`/spot/${u.numericId}`}
+                  className="group relative rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-amber-700/50 hover:shadow-xl hover:shadow-amber-950/30 transition-all">
+                  <div className="relative aspect-[4/5] overflow-hidden bg-zinc-950">
+                    <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/95 via-zinc-950/30 to-transparent" />
+                    <div className="absolute top-3 left-3 z-10 rounded-full bg-amber-500/90 backdrop-blur px-2.5 py-1 text-[10px] font-bold text-zinc-950 shadow">
+                      ✨ {u.rareVotes} rare votes
                     </div>
-                    {carLabel && <div className="text-xs text-zinc-400 mt-0.5">{carLabel}</div>}
-                    <div className="mt-2 text-xs text-zinc-500">
-                      <span>by @{u.user.username}</span>
+                    <div className="absolute top-3 right-3 z-10 rounded-lg bg-zinc-950/70 backdrop-blur border border-zinc-700/50 px-2 py-1 text-sm">
+                      <Flag iso={meta.iso} />
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
+                      <div className="font-mono text-lg font-black tracking-widest text-white drop-shadow-lg leading-tight">
+                        {u.plateText}
+                      </div>
+                      {carLabel && <div className="text-xs text-zinc-400 mt-0.5">{carLabel}</div>}
+                      <div className="mt-3 text-xs text-zinc-500">@{u.user.username}</div>
                     </div>
                   </div>
                 </a>
@@ -304,54 +315,54 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {recentUploads.map((u) => {
               const meta = COUNTRY_META[u.country] ?? { iso: null, name: u.country };
               const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
               return (
-                <div key={u.id} className="group relative rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-lg hover:shadow-indigo-950/40 transition-all">
-                  <a href={`/spot/${u.numericId}`} className="absolute inset-0 z-0" aria-label={u.plateText} />
+                <div key={u.id} className="group relative rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-indigo-700/50 hover:shadow-xl hover:shadow-indigo-950/30 transition-all">
+                  <a href={`/spot/${u.numericId}`} className="absolute inset-0 z-20" aria-label={u.plateText} />
 
-                  <div className="aspect-video bg-zinc-950 overflow-hidden">
+                  {/* Photo */}
+                  <div className="relative aspect-[4/5] overflow-hidden bg-zinc-950">
                     <img
                       src={u.imageUrl}
                       alt={`${u.plateText} plate`}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
                     />
-                  </div>
+                    {/* Gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/95 via-zinc-950/20 to-transparent" />
 
-                  <div className="absolute top-2.5 right-2.5 z-10">
-                    <span className="rounded-md bg-zinc-950/80 backdrop-blur border border-zinc-700/60 px-1.5 py-1 inline-flex">
-                      <Flag iso={meta.iso} size="sm" />
-                    </span>
-                  </div>
-
-                  <div className="p-4">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <div>
-                        <div className="font-mono text-base font-bold tracking-widest text-zinc-100 leading-tight group-hover:text-indigo-200 transition-colors">
-                          {u.plateText}
-                        </div>
-                        {carLabel && <div className="text-xs text-zinc-500 mt-0.5">{carLabel}</div>}
-                      </div>
-                      <span className="shrink-0 text-xs text-zinc-600 mt-0.5">{relativeDays(u.createdAt)}</span>
+                    {/* Top-right: flag */}
+                    <div className="absolute top-3 right-3 z-10 rounded-lg bg-zinc-950/70 backdrop-blur border border-zinc-700/50 px-2 py-1 text-sm">
+                      <Flag iso={meta.iso} />
                     </div>
-                    <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60">
-                      <a href={`/u/${u.user.numericId}`} className="relative z-10 flex items-center gap-1.5 group/user">
-                        {u.user.avatarUrl ? (
-                          <img src={u.user.avatarUrl} alt={u.user.username} className="h-5 w-5 rounded-md object-cover" />
-                        ) : (
-                          <div className="h-5 w-5 rounded-md bg-zinc-800 grid place-items-center text-[8px] font-bold text-zinc-500">
-                            {u.user.username.slice(0, 2).toUpperCase()}
-                          </div>
-                        )}
-                        <span className="text-xs text-zinc-500 group-hover/user:text-indigo-300 transition-colors">@{u.user.username}</span>
-                      </a>
-                      <span className="text-xs text-zinc-600 flex items-center gap-2">
-                        <span>♡ {u._count.likes}</span>
-                        <span>💬 {u._count.comments}</span>
-                      </span>
+
+                    {/* Bottom overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
+                      <div className="font-mono text-base font-black tracking-widest text-white drop-shadow-lg leading-tight group-hover:text-indigo-200 transition-colors">
+                        {u.plateText}
+                      </div>
+                      {carLabel && <div className="text-xs text-zinc-400 mt-0.5">{carLabel}</div>}
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="flex items-center justify-between px-4 py-3 bg-zinc-900/80 border-t border-zinc-800/40">
+                    <a href={`/u/${u.user.numericId}`} className="relative z-30 flex items-center gap-1.5 group/user">
+                      {u.user.avatarUrl ? (
+                        <img src={u.user.avatarUrl} alt={u.user.username} className="h-5 w-5 rounded-md object-cover" />
+                      ) : (
+                        <div className="h-5 w-5 rounded-md bg-zinc-800 grid place-items-center text-[8px] font-bold text-zinc-500">
+                          {u.user.username.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
+                      <span className="text-xs text-zinc-500 group-hover/user:text-indigo-300 transition-colors">@{u.user.username}</span>
+                    </a>
+                    <div className="flex items-center gap-2 text-xs text-zinc-600">
+                      <span>♡ {u._count.likes}</span>
+                      <span>· {relativeDays(u.createdAt)}</span>
                     </div>
                   </div>
                 </div>
@@ -361,6 +372,6 @@ export default async function HomePage() {
         </section>
       )}
 
-    </main>
+    </div>
   );
 }
