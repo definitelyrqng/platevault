@@ -133,7 +133,7 @@ export default function SiteHeader() {
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search plates..."
+            placeholder="Search plates or users…"
             autoComplete="off"
             className="w-full rounded-xl border border-zinc-800 bg-zinc-900/60 pl-9 pr-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 outline-none focus:border-indigo-700/60 focus:bg-zinc-900 transition-colors"
           />

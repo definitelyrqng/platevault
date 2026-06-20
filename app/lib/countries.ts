@@ -5,6 +5,7 @@ export const COUNTRY_META: Record<string, { iso: string; name: string }> = {
   bosnia:      { iso: "ba", name: "Bosnia & Herzegovina" },
   bulgaria:    { iso: "bg", name: "Bulgaria" },
   croatia:     { iso: "hr", name: "Croatia" },
+  czech:       { iso: "cz", name: "Czech Republic" },
   france:      { iso: "fr", name: "France" },
   germany:     { iso: "de", name: "Germany" },
   greece:      { iso: "gr", name: "Greece" },

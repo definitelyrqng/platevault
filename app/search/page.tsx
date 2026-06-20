@@ -72,6 +72,18 @@ async function searchPlates(rawQuery: string) {
   return uploads;
 }
 
+
+async function searchUsers(rawQuery: string) {
+  const q = rawQuery.trim();
+  if (!q || q.length < 1) return [];
+  return prisma.user.findMany({
+    where: { username: { contains: q, mode: "insensitive" } },
+    select: { numericId: true, username: true, avatarUrl: true, _count: { select: { uploads: true } } },
+    take: 6,
+    orderBy: { username: "asc" },
+  });
+}
+
 export default async function SearchPage({
   searchParams,
 }: {
@@ -81,7 +93,9 @@ export default async function SearchPage({
   const query = (q ?? "").trim();
   const hasQuery = query.length > 0;
 
-  const results = hasQuery ? await searchPlates(query) : [];
+  const [results, userResults] = hasQuery
+    ? await Promise.all([searchPlates(query), searchUsers(query)])
+    : [[], []];
 
   return (
     <main className="mx-auto max-w-6xl px-6 pb-16 pt-8">
@@ -90,13 +104,13 @@ export default async function SearchPage({
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-4">
           <div className="h-6 w-1 rounded-full bg-indigo-500" />
-          <h1 className="text-2xl font-bold text-zinc-50">Search plates</h1>
+          <h1 className="text-2xl font-bold text-zinc-50">Search</h1>
         </div>
         <form method="GET" action="/search" className="flex gap-2">
           <input
             name="q"
             defaultValue={query}
-            placeholder="e.g. AB-123-CD or AB123CD"
+            placeholder="Plate number or username…"
             autoFocus
             autoComplete="off"
             className="flex-1 rounded-2xl border border-zinc-800 bg-zinc-900/60 px-5 py-3 text-sm font-mono tracking-wider text-zinc-100 placeholder:text-zinc-600 placeholder:font-sans placeholder:tracking-normal outline-none focus:border-indigo-700/60 focus:bg-zinc-900 transition-colors"
@@ -112,12 +126,44 @@ export default async function SearchPage({
           <p className="mt-2 text-xs text-zinc-500">
             {results.length === 0
               ? `No results for "${query}"`
-              : `${results.length} result${results.length === 1 ? "" : "s"} for "${query}" across all countries`}
+              : `${results.length + userResults.length} result${results.length + userResults.length === 1 ? "" : "s"} for "${query}"`}
           </p>
         )}
       </div>
 
       {/* ─── Results ─── */}
+      {/* ─── User results ─── */}
+      {userResults.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="h-5 w-1 rounded-full bg-indigo-500" />
+            <h2 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">Users</h2>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {userResults.map((u) => (
+              <a
+                key={u.numericId}
+                href={`/u/${u.numericId}`}
+                className="flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/40 px-4 py-3 hover:border-indigo-800/60 hover:bg-zinc-900 transition-all"
+              >
+                {u.avatarUrl ? (
+                  <img src={u.avatarUrl} alt={u.username} className="h-9 w-9 rounded-xl object-cover" />
+                ) : (
+                  <div className="h-9 w-9 rounded-xl bg-zinc-800 grid place-items-center text-xs font-bold text-zinc-400">
+                    {u.username.slice(0, 2).toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <div className="text-sm font-medium text-zinc-100">@{u.username}</div>
+                  <div className="text-xs text-zinc-500">{u._count.uploads} spot{u._count.uploads !== 1 ? "s" : ""}</div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+
       {!hasQuery ? (
         <div className="mt-16 text-center">
           <div className="text-4xl mb-3">🔍</div>

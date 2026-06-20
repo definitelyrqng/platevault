@@ -9,6 +9,7 @@ import RareButton from "@/app/components/RareButton";
 import SaveToCollection from "@/app/components/SaveToCollection";
 import ShareCardButton from "@/app/components/ShareCardButton";
 import TagEditor from "./TagEditor";
+import EditSpotDetails from "./EditSpotDetails";
 import { tagById } from "@/app/lib/tags";
 import { getAlbaniaRegion, ALBANIA_PLATE_TYPE_LABELS } from "@/app/lib/albaniaRegions";
 import Flag from "@/app/components/Flag";
@@ -16,6 +17,15 @@ import { getCountryMeta } from "@/app/lib/countries";
 import { AUSTRIA_PLATE_TYPE_LABELS } from "@/app/lib/austriaData";
 
 
+
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-start justify-between gap-3 text-base">
+      <span className="text-zinc-400 shrink-0">{label}</span>
+      <span className="text-zinc-200 text-right">{value}</span>
+    </div>
+  );
+}
 
 function toSlug(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -375,6 +385,21 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
               <div className="border-t border-zinc-800 pt-3">
                 <Detail label="Date" value={fmt(upload.createdAt)} />
               </div>
+              {isOwner && (
+                <div className="border-t border-zinc-800 pt-3">
+                  <EditSpotDetails
+                    uploadId={upload.id}
+                    initial={{
+                      brand: upload.brand,
+                      model: upload.model,
+                      generation: upload.generation,
+                      trim: upload.trim,
+                      color: upload.color,
+                      badge: upload.badge,
+                    }}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Rarity score */}
@@ -513,24 +538,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
             </div>
           </section>
         )}
-
       </div>
     </main>
-  );
-}
-
-
-function Detail({ label, value, href }: { label: string; value: string; href?: string }) {
-  return (
-    <div className="flex items-start justify-between gap-3 text-base">
-      <span className="text-zinc-400 shrink-0">{label}</span>
-      {href ? (
-        <a href={href} className="text-right text-zinc-200 hover:text-indigo-300 transition-colors break-all">
-          {value}
-        </a>
-      ) : (
-        <span className="text-right text-zinc-200 break-all">{value}</span>
-      )}
-    </div>
   );
 }

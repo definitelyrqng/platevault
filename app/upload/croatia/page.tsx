@@ -215,35 +215,6 @@ export default function CroatiaUploadPage() {
               <strong className="text-zinc-200">{catMeta.label}:</strong> {catMeta.hint}
             </div>
 
-            {/* Plate fields */}
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
-              <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Plate details</div>
-              <CroatiaPlateInput category={category} onChange={setPlateText} />
-            </div>
-
-            {/* Format */}
-            {formats.length > 1 && (
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4">
-                <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">Plate layout</div>
-                <div className="flex flex-wrap gap-2">
-                  {formats.map((f) => (
-                    <button
-                      key={f}
-                      type="button"
-                      onClick={() => setFormat(f)}
-                      className={`rounded-xl border px-3 py-2 text-sm transition-all ${
-                        format === f
-                          ? "border-indigo-600 bg-indigo-950/40 text-indigo-200"
-                          : "border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
-                      }`}
-                    >
-                      {HR_FORMAT_LABELS[f] ?? f}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Photo */}
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
               <span className="block text-sm text-zinc-300 mb-2">Photo <span className="text-zinc-600 text-xs">(JPG or PNG, max 8 MB)</span></span>
@@ -276,6 +247,36 @@ export default function CroatiaUploadPage() {
               {fileError && <p className="mt-2 text-xs text-red-400">{fileError}</p>}
               <OcrHint file={file} onSuggest={(t) => setPlateText(t)} />
             </div>
+
+            {/* Plate fields */}
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
+              <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Plate details</div>
+              <CroatiaPlateInput category={category} onChange={setPlateText} />
+            </div>
+
+            {/* Format */}
+            {formats.length > 1 && (
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4">
+                <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">Plate layout</div>
+                <div className="flex flex-wrap gap-2">
+                  {formats.map((f) => (
+                    <button
+                      key={f}
+                      type="button"
+                      onClick={() => setFormat(f)}
+                      className={`rounded-xl border px-3 py-2 text-sm transition-all ${
+                        format === f
+                          ? "border-indigo-600 bg-indigo-950/40 text-indigo-200"
+                          : "border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+                      }`}
+                    >
+                      {HR_FORMAT_LABELS[f] ?? f}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
 
             {/* Location */}
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">

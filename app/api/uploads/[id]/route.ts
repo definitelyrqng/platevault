@@ -26,7 +26,6 @@ export async function PATCH(
 ) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!canAdmin(user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await params;
   const body = await req.json();
@@ -42,6 +41,10 @@ export async function PATCH(
     },
   });
   if (!before) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  // Owner can edit their own spot; admins can edit any spot
+  const isOwner = before.userId === user.id;
+  if (!isOwner && !canAdmin(user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const newBrand      = opt(body.brand);
   const newModel      = opt(body.model);

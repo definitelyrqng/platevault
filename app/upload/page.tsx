@@ -38,6 +38,12 @@ const COUNTRIES = [
     desc: "Regular, foreign, exceptional, motorcycle, vanity, dealer, oldtimer, military, export and police plates",
   },
   {
+    href: "/upload/czech",
+    name: "Czech Republic",
+    iso: "cz",
+    desc: "Regular, motorcycle, dealer, sportscar, oldtimer, electric, vanity, diplomatic, export, foreign and historical (1960) plates",
+  },
+  {
     href: "/upload/germany",
     name: "Germany",
     iso: "de",
