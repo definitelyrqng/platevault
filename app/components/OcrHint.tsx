@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 
 // ── Image preprocessing ───────────────────────────────────────────────────────
-async function preprocessImage(file: File): Promise<{ blob: Blob; label: string }[]> {
+type CropVariant = { blob: Blob; label: string; psm: "7" | "11" };
+
+async function preprocessImage(file: File): Promise<CropVariant[]> {
   return new Promise((resolve) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
@@ -11,43 +13,58 @@ async function preprocessImage(file: File): Promise<{ blob: Blob; label: string 
       URL.revokeObjectURL(url);
       const { naturalWidth: w, naturalHeight: h } = img;
 
-      const tasks = [
-        // Bottom 40% — rear plates
-        { sx: 0,                  sy: Math.floor(h * 0.60), sw: w,               sh: Math.floor(h * 0.40), label: "bottom" },
-        // Center-bottom band — tighter plate zone
-        { sx: Math.floor(w*0.05), sy: Math.floor(h * 0.55), sw: Math.floor(w*0.90), sh: Math.floor(h * 0.35), label: "centre-bottom" },
-        // Middle of image — front plates on approaching cars
-        { sx: Math.floor(w*0.10), sy: Math.floor(h * 0.30), sw: Math.floor(w*0.80), sh: Math.floor(h * 0.40), label: "middle" },
-        // Full image fallback
-        { sx: 0,                  sy: 0,                    sw: w,               sh: h,                    label: "full" },
+      // For each region we produce: (a) normal contrast, (b) high contrast, (c) inverted high contrast
+      // Narrow horizontal strips (15-20% height) are likely to contain just the plate → use PSM 7 (single line)
+      // Wider regions → PSM 11 (sparse text, finds anything)
+      const regions = [
+        // ── Narrow strips — slide across the plate zone (PSM 7 = single line) ──
+        // Rear plate: usually 55-80% down
+        { sx: Math.floor(w*0.1), sy: Math.floor(h*0.50), sw: Math.floor(w*0.8), sh: Math.floor(h*0.18), psm: "7" as const },
+        { sx: Math.floor(w*0.1), sy: Math.floor(h*0.58), sw: Math.floor(w*0.8), sh: Math.floor(h*0.18), psm: "7" as const },
+        { sx: Math.floor(w*0.1), sy: Math.floor(h*0.65), sw: Math.floor(w*0.8), sh: Math.floor(h*0.18), psm: "7" as const },
+        { sx: Math.floor(w*0.1), sy: Math.floor(h*0.72), sw: Math.floor(w*0.8), sh: Math.floor(h*0.18), psm: "7" as const },
+        // Front plate (middle zone)
+        { sx: Math.floor(w*0.1), sy: Math.floor(h*0.30), sw: Math.floor(w*0.8), sh: Math.floor(h*0.18), psm: "7" as const },
+        { sx: Math.floor(w*0.1), sy: Math.floor(h*0.38), sw: Math.floor(w*0.8), sh: Math.floor(h*0.18), psm: "7" as const },
+        // ── Wider fallback zones — PSM 11 (sparse text) ──
+        { sx: Math.floor(w*0.05), sy: Math.floor(h*0.50), sw: Math.floor(w*0.9), sh: Math.floor(h*0.35), psm: "11" as const },
+        { sx: 0,                   sy: Math.floor(h*0.60), sw: w,                  sh: Math.floor(h*0.40), psm: "11" as const },
+        { sx: 0,                   sy: 0,                   sw: w,                  sh: h,                  psm: "11" as const },
       ];
 
-      let done = 0;
-      const variants: { blob: Blob; label: string }[] = [];
+      let pending = 0;
+      const variants: CropVariant[] = [];
 
-      tasks.forEach(({ sx, sy, sw, sh, label }) => {
-        const canvas = document.createElement("canvas");
-        const scale = 2;
-        canvas.width  = Math.max(1, sw) * scale;
-        canvas.height = Math.max(1, sh) * scale;
-        const ctx = canvas.getContext("2d")!;
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = "high";
-        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+      regions.forEach(({ sx, sy, sw, sh, psm }) => {
+        // For each region, produce 2 contrast levels
+        const contrastLevels = [2.2, 3.5];
+        pending += contrastLevels.length;
 
-        // Grayscale + contrast boost
-        const id = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const d = id.data;
-        for (let i = 0; i < d.length; i += 4) {
-          const gray = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
-          const c = Math.min(255, Math.max(0, (gray - 128) * 2.0 + 128));
-          d[i] = d[i+1] = d[i+2] = c;
-        }
-        ctx.putImageData(id, 0, 0);
-        canvas.toBlob((blob) => {
-          if (blob) variants.push({ blob, label });
-          if (++done === tasks.length) resolve(variants);
-        }, "image/png");
+        contrastLevels.forEach((contrast) => {
+          const canvas = document.createElement("canvas");
+          const scale = 2;
+          canvas.width  = Math.max(1, sw) * scale;
+          canvas.height = Math.max(1, sh) * scale;
+          const ctx = canvas.getContext("2d")!;
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+
+          // Grayscale + contrast
+          const id = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const d = id.data;
+          for (let i = 0; i < d.length; i += 4) {
+            const gray = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+            const c = Math.min(255, Math.max(0, (gray - 128) * contrast + 128));
+            d[i] = d[i+1] = d[i+2] = c;
+          }
+          ctx.putImageData(id, 0, 0);
+
+          canvas.toBlob((blob) => {
+            if (blob) variants.push({ blob, label: `${psm}-c${contrast}`, psm });
+            if (--pending === 0) resolve(variants);
+          }, "image/png");
+        });
       });
     };
     img.src = url;
@@ -55,44 +72,48 @@ async function preprocessImage(file: File): Promise<{ blob: Blob; label: string 
 }
 
 // ── Plate scoring ─────────────────────────────────────────────────────────────
-// Returns 0 if clearly not a plate, higher = more plate-like
 function scorePlate(raw: string): number {
   const t = raw.toUpperCase().replace(/[^A-Z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
-  if (t.length < 4 || t.length > 14) return 0;
+  const noSpace = t.replace(/\s/g, "");
 
-  // Must contain at least one letter and one digit
+  // Must be 4-10 chars (no spaces)
+  if (noSpace.length < 4 || noSpace.length > 10) return 0;
+
+  // Must have at least one letter AND one digit (or be a 6-digit police plate)
   if (!/[A-Z]/.test(t) || !/\d/.test(t)) {
-    // Exception: police-style "123 456" (all digits with space)
     if (!/^\d{3} \d{3}$/.test(t)) return 0;
   }
 
+  // Patterns ordered by specificity (higher = more confident)
   const scored: [RegExp, number][] = [
-    // ── Exact multi-country patterns ───────────────────────────────────────
-    [/^[A-Z]{1,3} \d{3,4} [A-Z]{1,3}$/,   100], // ZG 1234 AB (HR/BA/SI)
-    [/^\d{3} \d{3}$/,                        95], // 123 456   (CZ/HR police)
-    [/^\d[A-Z]{1,2} \d{4}$/,                95], // 6SX 2360  (CZ 2001)
-    [/^\d{2}[A-Z] \d{4}$/,                  95], // 11R 0466  (CZ sport/oldtimer)
-    [/^[A-Z]{1,3}-[A-Z]{1,2} \d{3,4}[A-Z]?$/, 90], // DE style: B-AB1234
-    [/^[A-Z]{2,3} \d{3,5}$/,               80], // XX 12345
-    [/^\d{3,5} [A-Z]{1,3}$/,               80], // 12345 AB
-    [/^[A-Z]{2,3}\d{3,5}$/,               70], // compact XX1234
-    [/^\d{3,5}[A-Z]{1,3}$/,               70], // compact 1234AB
-    [/^[A-Z0-9]{5,10}$/,                   40], // generic compact
+    // ── 95-100 pts: highly specific national formats ──
+    [/^[A-Z]{1,3} \d{3,4} [A-Z]{1,3}$/, 98], // ZG 1234 AB (HR/BA/SI)  — was 100, reduce slightly so we pick real reads
+    [/^\d{3} \d{3}$/,                    95], // 123 456   (CZ/HR police)
+    [/^\d[A-Z]{1,2} \d{4}[A-Z]?$/,      97], // 9AI 5648  (CZ 2001) — highest priority Czech
+    [/^\d{2}[A-Z] \d{4}[A-Z]?$/,        95], // 11R 0466  (CZ sport/oldtimer)
+    [/^[A-Z]{1,3}-[A-Z]{1,3} \d{3,4}[A-Z]?$/, 92], // DE style: B-AB1234
+    [/^[A-Z]{2,3} \d{4,5}$/,            85], // XX 1234
+    [/^\d{3,5} [A-Z]{2,3}$/,            85], // 12345 AB
+    [/^[A-Z]{2}\d{3,5}$/,               72], // compact
+    [/^\d{3,5}[A-Z]{2}$/,               72], // compact
+    [/^[A-Z0-9]{5,10}$/,                45], // generic fallback
   ];
+
+  // Bonus: strongly prefer candidates whose total char count (no spaces) is 5-8
+  // (Very short like "AB 1 C" = 4 chars are likely OCR fragments)
+  const lengthBonus = noSpace.length >= 5 && noSpace.length <= 8 ? 3 : 0;
 
   let best = 0;
   for (const [re, pts] of scored) {
-    if (re.test(t)) { best = Math.max(best, pts); }
+    if (re.test(t)) best = Math.max(best, pts + lengthBonus);
   }
   return best;
 }
 
 // ── Best plate from OCR text ──────────────────────────────────────────────────
-function extractBest(rawOcr: string): string {
+function extractBest(rawOcr: string): { text: string; score: number } {
   const text = rawOcr.toUpperCase().replace(/[^A-Z0-9\s\n]/g, " ").replace(/\s+/g, " ").trim();
-  
-  // Split into overlapping n-grams of 1–3 space-separated tokens
-  const tokens = text.split(" ");
+  const tokens = text.split(" ").filter(Boolean);
   const candidates: string[] = [];
   for (let i = 0; i < tokens.length; i++) {
     candidates.push(tokens[i]);
@@ -100,13 +121,12 @@ function extractBest(rawOcr: string): string {
     if (i + 2 < tokens.length) candidates.push(tokens[i] + " " + tokens[i+1] + " " + tokens[i+2]);
   }
 
-  let bestScore = 0;
-  let bestText  = "";
+  let bestScore = 0, bestText = "";
   for (const c of candidates) {
     const s = scorePlate(c);
     if (s > bestScore) { bestScore = s; bestText = c.trim(); }
   }
-  return bestScore >= 40 ? bestText : "";
+  return { text: bestText, score: bestScore };
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -117,7 +137,7 @@ export default function OcrHint({
   file: File | null;
   onSuggest?: (text: string) => void;
 }) {
-  const [status, setStatus]   = useState<"idle" | "scanning" | "done" | "error">("idle");
+  const [status, setStatus]     = useState<"idle" | "scanning" | "done" | "error">("idle");
   const [detected, setDetected] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -132,31 +152,42 @@ export default function OcrHint({
         const Tesseract = await import("tesseract.js");
         const worker = await Tesseract.createWorker("eng", 1, { logger: () => {} });
 
-        // PSM 11 = sparse text — finds any text anywhere (better for real photos)
-        await worker.setParameters({
-          tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ",
-          tessedit_pageseg_mode: "11" as never,
-        });
-
         const variants = await preprocessImage(file);
 
-        let bestScore  = 0;
-        let bestPlate  = "";
+        let bestScore = 0;
+        let bestPlate = "";
 
-        for (const { blob } of variants) {
+        // Group variants by PSM so we can run them in batches
+        const byPsm: Record<string, CropVariant[]> = {};
+        for (const v of variants) {
+          (byPsm[v.psm] ??= []).push(v);
+        }
+
+        for (const psm of ["7", "11"] as const) {
           if (cancelled) break;
-          const { data: { text } } = await worker.recognize(blob);
-          const candidate = extractBest(text);
-          const score = scorePlate(candidate);
-          if (score > bestScore) { bestScore = score; bestPlate = candidate; }
-          // Early exit if very confident
-          if (bestScore >= 90) break;
+          const group = byPsm[psm] ?? [];
+
+          await worker.setParameters({
+            tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ",
+            tessedit_pageseg_mode: psm as never,
+          });
+
+          for (const { blob } of group) {
+            if (cancelled) break;
+            const { data: { text } } = await worker.recognize(blob);
+            const { text: plate, score } = extractBest(text);
+            if (score > bestScore) { bestScore = score; bestPlate = plate; }
+            // Very high confidence — stop early
+            if (bestScore >= 95) break;
+          }
+
+          if (bestScore >= 95) break;
         }
 
         await worker.terminate();
         if (cancelled) return;
 
-        if (!bestPlate) {
+        if (!bestPlate || bestScore < 45) {
           setErrorMsg("No plate detected — try a clearer photo");
           setStatus("error");
           return;
