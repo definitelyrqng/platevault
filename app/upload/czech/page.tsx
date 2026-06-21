@@ -10,6 +10,7 @@ import ZoomImage from "@/app/components/ZoomImage";
 import TagPicker from "@/app/components/TagPicker";
 import MilestonePopup from "@/app/components/MilestonePopup";
 import OcrHint from "@/app/components/OcrHint";
+import DescriptionInput from "@/app/components/DescriptionInput";
 import {
   CZECH_REGIONS_2001,
   CZECH_REGIONS_1960,
@@ -148,6 +149,7 @@ export default function CzechUploadPage() {
   const [trim, setTrim]             = useState("");
   const [color, setColor]           = useState("");
   const [badge, setBadge]           = useState("");
+  const [description, setDescription] = useState("");
   const [tags, setTags]             = useState<string[]>([]);
   const [companyId, setCompanyId]   = useState<string | null>(null);
   const [file, setFile]             = useState<File | null>(null);
@@ -576,7 +578,8 @@ export default function CzechUploadPage() {
               {/* Tags */}
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
                 <span className="block text-sm font-medium text-zinc-200 mb-3">Tags <span className="text-zinc-600 text-xs font-normal">(optional)</span></span>
-                <TagPicker selected={tags} onChange={setTags} />
+                <DescriptionInput value={description} onChange={setDescription} />
+                  <TagPicker selected={tags} onChange={setTags} />
               </div>
 
               <button type="submit" disabled={!canSubmit}

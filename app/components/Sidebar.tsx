@@ -10,6 +10,7 @@ type Me = { id: string; numericId: number; username: string } | null;
 const NAV_ITEMS = [
   { href: "/home",        label: "Home",        icon: "home" },
   { href: "/search",      label: "Search",      icon: "search" },
+  { href: "/for-you",     label: "For You",     icon: "sparkles", authOnly: false },
   { href: "/feed",        label: "Following",   icon: "users",   authOnly: true },
   { href: "/catalog",     label: "Catalog",     icon: "books" },
   { href: "/collections", label: "Collections", icon: "folders", authOnly: true },
@@ -46,6 +47,7 @@ function Icon({ name, size = 20 }: { name: string; size?: number }) {
     upload:        "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12",
     logout:        "M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1",
     dots:          "M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z",
+    sparkles:      "M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z",
   };
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill="none" viewBox="0 0 24 24"

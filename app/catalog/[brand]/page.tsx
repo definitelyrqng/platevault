@@ -1,7 +1,7 @@
 import { prisma } from "@/app/lib/prisma";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import { AddModelButton, DeleteBrandButton, DeleteModelButton } from "../CatalogAdminControls";
+import { AddModelButton, DeleteBrandButton, DeleteModelButton, RenameBrandButton, RenameModelButton } from "../CatalogAdminControls";
 
 export const dynamic = "force-dynamic";
 
@@ -81,7 +81,7 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {isSuperAdmin && <DeleteBrandButton brandId={brand.id} />}
+          {isSuperAdmin && <><RenameBrandButton brandId={brand.id} current={brand.name} /><DeleteBrandButton brandId={brand.id} /></>}
           <a href="/upload" className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 shrink-0 shadow-lg shadow-indigo-950/50 transition-colors">
             Upload a spot
           </a>
@@ -113,7 +113,7 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
                 <div className="flex items-baseline gap-3">
                   <h2 className="text-xl font-semibold">{m.name}</h2>
                   <span className="text-sm text-zinc-500">{mSpots.length} spot{mSpots.length !== 1 ? "s" : ""}</span>
-                  {isSuperAdmin && <DeleteModelButton modelId={m.id} />}
+                  {isSuperAdmin && <><RenameModelButton modelId={m.id} current={m.name} /><DeleteModelButton modelId={m.id} /></>}
                 </div>
                 <a
                   href={"/catalog/" + brandSlug + "/" + toSlug(m.name)}

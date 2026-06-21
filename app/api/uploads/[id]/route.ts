@@ -51,13 +51,14 @@ export async function PATCH(
   const newGeneration = opt(body.generation);
   const newTrim       = opt(body.trim);
   const newColor      = opt(body.color);
-  const newBadge      = typeof body.badge === "string" && body.badge.trim() ? body.badge.trim().slice(0, 30) : null;
-  const newCompanyId  = typeof body.companyId === "string" && body.companyId.trim() ? body.companyId.trim() : null;
+  const newBadge       = typeof body.badge === "string" && body.badge.trim() ? body.badge.trim().slice(0, 30) : null;
+  const newDescription = typeof body.description === "string" ? body.description.trim().slice(0, 1000) || null : undefined;
+  const newCompanyId   = typeof body.companyId === "string" && body.companyId.trim() ? body.companyId.trim() : null;
 
   const upload = await prisma.upload.update({
     where: { id },
-    data: { brand: newBrand, model: newModel, generation: newGeneration, trim: newTrim, color: newColor, badge: newBadge, companyId: newCompanyId },
-    select: { id: true, brand: true, model: true, generation: true, trim: true, color: true, badge: true, companyId: true },
+    data: { brand: newBrand, model: newModel, generation: newGeneration, trim: newTrim, color: newColor, badge: newBadge, description: newDescription, companyId: newCompanyId },
+    select: { id: true, brand: true, model: true, generation: true, trim: true, color: true, badge: true, description: true, companyId: true },
   });
 
   const fields: Record<string, [string | null, string | null]> = {

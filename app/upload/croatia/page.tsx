@@ -11,6 +11,7 @@ import TagPicker from "@/app/components/TagPicker";
 import CroatiaPlateInput from "@/app/upload/CroatiaPlateInput";
 import MilestonePopup from "@/app/components/MilestonePopup";
 import OcrHint from "@/app/components/OcrHint";
+import DescriptionInput from "@/app/components/DescriptionInput";
 import {
   CROATIA_CATEGORIES, CROATIA_FORMATS_FOR, HR_FORMAT_LABELS, CROATIA_REGIONS,
   type CroatiacategoryId,
@@ -53,6 +54,7 @@ export default function CroatiaUploadPage() {
   const [trim, setTrim] = useState("");
   const [color, setColor] = useState("");
   const [badge, setBadge] = useState("");
+  const [description, setDescription] = useState("");
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
 
@@ -118,6 +120,7 @@ export default function CroatiaUploadPage() {
           plateType: format, imageUrl, location: location.trim(),
           brand: brand.trim(), model: model.trim(), generation: generation.trim(),
           trim: trim.trim(), color: color.trim(), badge: badge.trim(),
+          description: description.trim() || null,
           tags, companyId,
         }),
       });
@@ -308,7 +311,8 @@ export default function CroatiaUploadPage() {
             {/* Tags */}
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4">
               <span className="block text-sm text-zinc-300 mb-2">Tags <span className="text-zinc-600 text-xs">(optional, up to 6)</span></span>
-              <TagPicker selected={tags} onChange={setTags} max={6} />
+              <DescriptionInput value={description} onChange={setDescription} />
+                  <TagPicker selected={tags} onChange={setTags} max={6} />
             </div>
 
             {/* Duplicate warning */}

@@ -82,6 +82,7 @@ export default async function UserProfilePage({
       banReason: true,
       currentStreak: true,
       longestStreak: true,
+      pinnedSpotIds: true,
       uploads: {
         select: {
           id: true,
@@ -110,6 +111,16 @@ export default async function UserProfilePage({
   if (!user) return notFound();
 
   const totalPages = Math.ceil(user._count.uploads / PER_PAGE);
+
+  // Fetch pinned spots (ordered by pinnedSpotIds order)
+  const pinnedSpots = user.pinnedSpotIds.length > 0
+    ? await prisma.upload.findMany({
+        where: { id: { in: user.pinnedSpotIds }, deletedAt: null, ...(viewerIsMod ? {} : { hidden: false }) },
+        select: { id: true, numericId: true, plateText: true, imageUrl: true, country: true, brand: true, model: true, _count: { select: { likes: true } } },
+      })
+    : [];
+  // Re-order to match pinnedSpotIds order
+  const pinnedOrdered = user.pinnedSpotIds.map(id => pinnedSpots.find(s => s.id === id)).filter(Boolean) as typeof pinnedSpots;
 
   const [likesAgg, allUploadsForStats, pollVoteCount] = await Promise.all([
     prisma.like.aggregate({
@@ -377,6 +388,44 @@ export default async function UserProfilePage({
       </section>
 
       <section id="spots" className="mt-10">
+        {/* ─── Pinned spots ─── */}
+        {pinnedOrdered.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-5 w-1 rounded-full bg-amber-500" />
+              <h2 className="text-base font-semibold text-zinc-100 flex items-center gap-2">
+                <svg className="h-4 w-4 text-amber-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                Pinned
+              </h2>
+            </div>
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+              {pinnedOrdered.map((u) => {
+                const meta = getCountryMeta(u.country);
+                const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
+                return (
+                  <a key={u.id} href={`/spot/${u.numericId}`} className="group relative rounded-2xl overflow-hidden border border-amber-900/40 hover:border-amber-700/60 hover:shadow-lg hover:shadow-amber-950/30 transition-all">
+                    <div className="relative aspect-[4/5] overflow-hidden bg-zinc-950">
+                      <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/95 via-zinc-950/20 to-transparent" />
+                      <div className="absolute top-3 right-3 z-10 rounded-lg bg-zinc-950/70 backdrop-blur border border-zinc-700/50 px-2 py-1 text-sm">
+                        <Flag iso={meta.iso} />
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
+                        <div className="font-mono text-base font-black tracking-widest text-white drop-shadow-lg">{u.plateText}</div>
+                        {carLabel && <div className="text-xs text-zinc-400 mt-0.5">{carLabel}</div>}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between px-4 py-3 bg-zinc-900/80 border-t border-amber-900/30">
+                      <span className="text-xs text-amber-600/70">★ Pinned</span>
+                      <span className="text-xs text-zinc-500">♡ {u._count.likes}</span>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         <div className="mb-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="h-5 w-1 rounded-full bg-indigo-500" />
@@ -391,27 +440,29 @@ export default async function UserProfilePage({
           </div>
         ) : (
           <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {user.uploads.map((u) => {
               const meta = getCountryMeta(u.country);
               const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
               return (
-                <a key={u.id} href={`/spot/${u.numericId}`} className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-md hover:shadow-indigo-950/40 transition-all">
-                  <div className="aspect-video bg-zinc-950 overflow-hidden">
-                    <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-base font-bold tracking-widest text-zinc-100 group-hover:text-indigo-200 transition-colors">{u.plateText}</span>
-                      <span><Flag iso={meta.iso} /></span>
+                <div key={u.id} className="group relative rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-indigo-700/50 hover:shadow-xl hover:shadow-indigo-950/30 transition-all">
+                  <a href={`/spot/${u.numericId}`} className="absolute inset-0 z-10" aria-label={u.plateText} />
+                  <div className="relative aspect-[4/5] overflow-hidden bg-zinc-950">
+                    <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/95 via-zinc-950/20 to-transparent" />
+                    <div className="absolute top-3 right-3 z-10 rounded-lg bg-zinc-950/70 backdrop-blur border border-zinc-700/50 px-2 py-1 text-sm">
+                      <Flag iso={meta.iso} />
                     </div>
-                    {carLabel && <div className="text-xs text-zinc-400 mt-0.5">{carLabel}</div>}
-                    <div className="mt-2 flex items-center justify-between text-xs text-zinc-500">
-                      <span>{relativeDays(u.createdAt)}</span>
-                      <span>♡ {u._count.likes}</span>
+                    <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
+                      <div className="font-mono text-base font-black tracking-widest text-white drop-shadow-lg group-hover:text-indigo-200 transition-colors">{u.plateText}</div>
+                      {carLabel && <div className="text-xs text-zinc-400 mt-0.5">{carLabel}</div>}
                     </div>
                   </div>
-                </a>
+                  <div className="flex items-center justify-between px-4 py-3 bg-zinc-900/80 border-t border-zinc-800/40">
+                    <span className="text-xs text-zinc-500">{relativeDays(u.createdAt)}</span>
+                    <span className="text-xs text-zinc-500">♡ {u._count.likes}</span>
+                  </div>
+                </div>
               );
             })}
           </div>

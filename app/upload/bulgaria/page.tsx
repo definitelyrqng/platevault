@@ -11,6 +11,7 @@ import TagPicker from "@/app/components/TagPicker";
 import BulgariaPlateInput from "@/app/upload/BulgariaPlateInput";
 import MilestonePopup from "@/app/components/MilestonePopup";
 import OcrHint from "@/app/components/OcrHint";
+import DescriptionInput from "@/app/components/DescriptionInput";
 import {
   BULGARIA_CATEGORIES,
   BULGARIA_FORMATS_FOR,
@@ -53,6 +54,7 @@ export default function BulgariaUploadPage() {
   const [trim, setTrim] = useState("");
   const [color, setColor] = useState("");
   const [badge, setBadge] = useState("");
+  const [description, setDescription] = useState("");
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
 
@@ -133,6 +135,7 @@ export default function BulgariaUploadPage() {
           trim: trim.trim(),
           color: color.trim(),
           badge: badge.trim(),
+          description: description.trim() || null,
           tags,
           companyId,
         }),
@@ -366,6 +369,7 @@ export default function BulgariaUploadPage() {
                     <p className="text-xs font-medium uppercase tracking-wider text-zinc-500 mb-1.5">Transport company</p>
                     <CompanyPicker value={companyId} onChange={(id) => setCompanyId(id)} />
                   </div>
+                  <DescriptionInput value={description} onChange={setDescription} />
                   <TagPicker selected={tags} onChange={setTags} max={6} />
                 </div>
 

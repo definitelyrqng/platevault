@@ -10,6 +10,7 @@ import ZoomImage from "@/app/components/ZoomImage";
 import TagPicker from "@/app/components/TagPicker";
 import MilestonePopup from "@/app/components/MilestonePopup";
 import OcrHint from "@/app/components/OcrHint";
+import DescriptionInput from "@/app/components/DescriptionInput";
 import {
   GERMANY_REGIONS,
   GERMANY_CATEGORIES,
@@ -185,6 +186,7 @@ export default function GermanyUploadPage() {
   const [trim, setTrim]             = useState("");
   const [color, setColor]           = useState("");
   const [badge, setBadge]           = useState("");
+  const [description, setDescription] = useState("");
   const [tags, setTags]             = useState<string[]>([]);
   const [companyId, setCompanyId]   = useState<string | null>(null);
 
@@ -305,6 +307,7 @@ export default function GermanyUploadPage() {
           brand: brand.trim(), model: model.trim(),
           generation: generation.trim(), trim: trim.trim(),
           color: color.trim(), badge: badge.trim(),
+          description: description.trim() || null,
           tags, companyId,
         }),
       });
@@ -916,6 +919,7 @@ export default function GermanyUploadPage() {
                     <p className="text-xs font-medium uppercase tracking-wider text-zinc-500 mb-1.5">Transport company</p>
                     <CompanyPicker value={companyId} onChange={(id) => setCompanyId(id)} />
                   </div>
+                  <DescriptionInput value={description} onChange={setDescription} />
                   <TagPicker selected={tags} onChange={setTags} max={6} />
                 </div>
 

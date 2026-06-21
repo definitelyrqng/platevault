@@ -1,7 +1,7 @@
 import { prisma } from "@/app/lib/prisma";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
-import { AddGenerationButton, DeleteGenerationButton } from "../../CatalogAdminControls";
+import { AddGenerationButton, DeleteGenerationButton, RenameGenerationButton } from "../../CatalogAdminControls";
 
 export const dynamic = "force-dynamic";
 
@@ -137,7 +137,7 @@ export default async function ModelPage({
                 <div className="flex items-center gap-3">
                   <h2 className="text-xl font-semibold">{gen.name}</h2>
                   <p className="text-xs text-zinc-500">{gSpots.length} spot{gSpots.length !== 1 ? "s" : ""}</p>
-                  {isSuperAdmin && <DeleteGenerationButton genId={gen.id} />}
+                  {isSuperAdmin && <><RenameGenerationButton genId={gen.id} current={gen.name} /><DeleteGenerationButton genId={gen.id} /></>}
                 </div>
                 <div className="flex-1 border-t border-zinc-800 ml-2" />
               </div>

@@ -11,6 +11,7 @@ interface Props {
     trim: string | null;
     color: string | null;
     badge: string | null;
+    description: string | null;
   };
 }
 
@@ -18,22 +19,25 @@ const inputCls =
   "w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-600 placeholder:text-zinc-600";
 
 export default function EditSpotDetails({ uploadId, initial }: Props) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen]             = useState(false);
   const [brand, setBrand]           = useState(initial.brand ?? "");
   const [model, setModel]           = useState(initial.model ?? "");
   const [generation, setGeneration] = useState(initial.generation ?? "");
   const [trim, setTrim]             = useState(initial.trim ?? "");
   const [color, setColor]           = useState(initial.color ?? "");
   const [badge, setBadge]           = useState(initial.badge ?? "");
+  const [description, setDescription] = useState(initial.description ?? "");
   const [status, setStatus]         = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [err, setErr]               = useState("");
+
+  const remaining = 1000 - description.length;
 
   async function save() {
     setStatus("saving"); setErr("");
     const res = await fetch(`/api/uploads/${uploadId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ brand, model, generation, trim, color, badge }),
+      body: JSON.stringify({ brand, model, generation, trim, color, badge, description: description.trim() || null }),
     });
     const data = await res.json();
     if (!res.ok) { setErr(data.error ?? "Save failed"); setStatus("error"); return; }
@@ -53,6 +57,24 @@ export default function EditSpotDetails({ uploadId, initial }: Props) {
 
       {open && (
         <div className="mt-3 space-y-2">
+          {/* Description */}
+          <div>
+            <label className="mb-1 block text-xs text-zinc-500">
+              Description
+              <span className={`ml-2 tabular-nums ${remaining < 100 ? "text-amber-500" : "text-zinc-700"}`}>
+                {remaining} left
+              </span>
+            </label>
+            <textarea
+              className={`${inputCls} resize-none`}
+              rows={3}
+              value={description}
+              placeholder="Add a description… use #hashtags to tag your spot"
+              onChange={(e) => setDescription(e.target.value.slice(0, 1000))}
+            />
+          </div>
+
+          {/* Car fields */}
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="mb-1 block text-xs text-zinc-500">Brand</label>
@@ -83,6 +105,7 @@ export default function EditSpotDetails({ uploadId, initial }: Props) {
               <input className={inputCls} value={badge} placeholder="e.g. 320d xDrive" onChange={e => setBadge(e.target.value)} />
             </div>
           </div>
+
           {err && <p className="text-xs text-red-400">{err}</p>}
           <button
             type="button"

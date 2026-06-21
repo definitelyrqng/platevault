@@ -10,6 +10,8 @@ import SaveToCollection from "@/app/components/SaveToCollection";
 import ShareCardButton from "@/app/components/ShareCardButton";
 import TagEditor from "./TagEditor";
 import EditSpotDetails from "./EditSpotDetails";
+import { DescriptionText } from "@/app/components/DescriptionInput";
+import PinButton from "@/app/components/PinButton";
 import { tagById } from "@/app/lib/tags";
 import { getAlbaniaRegion, ALBANIA_PLATE_TYPE_LABELS } from "@/app/lib/albaniaRegions";
 import Flag from "@/app/components/Flag";
@@ -85,6 +87,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
         location: true,
         plateRegion: true,
         badge: true,
+        description: true,
         tags: true,
         hidden: true,
         companyId: true,
@@ -180,6 +183,26 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
     },
   });
 
+  // More from same car model (if brand+model known)
+  const moreFromModel = (upload.brand && upload.model)
+    ? await prisma.upload.findMany({
+        where: {
+          brand: upload.brand,
+          model: upload.model,
+          deletedAt: null,
+          hidden: false,
+          NOT: { id: upload.id },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 8,
+        select: {
+          id: true, numericId: true, plateText: true, imageUrl: true,
+          country: true, brand: true, model: true,
+          _count: { select: { likes: true } },
+        },
+      })
+    : [];
+
   const meta = getCountryMeta(upload.country);
 
   // Albania region lookup
@@ -189,6 +212,10 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
 
   const isOwner = currentUser?.id === upload.userId;
   const hasLiked = upload.likes.some((l) => l.userId === currentUser?.id);
+  const ownerPinnedIds = isOwner
+    ? ((await prisma.user.findUnique({ where: { id: currentUser!.id }, select: { pinnedSpotIds: true } }))?.pinnedSpotIds ?? [])
+    : [];
+  const isCurrentlyPinned = ownerPinnedIds.includes(upload.id);
   const isAdmin = currentUser?.role === "SUPERADMIN" || currentUser?.role === "ADMIN";
   const isMod = isAdmin || currentUser?.role === "MOD";
 
@@ -339,6 +366,9 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 </div>
                 <RareButton spotNumericId={upload.numericId} />
                 <SaveToCollection spotNumericId={upload.numericId} />
+                {isOwner && (
+                  <PinButton uploadId={upload.id} initialPinned={isCurrentlyPinned} pinnedCount={ownerPinnedIds.length} />
+                )}
               </div>
               <div className="mt-3 flex items-center justify-between gap-4 text-xs text-zinc-500">
                 <div className="flex gap-4">
@@ -366,6 +396,13 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
               {albaniaRegion && (
                 <Detail label="Region" value={albaniaRegion.district} />
               )}
+              {/* ── Description ── */}
+              {upload.description && (
+                <div className="border-t border-zinc-800/60 pt-3">
+                  <DescriptionText text={upload.description} />
+                </div>
+              )}
+
               {upload.location  && <Detail label="Location"   value={upload.location} />}
               {upload.plateType && <Detail label="Plate type" value={ALBANIA_PLATE_TYPE_LABELS[upload.plateType] ?? AUSTRIA_PLATE_TYPE_LABELS[upload.plateType] ?? upload.plateType.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())} />}
               {upload.badge      && <Detail label="Badge"      value={upload.badge} />}
@@ -396,6 +433,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                       trim: upload.trim,
                       color: upload.color,
                       badge: upload.badge,
+                      description: upload.description ?? null,
                     }}
                   />
                 </div>
@@ -508,12 +546,37 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
         )}
 
         {/* ─── More from this country ─── */}
+        {/* ─── More from same car model ─── */}
+        {moreFromModel.length > 0 && (
+          <section className="mt-10">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-5 w-1 rounded-full bg-purple-500" />
+              <h2 className="text-lg font-semibold text-zinc-100">More {upload.brand} {upload.model}</h2>
+            </div>
+            <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+              {moreFromModel.map((s) => (
+                <a key={s.id} href={`/spot/${s.numericId}`} className="group relative rounded-xl overflow-hidden border border-zinc-800/60 hover:border-purple-700/50 hover:shadow-lg hover:shadow-purple-950/30 transition-all">
+                  <div className="aspect-[4/5] overflow-hidden bg-zinc-950">
+                    <img src={s.imageUrl} alt={s.plateText} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-zinc-950/10 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                      <div className="font-mono text-xs font-bold tracking-widest text-white drop-shadow-lg truncate">{s.plateText}</div>
+                      <div className="text-[10px] text-zinc-400 mt-0.5">♡ {s._count.likes}</div>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ─── More from this country ─── */}
         {moreFromCountry.length > 0 && (
           <section className="mt-10">
             <div className="flex items-center justify-between gap-4 mb-4">
               <div className="flex items-center gap-3">
                 <div className="h-5 w-1 rounded-full bg-indigo-500" />
-                <h2 className="text-lg font-semibold text-zinc-100">More from {meta.name}</h2>
+                <h2 className="text-lg font-semibold text-zinc-100">More from {meta?.name ?? upload.country}</h2>
               </div>
               <a href={`/c/${upload.country}`} className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
                 Browse all →
@@ -521,17 +584,14 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
             </div>
             <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
               {moreFromCountry.map((s) => (
-                <a
-                  key={s.id}
-                  href={`/spot/${s.numericId}`}
-                  className="group rounded-xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-md hover:shadow-indigo-950/40 transition-all"
-                >
-                  <div className="aspect-video bg-zinc-950 overflow-hidden">
-                    <img src={s.imageUrl} alt={s.plateText} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
-                  </div>
-                  <div className="p-2.5">
-                    <div className="font-mono text-xs font-bold tracking-widest text-zinc-300 group-hover:text-indigo-200 transition-colors truncate">{s.plateText}</div>
-                    <div className="text-[10px] text-zinc-600 mt-0.5">♡ {s._count.likes}</div>
+                <a key={s.id} href={`/spot/${s.numericId}`} className="group relative rounded-xl overflow-hidden border border-zinc-800/60 hover:border-indigo-700/50 hover:shadow-lg hover:shadow-indigo-950/30 transition-all">
+                  <div className="aspect-[4/5] overflow-hidden bg-zinc-950">
+                    <img src={s.imageUrl} alt={s.plateText} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-zinc-950/10 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                      <div className="font-mono text-xs font-bold tracking-widest text-white drop-shadow-lg truncate">{s.plateText}</div>
+                      <div className="text-[10px] text-zinc-400 mt-0.5">♡ {s._count.likes}</div>
+                    </div>
                   </div>
                 </a>
               ))}

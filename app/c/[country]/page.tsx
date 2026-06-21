@@ -93,54 +93,53 @@ export default async function CountryPage({
           </a>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {uploads.map((u) => {
             const isOwner = currentUser?.id === u.userId;
             const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
             return (
-              <div
-                key={u.id}
-                className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-lg hover:shadow-indigo-950/40 transition-all"
-              >
-                <a href={`/spot/${u.numericId}`} className="absolute inset-0 z-0" aria-label={u.plateText} />
+              <div key={u.id} className="group relative rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-indigo-700/50 hover:shadow-xl hover:shadow-indigo-950/30 transition-all">
+                <a href={`/spot/${u.numericId}`} className="absolute inset-0 z-20" aria-label={u.plateText} />
 
-                <div className="relative bg-zinc-950 aspect-video overflow-hidden">
+                {/* Photo */}
+                <div className="relative aspect-[4/5] overflow-hidden bg-zinc-950">
                   <img
                     src={u.imageUrl}
                     alt={`${u.plateText} plate`}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
                   />
-                </div>
-                <div className="p-4 flex flex-col gap-2 flex-1">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="font-mono text-lg font-bold tracking-widest text-zinc-100 group-hover:text-indigo-200 transition-colors">{u.plateText}</div>
-                      {carLabel && <div className="text-xs text-zinc-400 mt-0.5">{carLabel}</div>}
+                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/95 via-zinc-950/20 to-transparent" />
+
+                  {/* Plate type badge */}
+                  {u.plateType && (
+                    <div className="absolute top-3 left-3 z-10 rounded-full bg-indigo-950/80 backdrop-blur border border-indigo-800/50 px-2 py-0.5 text-[10px] uppercase tracking-wider text-indigo-300">
+                      {u.plateType.replace(/-/g, " ")}
                     </div>
-                    {u.plateType && (
-                      <span className="shrink-0 rounded-full border border-indigo-900/40 bg-indigo-950/30 px-2 py-0.5 text-[10px] uppercase tracking-wider text-indigo-400">
-                        {u.plateType.replace(/-/g, " ")}
-                      </span>
-                    )}
+                  )}
+
+                  {/* Bottom overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
+                    <div className="font-mono text-base font-black tracking-widest text-white drop-shadow-lg leading-tight group-hover:text-indigo-200 transition-colors">
+                      {u.plateText}
+                    </div>
+                    {carLabel && <div className="text-xs text-zinc-400 mt-0.5">{carLabel}</div>}
                   </div>
-                  <div className="mt-auto flex items-center justify-between pt-2 border-t border-zinc-800">
-                    <a
-                      href={`/u/${u.user.numericId}`}
-                      className="relative z-10 text-xs text-zinc-500 hover:text-indigo-300 transition-colors"
-                    >
-                      @{u.user.username}
-                    </a>
-                    <div className="relative z-10 flex items-center gap-2">
-                      <span className="text-xs text-zinc-600">{relativeDays(u.createdAt)}</span>
-                      <span className="text-xs text-zinc-600">💬 {u._count.comments}</span>
-                      <LikeButton
-                        uploadId={u.id}
-                        initialLikes={u._count.likes}
-                        isOwner={isOwner}
-                        isLoggedIn={!!currentUser}
-                      />
-                    </div>
+                </div>
+
+                {/* Footer */}
+                <div className="flex items-center justify-between px-4 py-3 bg-zinc-900/80 border-t border-zinc-800/40">
+                  <a href={`/u/${u.user.numericId}`} className="relative z-30 text-xs text-zinc-500 hover:text-indigo-300 transition-colors">
+                    @{u.user.username}
+                  </a>
+                  <div className="relative z-30 flex items-center gap-2">
+                    <span className="text-xs text-zinc-600">{relativeDays(u.createdAt)}</span>
+                    <LikeButton
+                      uploadId={u.id}
+                      initialLikes={u._count.likes}
+                      isOwner={isOwner}
+                      isLoggedIn={!!currentUser}
+                    />
                   </div>
                 </div>
               </div>
