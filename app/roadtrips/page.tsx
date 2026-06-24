@@ -450,7 +450,7 @@ export default function RoadTripsPage() {
                           <img
                             src={u.imageUrl}
                             alt={u.plateText}
-                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
                         </div>
                         <div className="p-2.5 flex items-center justify-between">

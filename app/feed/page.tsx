@@ -147,7 +147,7 @@ export default function FeedPage() {
                     <img
                       src={u.imageUrl}
                       alt={u.plateText}
-                      className="w-full object-contain max-h-80 group-hover:scale-[1.01] transition-transform"
+                      className="w-full object-cover max-h-80 group-hover:scale-[1.01] transition-transform"
                       loading="lazy"
                     />
                   </div>
