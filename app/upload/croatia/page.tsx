@@ -348,11 +348,10 @@ export default function CroatiaUploadPage() {
             <button
               type="submit"
               disabled={!canSubmit}
-              className="w-full rounded-2xl bg-indigo-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40"
+              className="group relative w-full overflow-hidden rounded-2xl bg-indigo-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {status === "uploading" ? "Uploading photo…"
-                : status === "saving" ? "Saving spot…"
-                : "Upload spot"}
+              <span className="relative z-10">{status === "uploading" ? "Uploading photo…" : status === "saving" ? "Saving spot…" : "Upload spot"}</span>
+              {status === "idle" && canSubmit && <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700" />}
             </button>
           </div>
 

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { UTApi } from "uploadthing/server";
 import { prisma } from "@/app/lib/prisma";
-import { logUploadDelete, logUploadEdit } from "@/app/lib/discord";
+import { logUploadDelete, logUploadEdit, logUploadEditOwner } from "@/app/lib/discord";
 
 async function getSessionUser() {
   const cookieStore = await cookies();
@@ -114,13 +114,24 @@ export async function PATCH(
     });
   }
 
-  logUploadEdit({
-    actorUsername: user.username,
-    ownerUsername: before.user.username,
-    plateText:     before.plateText,
-    numericId:     before.numericId,
-    changes:       changesText,
-  });
+  if (isAdmin && before.userId !== user.id) {
+    // Admin editing someone else's spot
+    logUploadEdit({
+      actorUsername: user.username,
+      ownerUsername: before.user.username,
+      plateText:     before.plateText,
+      numericId:     before.numericId,
+      changes:       changesText,
+    });
+  } else if (isOwner && changedLines.length > 0) {
+    // Owner editing their own spot
+    logUploadEditOwner({
+      username:  user.username,
+      plateText: before.plateText,
+      numericId: before.numericId,
+      changes:   changesText,
+    });
+  }
 
   return NextResponse.json({ upload });
 }

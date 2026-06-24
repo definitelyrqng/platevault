@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { prisma } from "@/app/lib/prisma";
 import { randomBytes } from "crypto";
+import { logLogin, logFailedLogin } from "@/app/lib/discord";
 
 export async function POST(req: Request) {
   try {
@@ -22,12 +23,16 @@ export async function POST(req: Request) {
       },
     });
 
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+
     if (!user) {
+      logFailedLogin({ identifier, ip });
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) {
+      logFailedLogin({ identifier, ip });
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
@@ -41,6 +46,8 @@ export async function POST(req: Request) {
         expiresAt,
       },
     });
+
+    logLogin({ username: user.username, ip });
 
     // Cookie-based session token
     const res = NextResponse.json({ ok: true });

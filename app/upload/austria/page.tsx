@@ -331,8 +331,9 @@ export default function AustriaUploadPage() {
 
               <div className="flex items-center gap-3 pt-1">
                 <button type="submit" disabled={!canSubmit}
-                  className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 shadow-lg shadow-indigo-950/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-                  {status === "uploading" ? "Uploading image…" : status === "saving" ? "Saving…" : "Upload spot"}
+                  className="group relative overflow-hidden rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 shadow-lg shadow-indigo-950/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                  <span className="relative z-10">{status === "uploading" ? "Uploading image…" : status === "saving" ? "Saving…" : "Upload spot"}</span>
+                  {status === "idle" && canSubmit && <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700" />}
                 </button>
                 {status === "idle" && (
                   <span className="text-xs text-zinc-500">

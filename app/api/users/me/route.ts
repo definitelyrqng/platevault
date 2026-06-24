@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
+import { logProfileUpdate } from "@/app/lib/discord";
 
 async function getSessionUser() {
   const cookieStore = await cookies();
@@ -23,6 +24,8 @@ export async function PATCH(req: Request) {
     const sessionUser = await getSessionUser();
     if (!sessionUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    const user = await prisma.user.findUnique({ where: { id: sessionUser.id }, select: { username: true } });
+
     const body = await req.json();
     const { bio } = body as { bio?: string };
 
@@ -38,6 +41,11 @@ export async function PATCH(req: Request) {
       data,
       select: { bio: true, avatarUrl: true, bannerUrl: true },
     });
+
+    const updatedFields = Object.keys(data);
+    if (updatedFields.length > 0 && user) {
+      logProfileUpdate({ username: user.username, fields: updatedFields });
+    }
 
     return NextResponse.json({ ok: true, user: updated });
   } catch {

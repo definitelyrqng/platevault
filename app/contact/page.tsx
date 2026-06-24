@@ -101,9 +101,10 @@ export default function ContactPage() {
           <button
             type="submit"
             disabled={status === "loading"}
-            className="w-full rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-500 shadow-lg shadow-indigo-950/50 disabled:opacity-40 transition-colors"
+            className="group relative w-full overflow-hidden rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-500 shadow-lg shadow-indigo-950/50 disabled:opacity-40 transition-colors"
           >
-            {status === "loading" ? "Sending…" : "Send message"}
+            <span className="relative z-10">{status === "loading" ? "Sending…" : "Send message"}</span>
+            {status !== "loading" && <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700" />}
           </button>
 
         </form>

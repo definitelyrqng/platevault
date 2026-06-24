@@ -584,8 +584,9 @@ export default function CzechUploadPage() {
               </div>
 
               <button type="submit" disabled={!canSubmit}
-                className="w-full rounded-2xl bg-indigo-600 py-3.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-                {status === "uploading" ? "Uploading image…" : status === "saving" ? "Saving…" : "Upload spot"}
+                className="group relative w-full overflow-hidden rounded-2xl bg-indigo-600 py-3.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                <span className="relative z-10">{status === "uploading" ? "Uploading image…" : status === "saving" ? "Saving…" : "Upload spot"}</span>
+                {status === "idle" && canSubmit && <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700" />}
               </button>
             </form>
 

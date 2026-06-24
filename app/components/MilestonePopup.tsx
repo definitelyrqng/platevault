@@ -83,9 +83,10 @@ export default function MilestonePopup({ data, onDone }: { data: MilestoneData |
 
           <button
             onClick={close}
-            className="mt-2 w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors"
+            className="group relative mt-2 w-full overflow-hidden rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors"
           >
-            Keep Spotting 🚘
+            <span className="relative z-10">Keep Spotting 🚘</span>
+            <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700" />
           </button>
         </div>
       </div>

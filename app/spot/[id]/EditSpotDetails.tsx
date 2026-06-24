@@ -111,9 +111,10 @@ export default function EditSpotDetails({ uploadId, initial }: Props) {
             type="button"
             onClick={save}
             disabled={status === "saving"}
-            className="w-full rounded-xl bg-indigo-600 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50 transition-colors"
+            className="group relative w-full overflow-hidden rounded-xl bg-indigo-600 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50 transition-colors"
           >
-            {status === "saving" ? "Saving…" : status === "saved" ? "✓ Saved" : "Save changes"}
+            <span className="relative z-10">{status === "saving" ? "Saving…" : status === "saved" ? "✓ Saved" : "Save changes"}</span>
+            {status === "idle" && <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700" />}
           </button>
         </div>
       )}

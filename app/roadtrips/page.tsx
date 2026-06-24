@@ -288,8 +288,9 @@ export default function RoadTripsPage() {
                 Cancel
               </button>
               <button type="submit" disabled={!newName.trim() || saving}
-                className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-40 transition-colors">
-                {saving ? "Creating…" : "Create Trip"}
+                className="group relative overflow-hidden rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-40 transition-colors">
+                <span className="relative z-10">{saving ? "Creating…" : "Create Trip"}</span>
+                {!saving && <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700" />}
               </button>
             </div>
           </form>
@@ -380,9 +381,10 @@ export default function RoadTripsPage() {
                 <button
                   type="submit"
                   disabled={!editName.trim() || editSaving}
-                  className="w-full rounded-xl bg-indigo-600 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-40 transition-colors"
+                  className="group relative w-full overflow-hidden rounded-xl bg-indigo-600 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-40 transition-colors"
                 >
-                  {editSaving ? "Saving…" : "Save changes"}
+                  <span className="relative z-10">{editSaving ? "Saving…" : "Save changes"}</span>
+                  {!editSaving && <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700" />}
                 </button>
               </form>
             ) : (

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
 import { getSessionUserWithBanCheck } from "@/app/lib/banCheck";
+import { logComment, logCommentDelete } from "@/app/lib/discord";
 
 async function getSessionUser() {
   const cookieStore = await cookies();
@@ -86,6 +87,8 @@ export async function POST(req: Request) {
     }
   }
 
+  logComment({ username: user.username, plateText: upload.plateText, numericId: upload.numericId, content: trimmed });
+
   return NextResponse.json({
     comment: {
       id: comment.id,
@@ -107,9 +110,24 @@ export async function DELETE(req: Request) {
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "Missing comment id" }, { status: 400 });
 
-  const comment = await prisma.comment.findUnique({ where: { id }, select: { id: true } });
+  const comment = await prisma.comment.findUnique({
+    where: { id },
+    select: {
+      id: true, content: true,
+      upload: { select: { plateText: true, numericId: true } },
+    },
+  });
   if (!comment) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   await prisma.comment.delete({ where: { id } });
+
+  logCommentDelete({
+    actorUsername: user.username,
+    commentId:     id,
+    content:       comment.content,
+    plateText:     comment.upload.plateText,
+    numericId:     comment.upload.numericId,
+  });
+
   return NextResponse.json({ ok: true });
 }

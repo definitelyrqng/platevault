@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
+import { logCompanyCreate } from "@/app/lib/discord";
 
 async function getSessionUser() {
   const cookieStore = await cookies();
@@ -63,5 +64,10 @@ export async function POST(req: Request) {
     data: { name, country, city, description: desc, website, createdById: user.id },
     select: { id: true, numericId: true, name: true, country: true, city: true },
   });
+
+  // Need username for log — re-fetch with username
+  const actor = await prisma.user.findUnique({ where: { id: user.id }, select: { username: true } });
+  logCompanyCreate({ actorUsername: actor?.username ?? "?", name: company.name, country: company.country, city: company.city, numericId: company.numericId });
+
   return NextResponse.json({ company }, { status: 201 });
 }

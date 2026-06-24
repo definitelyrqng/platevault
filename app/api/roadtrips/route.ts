@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
+import { logRoadTripCreate, logRoadTripDelete } from "@/app/lib/discord";
 
 async function getUser() {
   const cookieStore = await cookies();
@@ -88,6 +89,8 @@ export async function POST(req: Request) {
     select: { id: true, numericId: true, name: true, description: true, startDate: true, endDate: true, createdAt: true },
   });
 
+  logRoadTripCreate({ username: user.username, name: trip.name, numericId: trip.numericId });
+
   return NextResponse.json({ trip }, { status: 201 });
 }
 
@@ -153,13 +156,15 @@ export async function DELETE(req: Request) {
 
   const trip = await (prisma as any).roadTrip.findFirst({
     where: { id, userId: user.id },
-    select: { id: true },
+    select: { id: true, name: true },
   });
   if (!trip) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   // Unlink all uploads first
   await prisma.upload.updateMany({ where: { roadTripId: id }, data: { roadTripId: null } });
   await (prisma as any).roadTrip.delete({ where: { id } });
+
+  logRoadTripDelete({ username: user.username, name: trip.name });
 
   return NextResponse.json({ ok: true });
 }
