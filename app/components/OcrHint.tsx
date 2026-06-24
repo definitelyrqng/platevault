@@ -13,58 +13,64 @@ async function preprocessImage(file: File): Promise<CropVariant[]> {
       URL.revokeObjectURL(url);
       const { naturalWidth: w, naturalHeight: h } = img;
 
-      // For each region we produce: (a) normal contrast, (b) high contrast, (c) inverted high contrast
-      // Narrow horizontal strips (15-20% height) are likely to contain just the plate → use PSM 7 (single line)
-      // Wider regions → PSM 11 (sparse text, finds anything)
-      const regions = [
-        // ── Narrow strips — slide across the plate zone (PSM 7 = single line) ──
-        // Rear plate: usually 55-80% down
-        { sx: Math.floor(w*0.1), sy: Math.floor(h*0.50), sw: Math.floor(w*0.8), sh: Math.floor(h*0.18), psm: "7" as const },
-        { sx: Math.floor(w*0.1), sy: Math.floor(h*0.58), sw: Math.floor(w*0.8), sh: Math.floor(h*0.18), psm: "7" as const },
-        { sx: Math.floor(w*0.1), sy: Math.floor(h*0.65), sw: Math.floor(w*0.8), sh: Math.floor(h*0.18), psm: "7" as const },
-        { sx: Math.floor(w*0.1), sy: Math.floor(h*0.72), sw: Math.floor(w*0.8), sh: Math.floor(h*0.18), psm: "7" as const },
-        // Front plate (middle zone)
-        { sx: Math.floor(w*0.1), sy: Math.floor(h*0.30), sw: Math.floor(w*0.8), sh: Math.floor(h*0.18), psm: "7" as const },
-        { sx: Math.floor(w*0.1), sy: Math.floor(h*0.38), sw: Math.floor(w*0.8), sh: Math.floor(h*0.18), psm: "7" as const },
-        // ── Wider fallback zones — PSM 11 (sparse text) ──
-        { sx: Math.floor(w*0.05), sy: Math.floor(h*0.50), sw: Math.floor(w*0.9), sh: Math.floor(h*0.35), psm: "11" as const },
-        { sx: 0,                   sy: Math.floor(h*0.60), sw: w,                  sh: Math.floor(h*0.40), psm: "11" as const },
-        { sx: 0,                   sy: 0,                   sw: w,                  sh: h,                  psm: "11" as const },
-      ];
+      // Strategy: many thin PSM-7 strips sliding across likely plate zones,
+      // then a couple of wider PSM-11 fallbacks.
+      // Strip height = 10% (tight) to avoid grabbing bumper text alongside the plate.
+      // Scale 3x so small plates still have enough resolution.
+      const SH = Math.floor(h * 0.10); // strip height = 10%
+      const X0 = Math.floor(w * 0.05);
+      const SW = Math.floor(w * 0.90);
+
+      const regions: { sx: number; sy: number; sw: number; sh: number; psm: "7" | "11" }[] = [];
+
+      // Thin strips every 5% from 40% to 85% down (rear & front plates)
+      for (const yPct of [0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85]) {
+        regions.push({ sx: X0, sy: Math.floor(h * yPct), sw: SW, sh: SH, psm: "7" });
+      }
+      // Also try middle zone for front-on shots
+      for (const yPct of [0.25, 0.30, 0.35]) {
+        regions.push({ sx: X0, sy: Math.floor(h * yPct), sw: SW, sh: SH, psm: "7" });
+      }
+      // Wider fallback zones (PSM 11 — finds any sparse text)
+      regions.push({ sx: Math.floor(w*0.05), sy: Math.floor(h*0.45), sw: Math.floor(w*0.90), sh: Math.floor(h*0.40), psm: "11" });
+      regions.push({ sx: 0, sy: 0, sw: w, sh: h, psm: "11" });
 
       let pending = 0;
       const variants: CropVariant[] = [];
 
+      // For each region: normal contrast (2.5×) + high contrast (5×) + inverted high contrast
       regions.forEach(({ sx, sy, sw, sh, psm }) => {
-        // For each region, produce 2 contrast levels
-        const contrastLevels = [2.2, 3.5];
-        pending += contrastLevels.length;
+        const SCALE = 3;
 
-        contrastLevels.forEach((contrast) => {
+        const processContrast = (contrast: number, invert: boolean) => {
+          pending++;
           const canvas = document.createElement("canvas");
-          const scale = 2;
-          canvas.width  = Math.max(1, sw) * scale;
-          canvas.height = Math.max(1, sh) * scale;
+          canvas.width  = Math.max(1, sw) * SCALE;
+          canvas.height = Math.max(1, sh) * SCALE;
           const ctx = canvas.getContext("2d")!;
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = "high";
           ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
 
-          // Grayscale + contrast
           const id = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const d = id.data;
           for (let i = 0; i < d.length; i += 4) {
-            const gray = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
-            const c = Math.min(255, Math.max(0, (gray - 128) * contrast + 128));
-            d[i] = d[i+1] = d[i+2] = c;
+            let gray = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+            gray = Math.min(255, Math.max(0, (gray - 128) * contrast + 128));
+            if (invert) gray = 255 - gray;
+            d[i] = d[i+1] = d[i+2] = gray;
           }
           ctx.putImageData(id, 0, 0);
 
           canvas.toBlob((blob) => {
-            if (blob) variants.push({ blob, label: `${psm}-c${contrast}`, psm });
+            if (blob) variants.push({ blob, label: `psm${psm}-c${contrast}${invert?"-inv":""}`, psm });
             if (--pending === 0) resolve(variants);
           }, "image/png");
-        });
+        };
+
+        processContrast(2.5, false);
+        processContrast(5.0, false);
+        processContrast(5.0, true);   // inverted: helps on dark-background plates
       });
     };
     img.src = url;
@@ -76,31 +82,30 @@ function scorePlate(raw: string): number {
   const t = raw.toUpperCase().replace(/[^A-Z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
   const noSpace = t.replace(/\s/g, "");
 
-  // Must be 4-10 chars (no spaces)
   if (noSpace.length < 4 || noSpace.length > 10) return 0;
+  if (!/[A-Z]/.test(t) && !/^\d{6,7}$/.test(noSpace)) return 0;
+  if (!/\d/.test(t) && !/^[A-Z]{5,}$/.test(noSpace)) return 0;
 
-  // Must have at least one letter AND one digit (or be a 6-digit police plate)
-  if (!/[A-Z]/.test(t) || !/\d/.test(t)) {
-    if (!/^\d{3} \d{3}$/.test(t)) return 0;
-  }
-
-  // Patterns ordered by specificity (higher = more confident)
   const scored: [RegExp, number][] = [
-    // ── 95-100 pts: highly specific national formats ──
-    [/^[A-Z]{1,3} \d{3,4} [A-Z]{1,3}$/, 98], // ZG 1234 AB (HR/BA/SI)  — was 100, reduce slightly so we pick real reads
-    [/^\d{3} \d{3}$/,                    95], // 123 456   (CZ/HR police)
-    [/^\d[A-Z]{1,2} \d{4}[A-Z]?$/,      97], // 9AI 5648  (CZ 2001) — highest priority Czech
-    [/^\d{2}[A-Z] \d{4}[A-Z]?$/,        95], // 11R 0466  (CZ sport/oldtimer)
-    [/^[A-Z]{1,3}-[A-Z]{1,3} \d{3,4}[A-Z]?$/, 92], // DE style: B-AB1234
-    [/^[A-Z]{2,3} \d{4,5}$/,            85], // XX 1234
-    [/^\d{3,5} [A-Z]{2,3}$/,            85], // 12345 AB
-    [/^[A-Z]{2}\d{3,5}$/,               72], // compact
-    [/^\d{3,5}[A-Z]{2}$/,               72], // compact
-    [/^[A-Z0-9]{5,10}$/,                45], // generic fallback
+    // ── Czech formats ──
+    [/^\d[A-Z]\d \d{4}$/,           99], // 6P9 2125 — digit·letter·digit + 4digits (new CZ)
+    [/^\d[A-Z]{2} \d{4}[A-Z]?$/,    97], // 1AB 2345 or 1AB 2345C (CZ standard)
+    [/^\d{2}[A-Z] \d{4}[A-Z]?$/,    95], // 11R 0466 (CZ special)
+    [/^\d[A-Z]\d\d{4}$/,             90], // 6P92125 (no space — OCR missed space)
+    // ── Croatian / Bosnian / Slovenian ──
+    [/^[A-Z]{1,3} \d{3,4} [A-Z]{1,3}$/, 96], // ZG 1234 AB
+    // ── Police / emergency ──
+    [/^\d{3} \d{3}$/,                95], // 123 456
+    // ── German-ish ──
+    [/^[A-Z]{1,3}-[A-Z]{1,3} \d{3,4}[A-Z]?$/, 92],
+    // ── Generic two-part plates ──
+    [/^[A-Z]{2,3} \d{4,5}$/,        85],
+    [/^\d{3,5} [A-Z]{2,3}$/,        85],
+    [/^[A-Z]{2}\d{3,5}$/,           72],
+    [/^\d{3,5}[A-Z]{2}$/,           72],
+    [/^[A-Z0-9]{5,9}$/,             45],
   ];
 
-  // Bonus: strongly prefer candidates whose total char count (no spaces) is 5-8
-  // (Very short like "AB 1 C" = 4 chars are likely OCR fragments)
   const lengthBonus = noSpace.length >= 5 && noSpace.length <= 8 ? 3 : 0;
 
   let best = 0;
@@ -119,6 +124,10 @@ function extractBest(rawOcr: string): { text: string; score: number } {
     candidates.push(tokens[i]);
     if (i + 1 < tokens.length) candidates.push(tokens[i] + " " + tokens[i+1]);
     if (i + 2 < tokens.length) candidates.push(tokens[i] + " " + tokens[i+1] + " " + tokens[i+2]);
+  }
+  // Also try merging adjacent tokens without space (handles OCR missing the gap)
+  for (let i = 0; i + 1 < tokens.length; i++) {
+    candidates.push(tokens[i] + tokens[i+1]);
   }
 
   let bestScore = 0, bestText = "";
@@ -157,7 +166,6 @@ export default function OcrHint({
         let bestScore = 0;
         let bestPlate = "";
 
-        // Group variants by PSM so we can run them in batches
         const byPsm: Record<string, CropVariant[]> = {};
         for (const v of variants) {
           (byPsm[v.psm] ??= []).push(v);
@@ -177,11 +185,10 @@ export default function OcrHint({
             const { data: { text } } = await worker.recognize(blob);
             const { text: plate, score } = extractBest(text);
             if (score > bestScore) { bestScore = score; bestPlate = plate; }
-            // Very high confidence — stop early
-            if (bestScore >= 95) break;
+            if (bestScore >= 97) break;
           }
 
-          if (bestScore >= 95) break;
+          if (bestScore >= 97) break;
         }
 
         await worker.terminate();

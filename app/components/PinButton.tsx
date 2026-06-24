@@ -34,10 +34,10 @@ export default function PinButton({ uploadId, initialPinned, pinnedCount }: Prop
       onClick={toggle}
       disabled={loading}
       title={pinned ? "Unpin from profile" : "Pin to profile"}
-      className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium transition-all disabled:opacity-40 border ${
+      className={`inline-flex items-center gap-1.5 rounded-xl border px-3 h-10 text-sm font-medium transition-all disabled:opacity-40 ${
         pinned
           ? "bg-amber-950/40 border-amber-800/60 text-amber-300 hover:bg-amber-950/60"
-          : "bg-zinc-900/60 border-zinc-700/60 text-zinc-400 hover:text-amber-300 hover:border-amber-800/40"
+          : "border-zinc-700 bg-zinc-900/60 text-zinc-400 hover:text-amber-300 hover:border-amber-800/40"
       }`}
     >
       <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill={pinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth={2}>

@@ -25,10 +25,21 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (!name?.trim()) return NextResponse.json({ error: "Name required" }, { status: 400 });
 
   try {
+    const existing = await (prisma as any).carBrand.findUnique({ where: { id: Number(id) } });
+    if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const oldName = existing.name as string;
+    const newName = name.trim();
+
     const brand = await (prisma as any).carBrand.update({
       where: { id: Number(id) },
-      data: { name: name.trim() },
+      data: { name: newName },
     });
+
+    // Cascade brand rename to all Upload rows
+    if (oldName !== newName) {
+      await prisma.upload.updateMany({ where: { brand: oldName }, data: { brand: newName } });
+    }
+
     return NextResponse.json(brand);
   } catch {
     return NextResponse.json({ error: "Brand name already exists" }, { status: 409 });

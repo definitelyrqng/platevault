@@ -8,6 +8,7 @@ import CarDetailsFields from "@/app/upload/CarDetailsFields";
 import CompanyPicker from "@/app/components/CompanyPicker";
 import ZoomImage from "@/app/components/ZoomImage";
 import TagPicker from "@/app/components/TagPicker";
+import DescriptionInput from "@/app/components/DescriptionInput";
 import AlbaniaPlateInput from "@/app/upload/AlbaniaPlateInput";
 import MilestonePopup from "@/app/components/MilestonePopup";
 import OcrHint from "@/app/components/OcrHint";
@@ -88,7 +89,9 @@ export default function AlbaniaUploadPage() {
 
   const [status, setStatus] = useState<"idle" | "uploading" | "saving" | "done" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [description, setDescription] = useState("");
   const [milestoneData, setMilestoneData] = useState<{ uploadCount: number; streak: { current: number; isNewDay: boolean } } | null>(null);
+  const [newSpotId, setNewSpotId] = useState<number | null>(null);
   const redirectCountry = "/c/albania";
 
   // Multi-spot warning
@@ -170,6 +173,7 @@ export default function AlbaniaUploadPage() {
           badge: badge.trim(),
           tags,
           companyId,
+          description: description.trim() || null,
         }),
       });
 
@@ -184,7 +188,7 @@ export default function AlbaniaUploadPage() {
       if (isMilestone) {
         setMilestoneData({ uploadCount: data.uploadCount, streak: data.streak });
       } else {
-        setTimeout(() => router.push(redirectCountry), 1500);
+        router.push(`/spot/${data.numericId}`);
       }
     } catch (err) {
       setStatus("error");
@@ -225,7 +229,7 @@ export default function AlbaniaUploadPage() {
 
   return (
     <>
-    <MilestonePopup data={milestoneData} onDone={() => { setMilestoneData(null); router.push(redirectCountry); }} />
+    <MilestonePopup data={milestoneData} onDone={() => { setMilestoneData(null); router.push(`/spot/${newSpotId}`); }} />
     <main className="min-h-screen bg-zinc-950 text-zinc-100 px-4 py-10">
       <div className="mx-auto max-w-5xl">
 
@@ -381,6 +385,7 @@ export default function AlbaniaUploadPage() {
                   <p className="text-xs font-medium uppercase tracking-wider text-zinc-500 mb-1.5">Transport company</p>
                   <CompanyPicker value={companyId} onChange={(id) => setCompanyId(id)} />
                 </div>
+                <DescriptionInput value={description} onChange={setDescription} />
                 <TagPicker selected={tags} onChange={setTags} max={6} />
               </div>
 

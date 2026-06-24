@@ -8,6 +8,7 @@ import CarDetailsFields from "@/app/upload/CarDetailsFields";
 import CompanyPicker from "@/app/components/CompanyPicker";
 import ZoomImage from "@/app/components/ZoomImage";
 import TagPicker from "@/app/components/TagPicker";
+import DescriptionInput from "@/app/components/DescriptionInput";
 import AustriaPlateInput from "@/app/upload/AustriaPlateInput";
 import MilestonePopup from "@/app/components/MilestonePopup";
 import OcrHint from "@/app/components/OcrHint";
@@ -66,7 +67,9 @@ export default function AustriaUploadPage() {
   const [fileError, setFileError]   = useState("");
   const [status, setStatus]         = useState<"idle"|"uploading"|"saving"|"done"|"error">("idle");
   const [errorMsg, setErrorMsg]     = useState("");
+  const [description, setDescription] = useState("");
   const [milestoneData, setMilestoneData] = useState<{ uploadCount: number; streak: { current: number; isNewDay: boolean } } | null>(null);
+  const [newSpotId, setNewSpotId] = useState<number | null>(null);
   const redirectCountry = "/c/austria";
 
   type ExistingSpot = { numericId: number; plateText: string; username: string; userNumericId: number };
@@ -149,6 +152,7 @@ export default function AustriaUploadPage() {
           badge: badge.trim(),
           tags,
           companyId,
+          description: description.trim() || null,
         }),
       });
       const data = await res.json();
@@ -161,7 +165,7 @@ export default function AustriaUploadPage() {
       if (isMilestone) {
         setMilestoneData({ uploadCount: data.uploadCount, streak: data.streak });
       } else {
-        setTimeout(() => router.push(redirectCountry), 1500);
+        router.push(`/spot/${data.numericId}`);
       }
     } catch (err) {
       setStatus("error");
@@ -186,7 +190,7 @@ export default function AustriaUploadPage() {
   }
   return (
     <>
-    <MilestonePopup data={milestoneData} onDone={() => { setMilestoneData(null); router.push(redirectCountry); }} />
+    <MilestonePopup data={milestoneData} onDone={() => { setMilestoneData(null); router.push(`/spot/${newSpotId}`); }} />
     <main className="min-h-screen bg-zinc-950 text-zinc-100 px-4 py-10">
       <div className="mx-auto max-w-5xl">
 
@@ -321,6 +325,7 @@ export default function AustriaUploadPage() {
                   <p className="text-xs font-medium uppercase tracking-wider text-zinc-500 mb-1.5">Transport company</p>
                   <CompanyPicker value={companyId} onChange={(id) => setCompanyId(id)} />
                 </div>
+                <DescriptionInput value={description} onChange={setDescription} />
                 <TagPicker selected={tags} onChange={setTags} max={6} />
               </div>
 

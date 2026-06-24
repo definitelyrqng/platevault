@@ -198,6 +198,7 @@ export default function GermanyUploadPage() {
   const [status, setStatus]   = useState<"idle" | "uploading" | "saving" | "done" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [milestoneData, setMilestoneData] = useState<{ uploadCount: number; streak: { current: number; isNewDay: boolean } } | null>(null);
+  const [newSpotId, setNewSpotId] = useState<number | null>(null);
 
   type ExistingSpot = { numericId: number; plateText: string; username: string; userNumericId: number };
   const [multiSpotWarning, setMultiSpotWarning] = useState<ExistingSpot | null>(null);
@@ -322,7 +323,7 @@ export default function GermanyUploadPage() {
       if (isMilestone) {
         setMilestoneData({ uploadCount: data.uploadCount, streak: data.streak });
       } else {
-        setTimeout(() => router.push("/c/germany"), 1500);
+        router.push(`/spot/${data.numericId}`);
       }
     } catch (err) {
       setStatus("error");
@@ -387,7 +388,7 @@ export default function GermanyUploadPage() {
 
   return (
     <>
-      <MilestonePopup data={milestoneData} onDone={() => { setMilestoneData(null); router.push("/c/germany"); }} />
+      <MilestonePopup data={milestoneData} onDone={() => { setMilestoneData(null); router.push(`/spot/${newSpotId}`); }} />
       <main className="min-h-screen bg-zinc-950 text-zinc-100 px-4 py-10">
         <div className="mx-auto max-w-5xl">
 

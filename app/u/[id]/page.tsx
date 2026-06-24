@@ -404,20 +404,19 @@ export default async function UserProfilePage({
                 const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
                 return (
                   <a key={u.id} href={`/spot/${u.numericId}`} className="group relative rounded-2xl overflow-hidden border border-amber-900/40 hover:border-amber-700/60 hover:shadow-lg hover:shadow-amber-950/30 transition-all">
-                    <div className="relative aspect-[4/5] overflow-hidden bg-zinc-950">
-                      <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/95 via-zinc-950/20 to-transparent" />
-                      <div className="absolute top-3 right-3 z-10 rounded-lg bg-zinc-950/70 backdrop-blur border border-zinc-700/50 px-2 py-1 text-sm">
+                    <div className="relative bg-zinc-950 overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                      <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-contain group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
+                    </div>
+                    <div className="p-3 border-t border-amber-900/30 bg-zinc-900/60">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-mono text-sm font-bold tracking-widest text-zinc-100 group-hover:text-amber-200 transition-colors truncate">{u.plateText}</span>
                         <Flag iso={meta.iso} />
                       </div>
-                      <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
-                        <div className="font-mono text-base font-black tracking-widest text-white drop-shadow-lg">{u.plateText}</div>
-                        {carLabel && <div className="text-xs text-zinc-400 mt-0.5">{carLabel}</div>}
+                      {carLabel && <div className="text-xs text-zinc-500 mt-0.5">{carLabel}</div>}
+                      <div className="mt-1.5 flex items-center justify-between text-xs">
+                        <span className="text-amber-600/70">★ Pinned</span>
+                        <span className="text-zinc-600">♡ {u._count.likes}</span>
                       </div>
-                    </div>
-                    <div className="flex items-center justify-between px-4 py-3 bg-zinc-900/80 border-t border-amber-900/30">
-                      <span className="text-xs text-amber-600/70">★ Pinned</span>
-                      <span className="text-xs text-zinc-500">♡ {u._count.likes}</span>
                     </div>
                   </a>
                 );
@@ -445,22 +444,21 @@ export default async function UserProfilePage({
               const meta = getCountryMeta(u.country);
               const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
               return (
-                <div key={u.id} className="group relative rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-indigo-700/50 hover:shadow-xl hover:shadow-indigo-950/30 transition-all">
+                <div key={u.id} className="group relative rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-indigo-700/50 hover:shadow-lg hover:shadow-indigo-950/30 transition-all">
                   <a href={`/spot/${u.numericId}`} className="absolute inset-0 z-10" aria-label={u.plateText} />
-                  <div className="relative aspect-[4/5] overflow-hidden bg-zinc-950">
-                    <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/95 via-zinc-950/20 to-transparent" />
-                    <div className="absolute top-3 right-3 z-10 rounded-lg bg-zinc-950/70 backdrop-blur border border-zinc-700/50 px-2 py-1 text-sm">
+                  <div className="relative bg-zinc-950 overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                    <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-contain group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
+                  </div>
+                  <div className="p-3 border-t border-zinc-800/40 bg-zinc-900/60">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono text-sm font-bold tracking-widest text-zinc-100 group-hover:text-indigo-200 transition-colors truncate">{u.plateText}</span>
                       <Flag iso={meta.iso} />
                     </div>
-                    <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
-                      <div className="font-mono text-base font-black tracking-widest text-white drop-shadow-lg group-hover:text-indigo-200 transition-colors">{u.plateText}</div>
-                      {carLabel && <div className="text-xs text-zinc-400 mt-0.5">{carLabel}</div>}
+                    {carLabel && <div className="text-xs text-zinc-500 mt-0.5">{carLabel}</div>}
+                    <div className="mt-1.5 flex items-center justify-between text-xs text-zinc-600">
+                      <span>{relativeDays(u.createdAt)}</span>
+                      <span>♡ {u._count.likes}</span>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between px-4 py-3 bg-zinc-900/80 border-t border-zinc-800/40">
-                    <span className="text-xs text-zinc-500">{relativeDays(u.createdAt)}</span>
-                    <span className="text-xs text-zinc-500">♡ {u._count.likes}</span>
                   </div>
                 </div>
               );

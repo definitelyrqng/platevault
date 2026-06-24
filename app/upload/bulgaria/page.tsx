@@ -151,7 +151,7 @@ export default function BulgariaUploadPage() {
       if (isMilestone) {
         setMilestoneData({ uploadCount: data.uploadCount, streak: data.streak });
       } else {
-        setTimeout(() => router.push("/c/bulgaria"), 1500);
+        router.push(`/spot/${data.numericId}`);
       }
     } catch (err) {
       setStatus("error");
@@ -179,7 +179,7 @@ export default function BulgariaUploadPage() {
     <>
       <MilestonePopup
         data={milestoneData}
-        onDone={() => { setMilestoneData(null); router.push("/c/bulgaria"); }}
+        onDone={() => { setMilestoneData(null); router.push(`/spot/${newSpotId}`); }}
       />
       <main className="min-h-screen bg-zinc-950 text-zinc-100 px-4 py-10">
         <div className="mx-auto max-w-5xl">

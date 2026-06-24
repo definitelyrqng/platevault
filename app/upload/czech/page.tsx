@@ -159,6 +159,7 @@ export default function CzechUploadPage() {
   const [status, setStatus]         = useState<"idle" | "uploading" | "saving" | "done" | "error">("idle");
   const [errorMsg, setErrorMsg]     = useState("");
   const [milestoneData, setMilestoneData] = useState<{ uploadCount: number; streak: { current: number; isNewDay: boolean } } | null>(null);
+  const [newSpotId, setNewSpotId] = useState<number | null>(null);
   type ExistingSpot = { numericId: number; plateText: string; username: string; userNumericId: number };
   const [multiSpotWarning, setMultiSpotWarning] = useState<ExistingSpot | null>(null);
   const warningRef = useRef<HTMLDivElement>(null);
@@ -203,7 +204,7 @@ export default function CzechUploadPage() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ country: "czech", plateText: plateText.trim().toUpperCase(), plateType: plateTypeStored, imageUrl, location: location.trim(),
           plateRegion: is2001RegionBased ? (regionLetter || null) : (regionCode1960 || null),
-          brand: brand.trim(), model: model.trim(), generation: generation.trim(), trim: trim.trim(), color: color.trim(), badge: badge.trim(), tags, companyId }),
+          brand: brand.trim(), model: model.trim(), generation: generation.trim(), trim: trim.trim(), color: color.trim(), badge: badge.trim(), tags, companyId, description: description.trim() || null }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not save upload.");
@@ -211,8 +212,8 @@ export default function CzechUploadPage() {
       const UPLOAD_MILESTONES = [1, 10, 50, 100, 500, 1000];
       const STREAK_MILESTONES = [3, 7, 14, 30, 100];
       const isMilestone = UPLOAD_MILESTONES.includes(data.uploadCount) || (data.streak?.isNewDay && STREAK_MILESTONES.includes(data.streak?.current));
-      if (isMilestone) { setMilestoneData({ uploadCount: data.uploadCount, streak: data.streak }); }
-      else { setTimeout(() => router.push("/c/czech"), 1500); }
+      if (isMilestone) { setNewSpotId(data.numericId); setMilestoneData({ uploadCount: data.uploadCount, streak: data.streak }); }
+      else { router.push(`/spot/${data.numericId}`); }
     } catch (err) { setStatus("error"); setErrorMsg(err instanceof Error ? err.message : "Something went wrong."); }
   }
 
@@ -248,7 +249,7 @@ export default function CzechUploadPage() {
 
   return (
     <>
-      <MilestonePopup data={milestoneData} onDone={() => { setMilestoneData(null); router.push("/c/czech"); }} />
+      <MilestonePopup data={milestoneData} onDone={() => { setMilestoneData(null); router.push(`/spot/${newSpotId}`); }} />
       <main className="min-h-screen bg-zinc-950 text-zinc-100 px-4 py-10">
         <div className="mx-auto max-w-5xl">
           <div>

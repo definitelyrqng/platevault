@@ -25,10 +25,32 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (!name?.trim()) return NextResponse.json({ error: "Name required" }, { status: 400 });
 
   try {
+    // Fetch the old name + model/brand so we can update Upload strings too
+    const existing = await (prisma as any).carGeneration.findUnique({
+      where: { id: Number(id) },
+      include: { model: { include: { brand: true } } },
+    });
+    if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    const oldName   = existing.name as string;
+    const modelName = existing.model?.name as string | undefined;
+    const brandName = existing.model?.brand?.name as string | undefined;
+    const newName   = name.trim();
+
+    // Rename the CarGeneration record
     const gen = await (prisma as any).carGeneration.update({
       where: { id: Number(id) },
-      data: { name: name.trim() },
+      data: { name: newName },
     });
+
+    // Update all Upload rows that were tagged with the old generation name
+    if (oldName !== newName && modelName && brandName) {
+      await prisma.upload.updateMany({
+        where: { brand: brandName, model: modelName, generation: oldName },
+        data: { generation: newName },
+      });
+    }
+
     return NextResponse.json(gen);
   } catch {
     return NextResponse.json({ error: "Generation name already exists for this model" }, { status: 409 });

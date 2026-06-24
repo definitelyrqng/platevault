@@ -12,6 +12,7 @@ import TagEditor from "./TagEditor";
 import EditSpotDetails from "./EditSpotDetails";
 import { DescriptionText } from "@/app/components/DescriptionInput";
 import PinButton from "@/app/components/PinButton";
+import AddToRoadTripButton from "./AddToRoadTripButton";
 import { tagById } from "@/app/lib/tags";
 import { getAlbaniaRegion, ALBANIA_PLATE_TYPE_LABELS } from "@/app/lib/albaniaRegions";
 import Flag from "@/app/components/Flag";
@@ -369,6 +370,9 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 {isOwner && (
                   <PinButton uploadId={upload.id} initialPinned={isCurrentlyPinned} pinnedCount={ownerPinnedIds.length} />
                 )}
+                {isOwner && (
+                  <AddToRoadTripButton uploadId={upload.id} uploadNumericId={upload.numericId} />
+                )}
               </div>
               <div className="mt-3 flex items-center justify-between gap-4 text-xs text-zinc-500">
                 <div className="flex gap-4">
@@ -555,14 +559,13 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
             </div>
             <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
               {moreFromModel.map((s) => (
-                <a key={s.id} href={`/spot/${s.numericId}`} className="group relative rounded-xl overflow-hidden border border-zinc-800/60 hover:border-purple-700/50 hover:shadow-lg hover:shadow-purple-950/30 transition-all">
-                  <div className="aspect-[4/5] overflow-hidden bg-zinc-950">
-                    <img src={s.imageUrl} alt={s.plateText} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-zinc-950/10 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-3">
-                      <div className="font-mono text-xs font-bold tracking-widest text-white drop-shadow-lg truncate">{s.plateText}</div>
-                      <div className="text-[10px] text-zinc-400 mt-0.5">♡ {s._count.likes}</div>
-                    </div>
+                <a key={s.id} href={`/spot/${s.numericId}`} className="group rounded-xl overflow-hidden border border-zinc-800/60 hover:border-purple-700/50 hover:shadow-lg hover:shadow-purple-950/30 transition-all block">
+                  <div className="relative bg-zinc-950 overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                    <img src={s.imageUrl} alt={s.plateText} className="w-full h-full object-contain group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
+                  </div>
+                  <div className="p-2.5 border-t border-zinc-800/40 bg-zinc-900/60">
+                    <div className="font-mono text-xs font-bold tracking-widest text-zinc-200 group-hover:text-purple-200 transition-colors truncate">{s.plateText}</div>
+                    <div className="text-[10px] text-zinc-600 mt-0.5">♡ {s._count.likes}</div>
                   </div>
                 </a>
               ))}
@@ -584,14 +587,13 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
             </div>
             <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
               {moreFromCountry.map((s) => (
-                <a key={s.id} href={`/spot/${s.numericId}`} className="group relative rounded-xl overflow-hidden border border-zinc-800/60 hover:border-indigo-700/50 hover:shadow-lg hover:shadow-indigo-950/30 transition-all">
-                  <div className="aspect-[4/5] overflow-hidden bg-zinc-950">
-                    <img src={s.imageUrl} alt={s.plateText} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-zinc-950/10 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-3">
-                      <div className="font-mono text-xs font-bold tracking-widest text-white drop-shadow-lg truncate">{s.plateText}</div>
-                      <div className="text-[10px] text-zinc-400 mt-0.5">♡ {s._count.likes}</div>
-                    </div>
+                <a key={s.id} href={`/spot/${s.numericId}`} className="group rounded-xl overflow-hidden border border-zinc-800/60 hover:border-indigo-700/50 hover:shadow-lg hover:shadow-indigo-950/30 transition-all block">
+                  <div className="relative bg-zinc-950 overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                    <img src={s.imageUrl} alt={s.plateText} className="w-full h-full object-contain group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
+                  </div>
+                  <div className="p-2.5 border-t border-zinc-800/40 bg-zinc-900/60">
+                    <div className="font-mono text-xs font-bold tracking-widest text-zinc-200 group-hover:text-indigo-200 transition-colors truncate">{s.plateText}</div>
+                    <div className="text-[10px] text-zinc-600 mt-0.5">♡ {s._count.likes}</div>
                   </div>
                 </a>
               ))}
