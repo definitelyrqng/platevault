@@ -18,12 +18,36 @@ import { getAlbaniaRegion, ALBANIA_PLATE_TYPE_LABELS } from "@/app/lib/albaniaRe
 import Flag from "@/app/components/Flag";
 import { getCountryMeta } from "@/app/lib/countries";
 import { AUSTRIA_PLATE_TYPE_LABELS } from "@/app/lib/austriaData";
-import { GERMANY_REGIONS } from "@/app/lib/germanyData";
+import { GERMANY_REGIONS, GERMANY_FEDERAL_BD, GERMANY_BP_VEHICLE_TYPES, GERMANY_BW_BRANCHES } from "@/app/lib/germanyData";
 import { CZECH_REGIONS_2001, CZECH_REGIONS_1960, CZECH_REGION_NUMS } from "@/app/lib/czechData";
 
 function getGermanyDistrict(regionCode: string | null): string | null {
   if (!regionCode) return null;
   return GERMANY_REGIONS.find((r) => r.code === regionCode.toUpperCase())?.name ?? null;
+}
+
+// For federal plates: decode the embedded number from the plate text
+function getGermanyFederalInfo(plateText: string, plateType: string | null): string | null {
+  if (!plateType) return null;
+  const numMatch = plateText.match(/(?:BD|BP|BW)\s+(\d+)/i);
+  const num = numMatch ? parseInt(numMatch[1], 10) : null;
+  if (plateType === "de-federal-bd") {
+    if (num === null) return "Federal Ministry Vehicles (BD)";
+    const agency = GERMANY_FEDERAL_BD.find((a) => a.num === num);
+    return agency ? `${agency.short} — ${agency.name}` : `BD ${num}`;
+  }
+  if (plateType === "de-federal-bp") {
+    if (num === null) return "Federal Police (BP)";
+    const vtype = GERMANY_BP_VEHICLE_TYPES.find((v) => v.code === num);
+    return vtype ? `Federal Police · ${vtype.label}` : `Federal Police · BP ${num}`;
+  }
+  if (plateType === "de-federal-bw") {
+    if (num === null) return "Federal Waterways (BW)";
+    const branch = GERMANY_BW_BRANCHES.find((b) => b.num === num);
+    return branch ? `Federal Waterways · ${branch.name} (${branch.city})` : `Federal Waterways · BW ${num}`;
+  }
+  if (plateType === "de-federal-thw") return "Federal Relief (THW)";
+  return null;
 }
 
 function getCzechRegion(plateRegion: string | null, plateType: string | null): string | null {
@@ -237,6 +261,11 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
     ? getGermanyDistrict(upload.plateRegion)
     : null;
 
+  // Germany federal info (BD/BP/BW/THW — number in plate text)
+  const germanyFederal = upload.country === "germany" && upload.plateType?.startsWith("de-federal-")
+    ? getGermanyFederalInfo(upload.plateText, upload.plateType)
+    : null;
+
   // Czech region lookup
   const czechRegion = upload.country === "czech"
     ? getCzechRegion(upload.plateRegion, upload.plateType)
@@ -273,6 +302,12 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
             <>
               <span>›</span>
               <span className="text-zinc-400">{germanyDistrict}</span>
+            </>
+          )}
+          {germanyFederal && (
+            <>
+              <span>›</span>
+              <span className="text-zinc-400">{germanyFederal}</span>
             </>
           )}
           {czechRegion && (
@@ -448,6 +483,9 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
               {germanyDistrict && (
                 <Detail label="District" value={germanyDistrict} />
               )}
+              {germanyFederal && (
+                <Detail label="Federal" value={germanyFederal} />
+              )}
               {czechRegion && (
                 <Detail label="Region" value={czechRegion} />
               )}
@@ -539,6 +577,12 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 initialBadge={upload.badge ?? ""}
                 initialCompanyId={upload.companyId}
                 initialHidden={upload.hidden}
+                initialPlateText={upload.plateText}
+                initialPlateType={upload.plateType ?? ""}
+                initialPlateRegion={upload.plateRegion ?? ""}
+                initialCountry={upload.country}
+                initialLocation={upload.location ?? ""}
+                initialDescription={upload.description ?? ""}
               />
             )}
 

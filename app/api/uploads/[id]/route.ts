@@ -35,7 +35,7 @@ export async function PATCH(
   const before = await prisma.upload.findUnique({
     where: { id },
     select: {
-      numericId: true, plateText: true,
+      numericId: true, plateText: true, plateType: true, plateRegion: true, country: true, location: true,
       userId: true, brand: true, model: true, generation: true, trim: true, color: true, badge: true,
       user: { select: { username: true } },
     },
@@ -44,7 +44,8 @@ export async function PATCH(
 
   // Owner can edit their own spot; admins can edit any spot
   const isOwner = before.userId === user.id;
-  if (!isOwner && !canAdmin(user.role)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const isAdmin = canAdmin(user.role);
+  if (!isOwner && !isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const newBrand      = opt(body.brand);
   const newModel      = opt(body.model);
@@ -55,19 +56,46 @@ export async function PATCH(
   const newDescription = typeof body.description === "string" ? body.description.trim().slice(0, 1000) || null : undefined;
   const newCompanyId   = typeof body.companyId === "string" && body.companyId.trim() ? body.companyId.trim() : null;
 
+  // Admin-only: plate identity + country + location
+  const newPlateText   = isAdmin && typeof body.plateText === "string" && body.plateText.trim()
+    ? body.plateText.trim().toUpperCase().slice(0, 32) : undefined;
+  const newPlateType   = isAdmin && body.plateType !== undefined
+    ? (typeof body.plateType === "string" && body.plateType.trim() ? body.plateType.trim().slice(0, 60) : null) : undefined;
+  const newPlateRegion = isAdmin && body.plateRegion !== undefined
+    ? (typeof body.plateRegion === "string" && body.plateRegion.trim() ? body.plateRegion.trim().slice(0, 10) : null) : undefined;
+  const newCountry     = isAdmin && typeof body.country === "string" && body.country.trim()
+    ? body.country.trim().toLowerCase().slice(0, 60) : undefined;
+  const newLocation    = isAdmin && body.location !== undefined
+    ? (typeof body.location === "string" && body.location.trim() ? body.location.trim().slice(0, 120) : null) : undefined;
+
+  const updateData: Record<string, unknown> = {
+    brand: newBrand, model: newModel, generation: newGeneration,
+    trim: newTrim, color: newColor, badge: newBadge,
+    description: newDescription, companyId: newCompanyId,
+  };
+  if (newPlateText   !== undefined) updateData.plateText   = newPlateText;
+  if (newPlateType   !== undefined) updateData.plateType   = newPlateType;
+  if (newPlateRegion !== undefined) updateData.plateRegion = newPlateRegion;
+  if (newCountry     !== undefined) updateData.country     = newCountry;
+  if (newLocation    !== undefined) updateData.location    = newLocation;
+
   const upload = await prisma.upload.update({
     where: { id },
-    data: { brand: newBrand, model: newModel, generation: newGeneration, trim: newTrim, color: newColor, badge: newBadge, description: newDescription, companyId: newCompanyId },
-    select: { id: true, brand: true, model: true, generation: true, trim: true, color: true, badge: true, description: true, companyId: true },
+    data: updateData,
+    select: { id: true, brand: true, model: true, generation: true, trim: true, color: true, badge: true, description: true, companyId: true, plateText: true, plateType: true, plateRegion: true, country: true, location: true },
   });
 
   const fields: Record<string, [string | null, string | null]> = {
-    Brand:      [before.brand,      newBrand],
-    Model:      [before.model,      newModel],
-    Generation: [before.generation, newGeneration],
-    Trim:       [before.trim,       newTrim],
-    Color:      [before.color,      newColor],
-    Badge:      [before.badge,      newBadge],
+    Country:      [before.country,     newCountry     ?? before.country],
+    "Plate text": [before.plateText,   newPlateText   ?? before.plateText],
+    "Plate type": [before.plateType,   newPlateType   !== undefined ? (newPlateType ?? "-") : before.plateType],
+    Location:     [before.location,    newLocation    !== undefined ? (newLocation  ?? "-") : before.location],
+    Brand:        [before.brand,       newBrand],
+    Model:        [before.model,       newModel],
+    Generation:   [before.generation,  newGeneration],
+    Trim:         [before.trim,        newTrim],
+    Color:        [before.color,       newColor],
+    Badge:        [before.badge,       newBadge],
   };
   const changedLines = Object.entries(fields)
     .filter(([, [oldVal, newVal]]) => oldVal !== newVal)

@@ -4,6 +4,25 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import CompanyPicker from "@/app/components/CompanyPicker";
 
+const COUNTRIES: { slug: string; name: string }[] = [
+  { slug: "albania",     name: "Albania" },
+  { slug: "austria",     name: "Austria" },
+  { slug: "belgium",     name: "Belgium" },
+  { slug: "bosnia",      name: "Bosnia & Herzegovina" },
+  { slug: "bulgaria",    name: "Bulgaria" },
+  { slug: "croatia",     name: "Croatia" },
+  { slug: "czech",       name: "Czech Republic" },
+  { slug: "france",      name: "France" },
+  { slug: "germany",     name: "Germany" },
+  { slug: "greece",      name: "Greece" },
+  { slug: "italy",       name: "Italy" },
+  { slug: "kosovo",      name: "Kosovo" },
+  { slug: "netherlands", name: "Netherlands" },
+  { slug: "poland",      name: "Poland" },
+  { slug: "spain",       name: "Spain" },
+  { slug: "switzerland", name: "Switzerland" },
+];
+
 const INPUT = "w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-sm text-zinc-100 outline-none transition-all focus:border-amber-700/60 focus:bg-zinc-900/80 disabled:opacity-30 disabled:cursor-not-allowed placeholder:text-zinc-700";
 
 type BrandRow = { id: number; name: string };
@@ -24,6 +43,12 @@ export default function AdminPanel({
   initialBadge,
   initialHidden,
   initialCompanyId,
+  initialPlateText,
+  initialPlateType,
+  initialPlateRegion,
+  initialCountry,
+  initialLocation,
+  initialDescription,
 }: {
   uploadId: string;
   initialBrand: string;
@@ -34,10 +59,24 @@ export default function AdminPanel({
   initialBadge: string;
   initialHidden: boolean;
   initialCompanyId?: string | null;
+  initialPlateText: string;
+  initialPlateType: string;
+  initialPlateRegion: string;
+  initialCountry: string;
+  initialLocation: string;
+  initialDescription: string;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [tab, setTab]   = useState<"details" | "moderation">("details");
+
+  // Plate & country (admin-only)
+  const [plateText,   setPlateText]   = useState(initialPlateText);
+  const [plateType,   setPlateType]   = useState(initialPlateType);
+  const [plateRegion, setPlateRegion] = useState(initialPlateRegion);
+  const [country,     setCountry]     = useState(initialCountry);
+  const [location,    setLocation]    = useState(initialLocation);
+  const [description, setDescription] = useState(initialDescription);
 
   // Car details
   const [brand,      setBrand]      = useState(initialBrand);
@@ -102,7 +141,10 @@ export default function AdminPanel({
     setSaving(true); setSaveStatus("idle");
     const res = await fetch(`/api/uploads/${uploadId}`, {
       method: "PATCH", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ brand, model, generation, trim: initialTrim, color, badge, companyId }),
+      body: JSON.stringify({
+        brand, model, generation, trim: initialTrim, color, badge, companyId,
+        plateText, plateType, plateRegion, country, location, description,
+      }),
     });
     setSaveStatus(res.ok ? "ok" : "err");
     if (res.ok) { router.refresh(); setTimeout(() => setSaveStatus("idle"), 2500); }
@@ -186,6 +228,74 @@ export default function AdminPanel({
             {/* ── Details tab ── */}
             {tab === "details" && (
               <div className="space-y-5">
+                {/* Plate & country */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                      <rect x="2" y="7" width="20" height="10" rx="2"/><path d="M7 12h10M7 9h2m8 0h2M7 15h2m8 0h2"/>
+                    </svg>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600/80">Plate &amp; country</span>
+                    <div className="flex-1 h-px bg-amber-900/30" />
+                  </div>
+
+                  <div className="rounded-xl border border-amber-900/20 bg-amber-950/10 p-3 space-y-2.5">
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <div>
+                        <FieldLabel>Plate text</FieldLabel>
+                        <input
+                          value={plateText}
+                          onChange={e => setPlateText(e.target.value.toUpperCase())}
+                          placeholder="AB 1234"
+                          maxLength={32}
+                          className={INPUT + " font-mono tracking-widest"}
+                        />
+                      </div>
+                      <div>
+                        <FieldLabel>Country</FieldLabel>
+                        <select value={country} onChange={e => setCountry(e.target.value)} className={INPUT}>
+                          {COUNTRIES.map(c => (
+                            <option key={c.slug} value={c.slug}>{c.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <div>
+                        <FieldLabel>Plate type <span className="normal-case font-normal text-zinc-700">(stored key)</span></FieldLabel>
+                        <input
+                          value={plateType}
+                          onChange={e => setPlateType(e.target.value)}
+                          placeholder="e.g. cz-car2001-standard"
+                          maxLength={60}
+                          className={INPUT + " font-mono text-xs"}
+                        />
+                      </div>
+                      <div>
+                        <FieldLabel>Plate region <span className="normal-case font-normal text-zinc-700">(code)</span></FieldLabel>
+                        <input
+                          value={plateRegion}
+                          onChange={e => setPlateRegion(e.target.value.toUpperCase())}
+                          placeholder="e.g. M, AB, 01"
+                          maxLength={10}
+                          className={INPUT + " font-mono tracking-widest"}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <FieldLabel>Location</FieldLabel>
+                      <input
+                        value={location}
+                        onChange={e => setLocation(e.target.value)}
+                        placeholder="City, region…"
+                        maxLength={120}
+                        className={INPUT}
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 {/* Car identity */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
@@ -232,6 +342,26 @@ export default function AdminPanel({
                       </div>
                     </div>
                   </div>
+                </div>
+
+                {/* Description */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+                    </svg>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Description</span>
+                    <div className="flex-1 h-px bg-zinc-800" />
+                  </div>
+                  <textarea
+                    value={description}
+                    onChange={e => setDescription(e.target.value)}
+                    placeholder="Add context, notes, or story about this spot…"
+                    rows={3}
+                    maxLength={1000}
+                    className={INPUT + " resize-none"}
+                  />
+                  <p className="text-[10px] text-zinc-700 text-right">{description.length}/1000</p>
                 </div>
 
                 {/* Company */}
