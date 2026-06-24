@@ -611,8 +611,8 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
             <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
               {moreFromModel.map((s) => (
                 <a key={s.id} href={`/spot/${s.numericId}`} className="group rounded-xl overflow-hidden border border-zinc-800/60 hover:border-purple-700/50 hover:shadow-lg hover:shadow-purple-950/30 transition-all block">
-                  <div className="relative bg-zinc-950 overflow-hidden" style={{ aspectRatio: "16/9" }}>
-                    <img src={s.imageUrl} alt={s.plateText} className="w-full h-full object-contain group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
+                  <div className="relative bg-zinc-900 overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                    <img src={s.imageUrl} alt={s.plateText} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
                   </div>
                   <div className="p-2.5 border-t border-zinc-800/40 bg-zinc-900/60">
                     <div className="font-mono text-xs font-bold tracking-widest text-zinc-200 group-hover:text-purple-200 transition-colors truncate">{s.plateText}</div>
@@ -639,8 +639,8 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
             <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
               {moreFromCountry.map((s) => (
                 <a key={s.id} href={`/spot/${s.numericId}`} className="group rounded-xl overflow-hidden border border-zinc-800/60 hover:border-indigo-700/50 hover:shadow-lg hover:shadow-indigo-950/30 transition-all block">
-                  <div className="relative bg-zinc-950 overflow-hidden" style={{ aspectRatio: "16/9" }}>
-                    <img src={s.imageUrl} alt={s.plateText} className="w-full h-full object-contain group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
+                  <div className="relative bg-zinc-900 overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                    <img src={s.imageUrl} alt={s.plateText} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
                   </div>
                   <div className="p-2.5 border-t border-zinc-800/40 bg-zinc-900/60">
                     <div className="font-mono text-xs font-bold tracking-widest text-zinc-200 group-hover:text-indigo-200 transition-colors truncate">{s.plateText}</div>
