@@ -451,4 +451,12 @@ export default function BulgariaUploadPage() {
                       <span>{name}</span>
                     </div>
                   ))}
-                </div
+                </div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </main>
+    </>
+  );
+}
