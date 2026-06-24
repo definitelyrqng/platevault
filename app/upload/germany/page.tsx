@@ -423,6 +423,18 @@ export default function GermanyUploadPage() {
           </div>
 
           {/* Status banners */}
+          {status === "uploading" && (
+            <div className="mt-6 rounded-2xl border border-indigo-800 bg-indigo-950/40 px-5 py-4 text-sm text-indigo-300 flex items-center gap-3">
+              <svg className="h-4 w-4 animate-spin shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+              Uploading image… hang tight
+            </div>
+          )}
+          {status === "saving" && (
+            <div className="mt-6 rounded-2xl border border-indigo-800 bg-indigo-950/40 px-5 py-4 text-sm text-indigo-300 flex items-center gap-3">
+              <svg className="h-4 w-4 animate-spin shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+              Saving your spot…
+            </div>
+          )}
           {status === "done" && (
             <div className="mt-6 rounded-2xl border border-emerald-800 bg-emerald-950/40 px-5 py-4 text-sm text-emerald-300">
               Uploaded! Redirecting to the Germany gallery…
