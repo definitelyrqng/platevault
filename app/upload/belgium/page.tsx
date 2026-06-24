@@ -71,6 +71,9 @@ export default function BelgiumUploadPage() {
   const [isDragging, setIsDragging]   = useState(false);
   const [fileError, setFileError]     = useState("");
   const [status, setStatus]           = useState<"idle"|"uploading"|"saving"|"done"|"error">("idle");
+  useEffect(() => {
+    if (status === "uploading") window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [status]);
   const [errorMsg, setErrorMsg]       = useState("");
   const [milestoneData, setMilestoneData] = useState<{ uploadCount: number; streak: { current: number; isNewDay: boolean } } | null>(null);
   const redirectCountry = "/c/belgium";

@@ -63,6 +63,9 @@ export default function CroatiaUploadPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [fileError, setFileError] = useState("");
   const [status, setStatus] = useState<"idle" | "uploading" | "saving" | "done" | "error">("idle");
+  useEffect(() => {
+    if (status === "uploading") window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [status]);
   const [errorMsg, setErrorMsg] = useState("");
   const [milestoneData, setMilestoneData] = useState<MilestoneData | null>(null);
 

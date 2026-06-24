@@ -197,6 +197,9 @@ export default function GermanyUploadPage() {
   const [fileError, setFileError]   = useState("");
   const [status, setStatus]   = useState<"idle" | "uploading" | "saving" | "done" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  useEffect(() => {
+    if (status === "uploading") window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [status]);
   const [milestoneData, setMilestoneData] = useState<{ uploadCount: number; streak: { current: number; isNewDay: boolean } } | null>(null);
   const [newSpotId, setNewSpotId] = useState<number | null>(null);
 

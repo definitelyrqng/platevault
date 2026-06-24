@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 
 async function getCurrentUser() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
+  const token = cookieStore.get("pv_session")?.value;
   if (!token) return null;
   const session = await prisma.session.findUnique({
     where: { token },
@@ -43,7 +43,7 @@ export async function GET(req: Request) {
     });
     const hasMore = spots.length > limit;
     const items = hasMore ? spots.slice(0, limit) : spots;
-    return NextResponse.json({ spots: items, nextCursor: hasMore ? String(items[items.length - 1].numericId) : null, personalised: false });
+    return NextResponse.json({ spots: items, nextCursor: hasMore ? String(items[items.length - 1].numericId) : null, personalised: false, loggedIn: false });
   }
 
   // Get user's liked uploads to extract top countries + brands

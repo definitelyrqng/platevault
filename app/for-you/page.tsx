@@ -34,6 +34,7 @@ export default function ForYouPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [personalised, setPersonalised] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(true);
   const [topCountries, setTopCountries] = useState<string[]>([]);
   const loaderRef = useRef<HTMLDivElement>(null);
 
@@ -46,6 +47,7 @@ export default function ForYouPage() {
     setCursor(data.nextCursor);
     setHasMore(!!data.nextCursor);
     setPersonalised(data.personalised ?? false);
+    setLoggedIn(data.loggedIn !== false);
     setTopCountries(data.topCountries ?? []);
     setLoading(false);
     setLoadingMore(false);
@@ -107,7 +109,10 @@ export default function ForYouPage() {
       {!personalised && !loading && (
         <div className="mb-6 rounded-2xl border border-zinc-800/60 bg-zinc-900/30 px-5 py-4 text-sm text-zinc-400 flex items-center gap-3">
           <span className="text-2xl">👋</span>
-          <span>Sign in and start liking spots to get a personalised feed based on your favourite countries and car brands.</span>
+          {loggedIn
+            ? <span>Like some spots and your feed will personalise itself based on your favourite countries and car brands.</span>
+            : <span>Sign in and start liking spots to get a personalised feed based on your favourite countries and car brands.</span>
+          }
         </div>
       )}
 

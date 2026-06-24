@@ -13,6 +13,17 @@ function normalize(s: string) {
   return s.toUpperCase().replace(/[^A-Z0-9]/g, "");
 }
 
+function foldUmlauts(s: string): string {
+  return s
+    .toUpperCase()
+    .replace(/Ä/g, "A").replace(/Ö/g, "O").replace(/Ü/g, "U")
+    .replace(/ß/g, "SS")
+    .replace(/É|È|Ê|Ë/g, "E").replace(/À|Â/g, "A")
+    .replace(/Î|Ï/g, "I").replace(/Ô/g, "O").replace(/Û/g, "U")
+    .replace(/Á/g, "A").replace(/Í/g, "I").replace(/Ó/g, "O").replace(/Ú/g, "U")
+    .replace(/[^A-Z0-9]/g, "");
+}
+
 function relativeDays(d: Date) {
   const ms = Date.now() - d.getTime();
   const days = Math.max(0, Math.floor(ms / 86_400_000));
@@ -26,6 +37,7 @@ function relativeDays(d: Date) {
 async function searchPlates(rawQuery: string, filterCountry = "", sortBy: "newest" | "liked" = "newest") {
   const rawUpper = rawQuery.trim().toUpperCase();
   const normalized = normalize(rawQuery);
+  const folded = foldUmlauts(rawQuery);
   if (!normalized || normalized.length < 1) return [];
 
   const matchRows = await prisma.$queryRaw<{ id: string; sort_order: number }[]>`
@@ -33,8 +45,10 @@ async function searchPlates(rawQuery: string, filterCountry = "", sortBy: "newes
       CASE
         WHEN UPPER(u."plateText") = ${rawUpper}                                                          THEN 0
         WHEN REGEXP_REPLACE(UPPER(u."plateText"), '[^A-Z0-9]', '', 'g') = ${normalized}                 THEN 1
+        WHEN REGEXP_REPLACE(TRANSLATE(UPPER(u."plateText"), 'ÄÖÜÁÀÂÉÈÊÍÎÓÔÚÛ', 'AOUAAAEEEIIOOUU'), '[^A-Z0-9]', '', 'g') = ${folded} THEN 1
         WHEN UPPER(u."plateText") LIKE ${rawUpper + "%"}                                                  THEN 2
         WHEN REGEXP_REPLACE(UPPER(u."plateText"), '[^A-Z0-9]', '', 'g') LIKE ${normalized + "%"}         THEN 3
+        WHEN REGEXP_REPLACE(TRANSLATE(UPPER(u."plateText"), 'ÄÖÜÁÀÂÉÈÊÍÎÓÔÚÛ', 'AOUAAAEEEIIOOUU'), '[^A-Z0-9]', '', 'g') LIKE ${folded + "%"} THEN 3
         ELSE 4
       END AS sort_order
     FROM "Upload" u
@@ -43,6 +57,7 @@ async function searchPlates(rawQuery: string, filterCountry = "", sortBy: "newes
       AND (
         UPPER(u."plateText")                                                        LIKE ${"%" + rawUpper + "%"}
         OR REGEXP_REPLACE(UPPER(u."plateText"), '[^A-Z0-9]', '', 'g')              LIKE ${"%" + normalized + "%"}
+        OR REGEXP_REPLACE(TRANSLATE(UPPER(u."plateText"), 'ÄÖÜÁÀÂÉÈÊÍÎÓÔÚÛ', 'AOUAAAEEEIIOOUU'), '[^A-Z0-9]', '', 'g') LIKE ${"%" + folded + "%"}
       )
     ORDER BY sort_order, u."createdAt" DESC
     LIMIT 40
