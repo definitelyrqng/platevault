@@ -231,7 +231,7 @@ export default async function HomePage() {
                 <a key={u.id} href={`/spot/${u.numericId}`}
                   className="group rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-rose-700/50 hover:shadow-lg hover:shadow-rose-950/30 transition-all block">
                   <div className="relative bg-zinc-950 overflow-hidden" style={{ aspectRatio: "16/9" }}>
-                    <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-contain group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
+                    <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
                     {i === 0 && (
                       <div className="absolute top-3 left-3 z-10 rounded-full bg-rose-600/90 backdrop-blur px-2.5 py-1 text-[10px] font-bold text-white shadow-lg">
                         🔥 #1 this week
@@ -276,7 +276,7 @@ export default async function HomePage() {
                 <a key={u.id} href={`/spot/${u.numericId}`}
                   className="group rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-amber-700/50 hover:shadow-lg hover:shadow-amber-950/30 transition-all block">
                   <div className="relative bg-zinc-950 overflow-hidden" style={{ aspectRatio: "16/9" }}>
-                    <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-contain group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
+                    <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
                     <div className="absolute top-3 left-3 z-10 rounded-full bg-amber-500/90 backdrop-blur px-2.5 py-1 text-[10px] font-bold text-zinc-950 shadow">
                       ✨ {u.rareVotes} rare
                     </div>
@@ -317,7 +317,7 @@ export default async function HomePage() {
                 <div key={u.id} className="group relative rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-indigo-700/50 hover:shadow-lg hover:shadow-indigo-950/30 transition-all">
                   <a href={`/spot/${u.numericId}`} className="absolute inset-0 z-10" aria-label={u.plateText} />
                   <div className="relative bg-zinc-950 overflow-hidden" style={{ aspectRatio: "16/9" }}>
-                    <img src={u.imageUrl} alt={`${u.plateText} plate`} className="w-full h-full object-contain group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
+                    <img src={u.imageUrl} alt={`${u.plateText} plate`} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
                   </div>
                   <div className="p-3 border-t border-zinc-800/40 bg-zinc-900/60">
                     <div className="flex items-center justify-between gap-2">

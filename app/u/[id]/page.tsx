@@ -405,7 +405,7 @@ export default async function UserProfilePage({
                 return (
                   <a key={u.id} href={`/spot/${u.numericId}`} className="group relative rounded-2xl overflow-hidden border border-amber-900/40 hover:border-amber-700/60 hover:shadow-lg hover:shadow-amber-950/30 transition-all">
                     <div className="relative bg-zinc-950 overflow-hidden" style={{ aspectRatio: "16/9" }}>
-                      <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-contain group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
+                      <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
                     </div>
                     <div className="p-3 border-t border-amber-900/30 bg-zinc-900/60">
                       <div className="flex items-center justify-between gap-2">
@@ -447,7 +447,7 @@ export default async function UserProfilePage({
                 <div key={u.id} className="group relative rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-indigo-700/50 hover:shadow-lg hover:shadow-indigo-950/30 transition-all">
                   <a href={`/spot/${u.numericId}`} className="absolute inset-0 z-10" aria-label={u.plateText} />
                   <div className="relative bg-zinc-950 overflow-hidden" style={{ aspectRatio: "16/9" }}>
-                    <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-contain group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
+                    <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
                   </div>
                   <div className="p-3 border-t border-zinc-800/40 bg-zinc-900/60">
                     <div className="flex items-center justify-between gap-2">
