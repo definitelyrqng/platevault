@@ -133,12 +133,12 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
                   <a href="/upload" className="text-xs text-zinc-500 hover:text-indigo-400 transition-colors">Be the first &#8250;</a>
                 </div>
               ) : (
-                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-                  {mSpots.slice(0, 12).map((s) => (
+                <div className="grid grid-cols-5 gap-2">
+                  {mSpots.slice(0, 4).map((s) => (
                     <a
                       key={s.id}
                       href={"/spot/" + s.numericId}
-                      className="group shrink-0 w-36 rounded-xl overflow-hidden border border-zinc-800 hover:border-indigo-800/60 hover:shadow-md hover:shadow-indigo-950/30 transition-all"
+                      className="group rounded-xl overflow-hidden border border-zinc-800 hover:border-indigo-800/60 hover:shadow-md hover:shadow-indigo-950/30 transition-all"
                     >
                       <div className="aspect-video bg-zinc-900 overflow-hidden">
                         <img
@@ -153,12 +153,13 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
                       </div>
                     </a>
                   ))}
-                  {mSpots.length > 12 && (
+                  {mSpots.length > 4 && (
                     <a
                       href={"/catalog/" + brandSlug + "/" + toSlug(m.name)}
-                      className="shrink-0 w-36 rounded-xl border border-dashed border-zinc-800 flex items-center justify-center text-xs text-zinc-500 hover:text-zinc-300 hover:border-zinc-600 transition-colors"
+                      className="rounded-xl border border-dashed border-zinc-800 flex flex-col items-center justify-center gap-1 text-zinc-500 hover:text-zinc-300 hover:border-zinc-600 transition-colors aspect-video"
                     >
-                      +{mSpots.length - 12} more
+                      <span className="text-xl font-bold">+{mSpots.length - 4}</span>
+                      <span className="text-[11px]">View all</span>
                     </a>
                   )}
                 </div>
