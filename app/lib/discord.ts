@@ -472,6 +472,32 @@ export function logRoadTripDelete(opts: {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// AUTH — PASSWORD RESET
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function logPasswordResetRequest(opts: { username: string; email: string; sent: boolean }) {
+  log("auth", {
+    title:  "🔑 Password reset requested",
+    color:  C.indigo,
+    fields: [
+      { name: "User",  value: `@${opts.username}`, inline: true },
+      { name: "Email", value: opts.email,           inline: true },
+      { name: "Email sent", value: opts.sent ? "✅ Yes" : "❌ Failed", inline: true },
+    ],
+  });
+}
+
+export function logPasswordResetUsed(opts: { username: string }) {
+  log("auth", {
+    title:  "✅ Password successfully reset",
+    color:  C.green,
+    fields: [
+      { name: "User", value: `@${opts.username}`, inline: true },
+    ],
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // CONTACT
 // ─────────────────────────────────────────────────────────────────────────────
 

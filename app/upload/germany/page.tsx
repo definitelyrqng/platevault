@@ -241,7 +241,7 @@ export default function GermanyUploadPage() {
 
   // ── Plate type stored in DB
   const plateTypeStored = useMemo(() => {
-    if (category === "regular" || category === "din") return `de-${category}-${plateFormat}`;
+    if (category === "regular" || category === "din" || category === "electric") return `de-${category}-${plateFormat}`;
     if (category === "red") return `de-red-${redCode}`;
     if (category === "federal") return `de-federal-${federalSub}`;
     return `de-${category}`;
@@ -518,8 +518,8 @@ export default function GermanyUploadPage() {
                   <OcrHint file={file} />
                 </div>
 
-                {/* ── Plate format (regular / din only) ── */}
-                {(category === "regular" || isDIN) && (
+                {/* ── Plate format (regular / din / electric) ── */}
+                {(category === "regular" || isDIN || category === "electric") && (
                   <div>
                     <span className="block text-sm text-zinc-300 mb-2">Format</span>
                     <div className="grid grid-cols-2 gap-2">

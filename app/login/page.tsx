@@ -86,10 +86,16 @@ export default function LoginPage() {
             </div>
           </div>
 
+          <div className="flex justify-end">
+            <a href="/forgot-password" className="text-xs text-zinc-500 hover:text-indigo-400 transition-colors">
+              Forgot password?
+            </a>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
-            className="group relative mt-5 w-full overflow-hidden rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed transition-colors shadow-lg shadow-indigo-950/50"
+            className="group relative w-full overflow-hidden rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed transition-colors shadow-lg shadow-indigo-950/50"
           >
             <span className="relative z-10">{loading ? "Signing in…" : "Log in"}</span>
             {!loading && <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700" />}

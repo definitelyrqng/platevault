@@ -62,6 +62,7 @@ model User {
   lastUploadDate  DateTime?
 
   sessions            Session[]
+  passwordResetTokens PasswordResetToken[]
   uploads             Upload[]
   likes               Like[]
   comments            Comment[]
@@ -378,6 +379,21 @@ model RoadTrip {
   uploads     Upload[]
 
   @@index([userId])
+}
+
+// ─── Password reset ───────────────────────────────────────────────────────────
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  token     String    @unique @db.VarChar(128)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([token])
 }
 
 // ─── Weekly challenges ────────────────────────────────────────────────────────
