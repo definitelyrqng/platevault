@@ -15,7 +15,7 @@ const PROTECTED_PREFIXES = [
 /** Exact paths that are also protected */
 const PROTECTED_EXACT = new Set(["/home"]);
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   const isProtected =
