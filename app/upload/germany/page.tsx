@@ -73,16 +73,32 @@ function RegionPicker({
     const q = search.toLowerCase();
     if (!q) return GERMANY_REGIONS.slice(0, 80);
 
-    const codeStartsWith = GERMANY_REGIONS.filter((r) => r.code.toLowerCase().startsWith(q));
+    // Fold umlauts so "tol" matches "TÖL", "mun" matches "MÜN", etc.
+    const foldUmlauts = (s: string) =>
+      s.replace(/ä/g, "a").replace(/ö/g, "o").replace(/ü/g, "u").replace(/ß/g, "ss");
+    const qFolded = foldUmlauts(q);
+
+    const codeMatch = (r: typeof GERMANY_REGIONS[0]) => {
+      const c = r.code.toLowerCase();
+      return c.startsWith(q) || foldUmlauts(c).startsWith(qFolded);
+    };
+    const nameMatch = (r: typeof GERMANY_REGIONS[0]) => {
+      const n = r.name.toLowerCase();
+      return n.includes(q) || foldUmlauts(n).includes(qFolded);
+    };
+
+    const codeStartsWith = GERMANY_REGIONS.filter(codeMatch);
     const nameIncludes   = GERMANY_REGIONS.filter((r) =>
-      !r.code.toLowerCase().startsWith(q) && r.name.toLowerCase().includes(q)
+      !codeMatch(r) && nameMatch(r)
     );
 
     // Within code matches: exact code match first, then shorter codes first (N before NÜ before NAB),
     // active before historical within same length
     codeStartsWith.sort((a, b) => {
-      if (a.code.toLowerCase() === q && b.code.toLowerCase() !== q) return -1;
-      if (b.code.toLowerCase() === q && a.code.toLowerCase() !== q) return  1;
+      const aExact = a.code.toLowerCase() === q || foldUmlauts(a.code.toLowerCase()) === qFolded;
+      const bExact = b.code.toLowerCase() === q || foldUmlauts(b.code.toLowerCase()) === qFolded;
+      if (aExact && !bExact) return -1;
+      if (bExact && !aExact) return  1;
       if (a.code.length !== b.code.length) return a.code.length - b.code.length;
       if (a.active !== b.active) return a.active ? -1 : 1;
       return a.code.localeCompare(b.code, "de");
