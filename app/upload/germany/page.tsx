@@ -323,7 +323,7 @@ export default function GermanyUploadPage() {
       if (isMilestone) {
         setMilestoneData({ uploadCount: data.uploadCount, streak: data.streak });
       } else {
-        router.push(`/spot/${data.numericId}`);
+        router.push(`/spot/${data.upload.numericId}`);
       }
     } catch (err) {
       setStatus("error");

@@ -150,10 +150,10 @@ export default function BulgariaUploadPage() {
         UPLOAD_MILESTONES.includes(data.uploadCount) ||
         (data.streak?.isNewDay && STREAK_MILESTONES.includes(data.streak?.current));
       if (isMilestone) {
-        setNewSpotId(data.numericId);
+        setNewSpotId(data.upload.numericId);
         setMilestoneData({ uploadCount: data.uploadCount, streak: data.streak });
       } else {
-        router.push(`/spot/${data.numericId}`);
+        router.push(`/spot/${data.upload.numericId}`);
       }
     } catch (err) {
       setStatus("error");
@@ -451,12 +451,4 @@ export default function BulgariaUploadPage() {
                       <span>{name}</span>
                     </div>
                   ))}
-                </div>
-              </div>
-            </aside>
-          </div>
-        </div>
-      </main>
-    </>
-  );
-}
+                </div

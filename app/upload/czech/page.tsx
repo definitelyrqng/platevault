@@ -212,8 +212,8 @@ export default function CzechUploadPage() {
       const UPLOAD_MILESTONES = [1, 10, 50, 100, 500, 1000];
       const STREAK_MILESTONES = [3, 7, 14, 30, 100];
       const isMilestone = UPLOAD_MILESTONES.includes(data.uploadCount) || (data.streak?.isNewDay && STREAK_MILESTONES.includes(data.streak?.current));
-      if (isMilestone) { setNewSpotId(data.numericId); setMilestoneData({ uploadCount: data.uploadCount, streak: data.streak }); }
-      else { router.push(`/spot/${data.numericId}`); }
+      if (isMilestone) { setNewSpotId(data.upload.numericId); setMilestoneData({ uploadCount: data.uploadCount, streak: data.streak }); }
+      else { router.push(`/spot/${data.upload.numericId}`); }
     } catch (err) { setStatus("error"); setErrorMsg(err instanceof Error ? err.message : "Something went wrong."); }
   }
 

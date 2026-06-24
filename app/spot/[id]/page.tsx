@@ -18,6 +18,27 @@ import { getAlbaniaRegion, ALBANIA_PLATE_TYPE_LABELS } from "@/app/lib/albaniaRe
 import Flag from "@/app/components/Flag";
 import { getCountryMeta } from "@/app/lib/countries";
 import { AUSTRIA_PLATE_TYPE_LABELS } from "@/app/lib/austriaData";
+import { GERMANY_REGIONS } from "@/app/lib/germanyData";
+import { CZECH_REGIONS_2001, CZECH_REGIONS_1960, CZECH_REGION_NUMS } from "@/app/lib/czechData";
+
+function getGermanyDistrict(regionCode: string | null): string | null {
+  if (!regionCode) return null;
+  return GERMANY_REGIONS.find((r) => r.code === regionCode.toUpperCase())?.name ?? null;
+}
+
+function getCzechRegion(plateRegion: string | null, plateType: string | null): string | null {
+  if (!plateRegion) return null;
+  // 2001-system: single letter
+  if (plateRegion.length === 1) {
+    return CZECH_REGIONS_2001.find((r) => r.code === plateRegion.toUpperCase())?.name ?? null;
+  }
+  // Sport/oldtimer numeric: "01"–"14"
+  if (/^\d{2}$/.test(plateRegion)) {
+    return CZECH_REGION_NUMS.find((r) => r.code === plateRegion)?.name ?? null;
+  }
+  // 1960-system: two-letter district
+  return CZECH_REGIONS_1960.find((r) => r.code === plateRegion.toUpperCase())?.name ?? null;
+}
 
 
 
@@ -211,6 +232,16 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
     ? getAlbaniaRegion(upload.plateRegion)
     : undefined;
 
+  // Germany district lookup
+  const germanyDistrict = upload.country === "germany"
+    ? getGermanyDistrict(upload.plateRegion)
+    : null;
+
+  // Czech region lookup
+  const czechRegion = upload.country === "czech"
+    ? getCzechRegion(upload.plateRegion, upload.plateType)
+    : null;
+
   const isOwner = currentUser?.id === upload.userId;
   const hasLiked = upload.likes.some((l) => l.userId === currentUser?.id);
   const ownerPinnedIds = isOwner
@@ -236,6 +267,18 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
             <>
               <span>›</span>
               <span className="text-zinc-400">{albaniaRegion.city}</span>
+            </>
+          )}
+          {germanyDistrict && (
+            <>
+              <span>›</span>
+              <span className="text-zinc-400">{germanyDistrict}</span>
+            </>
+          )}
+          {czechRegion && (
+            <>
+              <span>›</span>
+              <span className="text-zinc-400">{czechRegion}</span>
             </>
           )}
           <span>›</span>
@@ -401,6 +444,12 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
               <div className="flex items-start justify-between gap-3 text-base"><span className="text-zinc-400 shrink-0">Country</span><span className="inline-flex items-center gap-1.5 text-zinc-200"><Flag iso={meta.iso} />{meta.name}</span></div>
               {albaniaRegion && (
                 <Detail label="Region" value={albaniaRegion.district} />
+              )}
+              {germanyDistrict && (
+                <Detail label="District" value={germanyDistrict} />
+              )}
+              {czechRegion && (
+                <Detail label="Region" value={czechRegion} />
               )}
               {/* ── Description ── */}
               {upload.description && (
