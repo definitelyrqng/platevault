@@ -355,6 +355,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 </a>
               </div>
 
+              {/* Main action row */}
               <div className="flex gap-2 items-center">
                 <div className="flex-1">
                   <SpotActions
@@ -367,13 +368,14 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 </div>
                 <RareButton spotNumericId={upload.numericId} />
                 <SaveToCollection spotNumericId={upload.numericId} />
-                {isOwner && (
-                  <PinButton uploadId={upload.id} initialPinned={isCurrentlyPinned} pinnedCount={ownerPinnedIds.length} />
-                )}
-                {isOwner && (
-                  <AddToRoadTripButton uploadId={upload.id} uploadNumericId={upload.numericId} />
-                )}
               </div>
+              {/* Owner actions row */}
+              {isOwner && (
+                <div className="flex gap-2 mt-2">
+                  <PinButton uploadId={upload.id} initialPinned={isCurrentlyPinned} pinnedCount={ownerPinnedIds.length} />
+                  <AddToRoadTripButton uploadId={upload.id} uploadNumericId={upload.numericId} />
+                </div>
+              )}
               <div className="mt-3 flex items-center justify-between gap-4 text-xs text-zinc-500">
                 <div className="flex gap-4">
                   <span>{upload._count.likes} like{upload._count.likes !== 1 ? "s" : ""}</span>

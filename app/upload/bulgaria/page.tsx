@@ -68,6 +68,7 @@ export default function BulgariaUploadPage() {
     uploadCount: number;
     streak: { current: number; isNewDay: boolean };
   } | null>(null);
+  const [newSpotId, setNewSpotId] = useState<number | null>(null);
 
   type ExistingSpot = { numericId: number; plateText: string; username: string; userNumericId: number };
   const [multiSpotWarning, setMultiSpotWarning] = useState<ExistingSpot | null>(null);
@@ -149,6 +150,7 @@ export default function BulgariaUploadPage() {
         UPLOAD_MILESTONES.includes(data.uploadCount) ||
         (data.streak?.isNewDay && STREAK_MILESTONES.includes(data.streak?.current));
       if (isMilestone) {
+        setNewSpotId(data.numericId);
         setMilestoneData({ uploadCount: data.uploadCount, streak: data.streak });
       } else {
         router.push(`/spot/${data.numericId}`);
