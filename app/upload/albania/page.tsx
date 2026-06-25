@@ -183,6 +183,7 @@ export default function AlbaniaUploadPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not save upload.");
 
+      setNewSpotId(data.upload.numericId);
       setStatus("done");
       const UPLOAD_MILESTONES = [1, 10, 50, 100, 500, 1000];
       const STREAK_MILESTONES = [3, 7, 14, 30, 100];

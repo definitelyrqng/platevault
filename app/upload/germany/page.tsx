@@ -334,6 +334,7 @@ export default function GermanyUploadPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not save upload.");
       setStatus("done");
+      setNewSpotId(data.upload.numericId);
       const UPLOAD_MILESTONES = [1, 10, 50, 100, 500, 1000];
       const STREAK_MILESTONES = [3, 7, 14, 30, 100];
       const isMilestone =
