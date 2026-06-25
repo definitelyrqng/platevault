@@ -122,8 +122,12 @@ function RegionPicker({
         <button
           type="button"
           onClick={() => { onChange(""); setSearch(""); }}
-          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-zinc-400 text-xs"
-        >✕</button>
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-colors"
+        >
+          <svg viewBox="0 0 12 12" fill="none" className="h-2.5 w-2.5" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+            <line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/>
+          </svg>
+        </button>
       )}
       {open && filtered.length > 0 && (
         <div className="absolute left-0 right-0 top-full mt-1 z-30 max-h-60 overflow-y-auto rounded-xl border border-zinc-700 bg-zinc-900 shadow-xl">
@@ -393,7 +397,7 @@ export default function GermanyUploadPage() {
     category === "regular"        ? "B-AB1234" :
     category === "din"            ? "B-AB1234" :
     category === "transit-5day"   ? "B-123456 23.06.26" :
-    category === "export"         ? "B-AB1234-A 01.01.27" :
+    category === "export"         ? "DGF-73B 01.01.27" :
     category === "oldtimer"       ? "B-AB1234H" :
     category === "seasonal"       ? "B-AB1234 04/10" :
     category === "seasonal-h"     ? "B-AB1234H 04/10" :
@@ -603,13 +607,13 @@ export default function GermanyUploadPage() {
                     {/* Export fields */}
                     {category === "export" && (
                       <div className="grid grid-cols-2 gap-3">
-                        <label className="grid gap-1.5 col-span-2">
-                          <span className="text-sm text-zinc-300">Expiry date <span className="text-zinc-600 text-xs">(DD.MM.YY)</span></span>
+                        <label className="grid gap-1.5">
+                          <span className="text-sm text-zinc-300">Numbers <span className="text-zinc-600 text-xs">(digits)</span></span>
                           <input
-                            value={exportDate}
-                            onChange={(e) => setExportDate(e.target.value.slice(0, 8))}
-                            placeholder="01.01.27"
-                            maxLength={8}
+                            value={plateSuffix}
+                            onChange={(e) => setPlateSuffix(e.target.value.replace(/[^0-9]/g, "").slice(0, 4))}
+                            placeholder="73"
+                            maxLength={4}
                             className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono outline-none focus:border-zinc-600"
                           />
                         </label>
@@ -618,9 +622,19 @@ export default function GermanyUploadPage() {
                           <input
                             value={exportCheckLetter}
                             onChange={(e) => setExportCheckLetter(e.target.value.replace(/[^a-zA-Z]/g, "").slice(0,1).toUpperCase())}
-                            placeholder="A"
+                            placeholder="B"
                             maxLength={1}
                             className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono uppercase outline-none focus:border-zinc-600"
+                          />
+                        </label>
+                        <label className="grid gap-1.5 col-span-2">
+                          <span className="text-sm text-zinc-300">Expiry date <span className="text-zinc-600 text-xs">(DD.MM.YY)</span></span>
+                          <input
+                            value={exportDate}
+                            onChange={(e) => setExportDate(e.target.value.slice(0, 8))}
+                            placeholder="01.01.27"
+                            maxLength={8}
+                            className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono outline-none focus:border-zinc-600"
                           />
                         </label>
                       </div>
@@ -1023,11 +1037,11 @@ export default function GermanyUploadPage() {
                   </>}
                   {category === "transit-5day" && <>
                     <p><span className="font-mono text-zinc-200">B-123456 23.06.26</span></p>
-                    <p className="text-zinc-600">Yellow background · valid up to 5 days</p>
+                    <p className="text-zinc-600">White plate · yellow band on right · valid up to 5 days</p>
                   </>}
                   {category === "export" && <>
-                    <p><span className="font-mono text-zinc-200">B-AB1234-A 01.01.27</span></p>
-                    <p className="text-zinc-600">Red plate with check letter + expiry date</p>
+                    <p><span className="font-mono text-zinc-200">DGF-73B 01.01.27</span></p>
+                    <p className="text-zinc-600">White plate · red band on right · check letter + expiry date</p>
                   </>}
                   {category === "oldtimer" && <>
                     <p><span className="font-mono text-zinc-200">B-AB1234H</span></p>

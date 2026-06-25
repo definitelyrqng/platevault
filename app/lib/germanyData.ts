@@ -1074,7 +1074,8 @@ export function buildGermanyPlateText(opts: {
       return rc && num ? `${rc}-${num}${d}` : rc ? `${rc}-` : "";
     }
     case "export": {
-      const cl = opts.exportCheckLetter ? `-${opts.exportCheckLetter.toUpperCase()}` : "";
+      // Format: DGF-73B 01.01.27 — no dash between number and check letter
+      const cl = opts.exportCheckLetter ? opts.exportCheckLetter.toUpperCase() : "";
       const d  = opts.date ? ` ${opts.date}` : "";
       return rc && sfx ? `${rc}-${sfx}${cl}${d}` : rc ? `${rc}-` : "";
     }
