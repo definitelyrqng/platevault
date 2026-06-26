@@ -840,7 +840,7 @@ export const GERMANY_CATEGORIES: GermanyCategory[] = [
   { id: "state-authority", label: "State Authority",      emoji: "🏛️", desc: "State parliament / government vehicles (BBL, THL, NRW…)",              group: "official"  },
   { id: "federal",         label: "Federal Agencies",     emoji: "🦅", desc: "BD / BP / BW / THW — federal ministry & agency vehicles",               group: "official"  },
   { id: "diplomatic",      label: "Diplomatic",           emoji: "🌐", desc: "Diplomatic corps — 0-XX-123456A / B-XX / BN-XX format",                 group: "official"  },
-  { id: "military",        label: "Military (Bundeswehr)",emoji: "🪖", desc: "Bundeswehr — Y-123456 format, centrally issued",                        group: "official"  },
+  { id: "military",        label: "Military (Bundeswehr)",emoji: "⚔️", desc: "Bundeswehr — Y-123456 format, centrally issued",                        group: "official"  },
 ];
 
 export const CATEGORY_GROUPS: { id: GermanyCategory["group"]; label: string }[] = [
@@ -1108,10 +1108,9 @@ export function buildGermanyPlateText(opts: {
       return cc && ser ? `${pre}-${cc}-${ser}${cl}` : `${pre}-`;
     }
     case "military": {
-      // Format: Y-123456 (6 digits), trailers may have a letter suffix e.g. Y-123456A
+      // Format: Y-123456 (up to 6 digits), Y prefix is fixed
       const milNum = (opts.numbers ?? "").replace(/[^0-9]/g, "").slice(0, 6);
-      const milSfx = (opts.exportCheckLetter ?? "").toUpperCase(); // reuse for optional letter suffix
-      return milNum ? `Y-${milNum}${milSfx}` : "Y-";
+      return milNum ? `Y-${milNum}` : "Y-";
     }
     default:
       return "";

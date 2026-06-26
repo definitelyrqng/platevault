@@ -941,29 +941,20 @@ export default function GermanyUploadPage() {
 
                 {category === "military" && (
                   <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
-                      <label className="grid gap-1.5">
-                        <span className="text-sm text-zinc-300">Number <span className="text-zinc-600 text-xs">(up to 6 digits)</span></span>
+                    <label className="grid gap-1.5">
+                      <span className="text-sm text-zinc-300">Number <span className="text-zinc-600 text-xs">(up to 6 digits)</span></span>
+                      <div className="flex items-center gap-2">
+                        <span className="rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm font-mono font-bold text-zinc-300 select-none">Y-</span>
                         <input
                           value={officialNumbers}
                           onChange={(e) => setOfficialNumbers(e.target.value.replace(/\D/g,"").slice(0,6))}
                           placeholder="123456"
                           maxLength={6}
-                          className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono outline-none focus:border-zinc-600"
+                          className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono outline-none focus:border-zinc-600"
                         />
-                      </label>
-                      <label className="grid gap-1.5">
-                        <span className="text-sm text-zinc-300">Trailer suffix <span className="text-zinc-600 text-xs">(optional, A–Z)</span></span>
-                        <input
-                          value={exportCheckLetter}
-                          onChange={(e) => setExportCheckLetter(e.target.value.replace(/[^a-zA-Z]/g,"").slice(0,1).toUpperCase())}
-                          placeholder="A"
-                          maxLength={1}
-                          className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono uppercase outline-none focus:border-zinc-600"
-                        />
-                      </label>
-                    </div>
-                    <p className="text-xs text-zinc-500">Format: Y-123456 · trailers: Y-123456A · white plate, black text</p>
+                      </div>
+                    </label>
+                    <p className="text-xs text-zinc-500">White plate, black text — centrally issued by Bundeswehr</p>
                   </div>
                 )}
 
@@ -1127,9 +1118,8 @@ export default function GermanyUploadPage() {
                     <p className="text-zinc-600">0 · country code · serial · check letter</p>
                   </>}
                   {category === "military" && <>
-                    <p><span className="font-mono text-zinc-200">Y-123456</span> — standard vehicle</p>
-                    <p><span className="font-mono text-zinc-200">Y-123456A</span> — trailer (letter suffix)</p>
-                    <p className="text-zinc-600">Y prefix · up to 6 digits · white plate, black text</p>
+                    <p><span className="font-mono text-zinc-200">Y-123456</span> — Bundeswehr vehicle</p>
+                    <p className="text-zinc-600">Y prefix is fixed · up to 6 digits · white plate, black text</p>
                   </>}
                 </div>
               </div>
