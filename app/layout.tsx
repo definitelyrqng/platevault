@@ -4,7 +4,8 @@ import SidebarGate from "./components/SidebarGate";
 import ThemeProvider from "./components/ThemeProvider";
 import AnnouncementBanner from "./components/AnnouncementBanner";
 import MaintenanceBanner from "./components/MaintenanceBanner";
-import { siteStatus, statusInfo } from "./status-config";
+import { statusInfo } from "./status-config";
+import { getMaintenanceSettings } from "@/app/lib/maintenance";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.platevault.app"),
@@ -24,8 +25,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const info = statusInfo[siteStatus];
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const { maintenanceMode } = await getMaintenanceSettings();
+  const info = statusInfo[maintenanceMode ? "maintenance" : "online"];
   return (
     <html lang="en" suppressHydrationWarning data-theme="dark">
       <head>

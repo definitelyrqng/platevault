@@ -52,19 +52,23 @@ export default function CarDetailsFields({ onChange }: Props) {
     setModelId(""); setModelName(""); setGenerationId(""); setGenName("");
     setModels([]); setGenerations([]);
     if (!brandId) return;
-    fetch("/api/catalog/brands/" + brandId + "/models")
+    const ac = new AbortController();
+    fetch("/api/catalog/brands/" + brandId + "/models", { signal: ac.signal })
       .then((r) => r.json())
       .then((data: Model[]) => setModels(data))
       .catch(() => {});
+    return () => ac.abort();
   }, [brandId]);
 
   useEffect(() => {
     setGenerationId(""); setGenName(""); setGenerations([]);
     if (!modelId) return;
-    fetch("/api/catalog/models/" + modelId + "/generations")
+    const ac = new AbortController();
+    fetch("/api/catalog/models/" + modelId + "/generations", { signal: ac.signal })
       .then((r) => r.json())
       .then((data: Gen[]) => setGenerations(data))
       .catch(() => {});
+    return () => ac.abort();
   }, [modelId]);
 
   const handleBrandChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {

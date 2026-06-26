@@ -1,4 +1,5 @@
-import { siteStatus, statusInfo } from "../status-config";
+import { statusInfo } from "../status-config";
+import { getMaintenanceSettings } from "@/app/lib/maintenance";
 
 const SERVICES = [
   { name: "Website",         key: "web" },
@@ -7,7 +8,9 @@ const SERVICES = [
   { name: "Authentication",  key: "auth" },
 ];
 
-export default function StatusPage() {
+export default async function StatusPage() {
+  const { maintenanceMode } = await getMaintenanceSettings();
+  const siteStatus = maintenanceMode ? "maintenance" : "online";
   const s = statusInfo[siteStatus];
 
   return (
