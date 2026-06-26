@@ -396,6 +396,15 @@ model PasswordResetToken {
   @@index([token])
 }
 
+// ─── Site settings (singleton) ───────────────────────────────────────────────
+
+model SiteSettings {
+  id                String   @id @default("singleton")
+  maintenanceMode   Boolean  @default(false)
+  maintenanceMsg    String   @default("We're doing some technical work. Browsing is available but uploads are paused. Back soon!") @db.VarChar(500)
+  updatedAt         DateTime @updatedAt
+}
+
 // ─── Weekly challenges ────────────────────────────────────────────────────────
 
 model ChallengeCompletion {

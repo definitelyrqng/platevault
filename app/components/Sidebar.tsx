@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
 
-type Me = { id: string; numericId: number; username: string } | null;
+type Me = { id: string; numericId: number; username: string; role?: string } | null;
 
 const NAV_ITEMS = [
   { href: "/home",        label: "Home",        icon: "home" },
@@ -71,7 +71,7 @@ export default function Sidebar() {
         const r = await fetch("/api/auth/me", { cache: "no-store" });
         const data = await r.json();
         if (data.user) {
-          setMe(data.user);
+          setMe({ ...data.user, role: data.user.role });
           const nr = await fetch("/api/notifications?unread=true");
           if (nr.ok) {
             const nd = await nr.json();
@@ -191,6 +191,18 @@ export default function Sidebar() {
                     {item.label}
                   </Link>
                 ))}
+                {me?.role === "SUPERADMIN" && (
+                  <>
+                    <div className="my-1 border-t border-zinc-800" />
+                    <Link href="/admin" onClick={() => setMoreOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-amber-400 hover:bg-amber-950/30 hover:text-amber-300 transition-colors">
+                      <svg xmlns="http://www.w3.org/2000/svg" width={16} height={16} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                      Admin Panel
+                    </Link>
+                  </>
+                )}
               </div>
             )}
           </div>

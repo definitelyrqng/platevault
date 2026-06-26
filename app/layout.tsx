@@ -3,6 +3,7 @@ import "./globals.css";
 import SidebarGate from "./components/SidebarGate";
 import ThemeProvider from "./components/ThemeProvider";
 import AnnouncementBanner from "./components/AnnouncementBanner";
+import MaintenanceBanner from "./components/MaintenanceBanner";
 import { siteStatus, statusInfo } from "./status-config";
 
 export const metadata: Metadata = {
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body className="min-h-screen bg-zinc-950 text-zinc-100 transition-colors duration-200">
         <ThemeProvider>
+          <MaintenanceBanner />
           <AnnouncementBanner />
           <div className="min-h-screen flex">
             <SidebarGate />

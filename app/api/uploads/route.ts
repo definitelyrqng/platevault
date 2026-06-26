@@ -5,6 +5,7 @@ import { logNewUpload } from "@/app/lib/discord";
 import { applyWatermark } from "@/app/lib/watermark";
 import { UTApi, UTFile } from "uploadthing/server";
 import { sanitizeTags } from "@/app/lib/tags";
+import { getMaintenanceSettings } from "@/app/lib/maintenance";
 
 function optStr(val: unknown, max: number): string | null {
   const s = String(val ?? "").trim();
@@ -16,6 +17,12 @@ export async function POST(req: Request) {
     const { user, banError } = await getSessionUserWithBanCheck();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (banError) return NextResponse.json({ error: banError }, { status: 403 });
+
+    // Block uploads during maintenance (except superadmins)
+    if (user.role !== "SUPERADMIN") {
+      const { maintenanceMode } = await getMaintenanceSettings();
+      if (maintenanceMode) return NextResponse.json({ error: "Uploads are paused for maintenance. Check back soon!" }, { status: 503 });
+    }
 
     const body = await req.json();
 
