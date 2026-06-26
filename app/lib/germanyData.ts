@@ -810,7 +810,8 @@ export type GermanyCategoryId =
   | "official"        // REGION-123456    (official services & consulates)
   | "state-authority" // STATECODE-123456 (BBL-123456, THL-123456…)
   | "federal"         // BD XX-123456 / BP XA-123456 / BW XB-123456 / THW-123456
-  | "diplomatic";     // 0-XX-123456A / B-XX-123456A / BN-XX-123456A
+  | "diplomatic"      // 0-XX-123456A / B-XX-123456A / BN-XX-123456A
+  | "military";       // Y-123456 (Bundeswehr)
 
 export interface GermanyCategory {
   id: GermanyCategoryId;
@@ -839,6 +840,7 @@ export const GERMANY_CATEGORIES: GermanyCategory[] = [
   { id: "state-authority", label: "State Authority",      emoji: "🏛️", desc: "State parliament / government vehicles (BBL, THL, NRW…)",              group: "official"  },
   { id: "federal",         label: "Federal Agencies",     emoji: "🦅", desc: "BD / BP / BW / THW — federal ministry & agency vehicles",               group: "official"  },
   { id: "diplomatic",      label: "Diplomatic",           emoji: "🌐", desc: "Diplomatic corps — 0-XX-123456A / B-XX / BN-XX format",                 group: "official"  },
+  { id: "military",        label: "Military (Bundeswehr)",emoji: "🪖", desc: "Bundeswehr — Y-123456 format, centrally issued",                        group: "official"  },
 ];
 
 export const CATEGORY_GROUPS: { id: GermanyCategory["group"]; label: string }[] = [
@@ -1105,6 +1107,12 @@ export function buildGermanyPlateText(opts: {
       const cl   = (opts.diplomCheckLetter ?? "").toUpperCase().trim();
       return cc && ser ? `${pre}-${cc}-${ser}${cl}` : `${pre}-`;
     }
+    case "military": {
+      // Format: Y-123456 (6 digits), trailers may have a letter suffix e.g. Y-123456A
+      const milNum = (opts.numbers ?? "").replace(/[^0-9]/g, "").slice(0, 6);
+      const milSfx = (opts.exportCheckLetter ?? "").toUpperCase(); // reuse for optional letter suffix
+      return milNum ? `Y-${milNum}${milSfx}` : "Y-";
+    }
     default:
       return "";
   }
@@ -1147,4 +1155,5 @@ export const PLATE_TYPE_LABELS: Record<string, string> = {
   "de-federal-bw":          "Federal Waterways (BW)",
   "de-federal-thw":         "Federal Relief (THW)",
   "de-diplomatic":          "Diplomatic Plate",
+  "de-military":            "Military (Bundeswehr)",
 };

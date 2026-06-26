@@ -247,6 +247,7 @@ export default function GermanyUploadPage() {
             : category === "official" ? officialNumbers
             : category === "state-authority" ? officialNumbers
             : category === "federal" ? federalNumbers
+            : category === "military" ? officialNumbers
             : undefined,
     stateCode: category === "state-authority" ? stateCode : undefined,
     federalSub: category === "federal" ? federalSub : undefined,
@@ -408,6 +409,7 @@ export default function GermanyUploadPage() {
     category === "state-authority"? "THL-123456" :
     category === "federal"        ? "BD 5-123456" :
     category === "diplomatic"     ? "0-42-123456A" :
+    category === "military"       ? "Y-123456" :
     "…";
 
   return (
@@ -937,6 +939,34 @@ export default function GermanyUploadPage() {
                   </div>
                 )}
 
+                {category === "military" && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className="grid gap-1.5">
+                        <span className="text-sm text-zinc-300">Number <span className="text-zinc-600 text-xs">(up to 6 digits)</span></span>
+                        <input
+                          value={officialNumbers}
+                          onChange={(e) => setOfficialNumbers(e.target.value.replace(/\D/g,"").slice(0,6))}
+                          placeholder="123456"
+                          maxLength={6}
+                          className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono outline-none focus:border-zinc-600"
+                        />
+                      </label>
+                      <label className="grid gap-1.5">
+                        <span className="text-sm text-zinc-300">Trailer suffix <span className="text-zinc-600 text-xs">(optional, A–Z)</span></span>
+                        <input
+                          value={exportCheckLetter}
+                          onChange={(e) => setExportCheckLetter(e.target.value.replace(/[^a-zA-Z]/g,"").slice(0,1).toUpperCase())}
+                          placeholder="A"
+                          maxLength={1}
+                          className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono uppercase outline-none focus:border-zinc-600"
+                        />
+                      </label>
+                    </div>
+                    <p className="text-xs text-zinc-500">Format: Y-123456 · trailers: Y-123456A · white plate, black text</p>
+                  </div>
+                )}
+
                 {/* ── Location ── */}
                 <label className="grid gap-1.5">
                   <span className="text-sm text-zinc-300">Location <span className="text-zinc-600 text-xs">(city required)</span></span>
@@ -1095,6 +1125,11 @@ export default function GermanyUploadPage() {
                   {category === "diplomatic" && <>
                     <p><span className="font-mono text-zinc-200">0-42-123456A</span></p>
                     <p className="text-zinc-600">0 · country code · serial · check letter</p>
+                  </>}
+                  {category === "military" && <>
+                    <p><span className="font-mono text-zinc-200">Y-123456</span> — standard vehicle</p>
+                    <p><span className="font-mono text-zinc-200">Y-123456A</span> — trailer (letter suffix)</p>
+                    <p className="text-zinc-600">Y prefix · up to 6 digits · white plate, black text</p>
                   </>}
                 </div>
               </div>
