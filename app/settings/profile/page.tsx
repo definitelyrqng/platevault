@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { generateReactHelpers } from "@uploadthing/react";
 import type { OurFileRouter } from "@/app/lib/uploadthing";
+import ImageCropModal from "@/app/components/ImageCropModal";
 
 const { useUploadThing } = generateReactHelpers<OurFileRouter>();
 
@@ -14,66 +15,97 @@ type Me = {
   bannerUrl: string | null;
 };
 
-// ─── Tiny image picker ───────────────────────────────────────────────────────
+// ─── Image picker with crop ───────────────────────────────────────────────────
 
 function ImagePicker({
   label,
   hint,
   currentUrl,
   accept,
+  aspectRatio,
   onFile,
 }: {
   label: string;
   hint: string;
   currentUrl: string | null;
   accept: string;
+  aspectRatio: number;
   onFile: (f: File) => void;
 }) {
-  const [preview, setPreview] = useState<string | null>(currentUrl);
+  const [preview, setPreview]       = useState<string | null>(currentUrl);
+  const [rawFile, setRawFile]       = useState<File | null>(null);
+  const [cropping, setCropping]     = useState(false);
   const ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => { setPreview(currentUrl); }, [currentUrl]);
 
   function pick(f: File) {
-    setPreview(URL.createObjectURL(f));
-    onFile(f);
+    setRawFile(f);
+    setCropping(true);
+  }
+
+  function onCropConfirm(cropped: File) {
+    setCropping(false);
+    setRawFile(null);
+    setPreview(URL.createObjectURL(cropped));
+    onFile(cropped);
+  }
+
+  function onCropCancel() {
+    setCropping(false);
+    setRawFile(null);
+    // Reset file input so same file can be re-picked
+    if (ref.current) ref.current.value = "";
   }
 
   return (
-    <div>
-      <span className="block text-sm text-zinc-300 mb-1.5">{label}</span>
-      <span className="block text-xs text-zinc-500 mb-2">{hint}</span>
-      <button
-        type="button"
-        onClick={() => ref.current?.click()}
-        className="relative group block w-full overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-900 hover:border-zinc-500 transition-colors"
-        style={{ minHeight: label === "Banner" ? "100px" : "80px" }}
-      >
-        {preview ? (
-          <>
-            <img
-              src={preview}
-              alt={label}
-              className={`w-full object-cover ${label === "Banner" ? "h-28" : "h-20"}`}
-            />
-            <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/0 group-hover:bg-zinc-950/50 transition-colors">
-              <span className="opacity-0 group-hover:opacity-100 text-xs text-zinc-100">Change {label.toLowerCase()}</span>
+    <>
+      <div>
+        <span className="block text-sm text-zinc-300 mb-1.5">{label}</span>
+        <span className="block text-xs text-zinc-500 mb-2">{hint}</span>
+        <button
+          type="button"
+          onClick={() => ref.current?.click()}
+          className="relative group block w-full overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-900 hover:border-zinc-500 transition-colors"
+          style={{ minHeight: label === "Banner" ? "100px" : "80px" }}
+        >
+          {preview ? (
+            <>
+              <img
+                src={preview}
+                alt={label}
+                className={`w-full object-cover ${label === "Banner" ? "h-28" : "h-20"}`}
+              />
+              <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/0 group-hover:bg-zinc-950/50 transition-colors">
+                <span className="opacity-0 group-hover:opacity-100 text-xs text-zinc-100">Change {label.toLowerCase()}</span>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-20 gap-2">
+              <span className="text-zinc-500 text-sm">📷 Upload {label.toLowerCase()}</span>
             </div>
-          </>
-        ) : (
-          <div className="flex items-center justify-center h-20 gap-2">
-            <span className="text-zinc-500 text-sm">📷 Upload {label.toLowerCase()}</span>
-          </div>
-        )}
-      </button>
-      <input
-        ref={ref}
-        type="file"
-        accept={accept}
-        className="sr-only"
-        onChange={(e) => { const f = e.target.files?.[0]; if (f) pick(f); }}
-      />
-    </div>
+          )}
+        </button>
+        <input
+          ref={ref}
+          type="file"
+          accept={accept}
+          className="sr-only"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) pick(f); e.target.value = ""; }}
+        />
+      </div>
+
+      {/* Crop modal */}
+      {cropping && rawFile && (
+        <ImageCropModal
+          file={rawFile}
+          aspectRatio={aspectRatio}
+          label={label}
+          onConfirm={onCropConfirm}
+          onCancel={onCropCancel}
+        />
+      )}
+    </>
   );
 }
 
@@ -94,7 +126,6 @@ export default function EditProfilePage() {
   const { startUpload: uploadAvatar } = useUploadThing("avatarUploader");
   const { startUpload: uploadBanner } = useUploadThing("bannerUploader");
 
-  // Fetch current profile
   useEffect(() => {
     fetch("/api/users/me/profile")
       .then((r) => r.json())
@@ -116,13 +147,11 @@ export default function EditProfilePage() {
     setSaved(false);
 
     try {
-      // Upload images in parallel if changed
       await Promise.all([
         avatarFile ? uploadAvatar([avatarFile]) : Promise.resolve(null),
         bannerFile ? uploadBanner([bannerFile]) : Promise.resolve(null),
       ]);
 
-      // Save bio
       const res = await fetch("/api/users/me", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -162,7 +191,6 @@ export default function EditProfilePage() {
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100 px-4 py-10">
       <div className="mx-auto max-w-xl">
-        {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-2 text-xs text-zinc-500 mb-2">
             <a href={`/u/${me.numericId}`} className="hover:text-indigo-400 transition-colors">@{me.username}</a>
@@ -186,25 +214,24 @@ export default function EditProfilePage() {
 
         <form onSubmit={save} className="space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
 
-          {/* Banner */}
           <ImagePicker
             label="Banner"
             hint="Wide image for your profile header. JPG / PNG / WebP, max 4 MB."
             currentUrl={me.bannerUrl}
             accept="image/jpeg,image/png,image/webp"
+            aspectRatio={3}
             onFile={setBannerFile}
           />
 
-          {/* Avatar */}
           <ImagePicker
             label="Avatar"
             hint="Square photo shown on your profile and comments. JPG / PNG / WebP, max 2 MB."
             currentUrl={me.avatarUrl}
             accept="image/jpeg,image/png,image/webp"
+            aspectRatio={1}
             onFile={setAvatarFile}
           />
 
-          {/* Bio */}
           <div>
             <label htmlFor="bio" className="block text-sm text-zinc-300 mb-1.5">Bio</label>
             <textarea
