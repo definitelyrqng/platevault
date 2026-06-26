@@ -1043,6 +1043,8 @@ export function buildGermanyPlateText(opts: {
   diplomCountryCode?: string;  // 10–317
   diplomSerial?: string;       // up to 6 digits
   diplomCheckLetter?: string;  // optional A–Z
+  // military
+  militaryPrefix?: "Y" | "X"; // Y = Bundeswehr, X = NATO
 }): string {
   const rc  = (opts.regionCode  ?? "").toUpperCase().trim();
   const sfx = (opts.plateSuffix ?? "").toUpperCase().trim();
@@ -1108,9 +1110,10 @@ export function buildGermanyPlateText(opts: {
       return cc && ser ? `${pre}-${cc}-${ser}${cl}` : `${pre}-`;
     }
     case "military": {
-      // Format: Y-123456 (up to 6 digits), Y prefix is fixed
+      // Format: Y 123456 (Bundeswehr) or X 123456 (NATO), no dash
+      const pre    = opts.militaryPrefix ?? "Y";
       const milNum = (opts.numbers ?? "").replace(/[^0-9]/g, "").slice(0, 6);
-      return milNum ? `Y-${milNum}` : "Y-";
+      return milNum ? `${pre}-${milNum}` : `${pre}-`;
     }
     default:
       return "";
@@ -1154,5 +1157,5 @@ export const PLATE_TYPE_LABELS: Record<string, string> = {
   "de-federal-bw":          "Federal Waterways (BW)",
   "de-federal-thw":         "Federal Relief (THW)",
   "de-diplomatic":          "Diplomatic Plate",
-  "de-military":            "Military (Bundeswehr)",
+  "de-military":            "Military (Bundeswehr / NATO)",
 };

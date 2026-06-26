@@ -165,6 +165,9 @@ export default function GermanyUploadPage() {
   const [regionCode, setRegionCode]   = useState("");
   const [plateSuffix, setPlateSuffix] = useState(""); // letters+numbers combined e.g. "AB1234"
 
+  // ── Military
+  const [militaryPrefix, setMilitaryPrefix] = useState<"Y" | "X">("Y");
+
   // ── Transit / export
   const [transitDate, setTransitDate]       = useState(""); // DD.MM.YY
   const [exportCheckLetter, setExportCheckLetter] = useState("");
@@ -249,6 +252,7 @@ export default function GermanyUploadPage() {
             : category === "federal" ? federalNumbers
             : category === "military" ? officialNumbers
             : undefined,
+    militaryPrefix: category === "military" ? militaryPrefix : undefined,
     stateCode: category === "state-authority" ? stateCode : undefined,
     federalSub: category === "federal" ? federalSub : undefined,
     federalBdNum: category === "federal" && federalSub === "bd" ? federalBdNum : undefined,
@@ -261,7 +265,7 @@ export default function GermanyUploadPage() {
   }), [category, regionCode, plateSuffix, transitDate, exportDate, exportCheckLetter,
        seasonStart, seasonEnd, transferSuffix, redCode, redNumbers, officialNumbers,
        stateCode, federalSub, federalBdNum, federalBpCode, federalBwBranch, federalNumbers,
-       diplomPrefix, diplomCountryCode, diplomSerial, diplomCheckLetter]);
+       diplomPrefix, diplomCountryCode, diplomSerial, diplomCheckLetter, militaryPrefix]);
 
   // ── Plate type stored in DB
   const plateTypeStored = useMemo(() => {
@@ -409,7 +413,7 @@ export default function GermanyUploadPage() {
     category === "state-authority"? "THL-123456" :
     category === "federal"        ? "BD 5-123456" :
     category === "diplomatic"     ? "0-42-123456A" :
-    category === "military"       ? "Y-123456" :
+    category === "military"       ? `${militaryPrefix}-123456` :
     "…";
 
   return (
@@ -942,9 +946,21 @@ export default function GermanyUploadPage() {
                 {category === "military" && (
                   <div className="space-y-3">
                     <label className="grid gap-1.5">
-                      <span className="text-sm text-zinc-300">Number <span className="text-zinc-600 text-xs">(up to 6 digits)</span></span>
+                      <span className="text-sm text-zinc-300">Plate number</span>
                       <div className="flex items-center gap-2">
-                        <span className="rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm font-mono font-bold text-zinc-300 select-none">Y-</span>
+                        {(["Y", "X"] as const).map((p) => (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => setMilitaryPrefix(p)}
+                            className={`rounded-xl border px-3 py-2 text-sm font-mono font-bold transition-all ${
+                              militaryPrefix === p
+                                ? "border-indigo-600 bg-indigo-950/50 text-indigo-200"
+                                : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600"
+                            }`}
+                          >{p}</button>
+                        ))}
+                        <span className="text-zinc-400 font-mono font-bold text-sm select-none">-</span>
                         <input
                           value={officialNumbers}
                           onChange={(e) => setOfficialNumbers(e.target.value.replace(/\D/g,"").slice(0,6))}
@@ -953,8 +969,9 @@ export default function GermanyUploadPage() {
                           className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono outline-none focus:border-zinc-600"
                         />
                       </div>
+                      <p className="text-xs text-zinc-600">Y = Bundeswehr · X = NATO forces</p>
                     </label>
-                    <p className="text-xs text-zinc-500">White plate, black text — centrally issued by Bundeswehr</p>
+                    <p className="text-xs text-zinc-500">White plate, black text — centrally issued</p>
                   </div>
                 )}
 
@@ -1118,8 +1135,9 @@ export default function GermanyUploadPage() {
                     <p className="text-zinc-600">0 · country code · serial · check letter</p>
                   </>}
                   {category === "military" && <>
-                    <p><span className="font-mono text-zinc-200">Y-123456</span> — Bundeswehr vehicle</p>
-                    <p className="text-zinc-600">Y prefix is fixed · up to 6 digits · white plate, black text</p>
+                    <p><span className="font-mono text-zinc-200">Y-123456</span> — Bundeswehr</p>
+                    <p><span className="font-mono text-zinc-200">X-123456</span> — NATO forces</p>
+                    <p className="text-zinc-600">Up to 6 digits · white plate, black text</p>
                   </>}
                 </div>
               </div>
