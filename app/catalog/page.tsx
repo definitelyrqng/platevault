@@ -4,6 +4,12 @@ import { AddBrandButton } from "./CatalogAdminControls";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Vehicle Catalog",
+  description: "Browse spotted plates organised by car brand and model. Find every generation of every make.",
+  openGraph: { title: "Vehicle Catalog · PlateVault", description: "Every spotted plate, sorted by brand and model." },
+};
+
 function toSlug(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }

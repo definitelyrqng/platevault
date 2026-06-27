@@ -5,6 +5,17 @@ import { AddModelButton, DeleteBrandButton, DeleteModelButton, RenameBrandButton
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata({ params }: { params: Promise<{ brand: string }> }) {
+  const { brand } = await params;
+  const name = brand.charAt(0).toUpperCase() + brand.slice(1);
+  return {
+    title: name,
+    description: `Browse all spotted license plates for ${name} vehicles on PlateVault.`,
+    openGraph: { title: `${name} · PlateVault`, description: `Every ${name} plate in the archive.` },
+  };
+}
+
+
 function toSlug(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }

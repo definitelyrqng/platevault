@@ -1,4 +1,5 @@
 "use client";
+// metadata in server layout — add to head via separate metadata export if needed
 
 import { useState } from "react";
 

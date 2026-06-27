@@ -1,5 +1,7 @@
 "use client";
 
+// Note: metadata for client pages is set via layout template
+
 import { useEffect, useState } from "react";
 import Flag from "@/app/components/Flag";
 import { getCountryMeta } from "@/app/lib/countries";

@@ -57,6 +57,31 @@ function Icon({ name, size = 20 }: { name: string; size?: number }) {
   );
 }
 
+function NavLink({ href, label, icon, badge, expanded, active }: {
+  href: string; label: string; icon: string; badge?: number; expanded: boolean; active: boolean;
+}) {
+  return (
+    <Link href={href}
+      className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all border ${
+        active
+          ? "bg-indigo-950/60 text-indigo-300 border-indigo-800/40"
+          : "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/50 border-transparent"
+      }`}>
+      <span className="shrink-0 relative">
+        <Icon name={icon} size={18} />
+        {badge ? (
+          <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-indigo-500 text-[8px] font-bold text-white">
+            {badge > 9 ? "9+" : badge}
+          </span>
+        ) : null}
+      </span>
+      <span className={`text-sm font-medium whitespace-nowrap transition-all duration-200 ${expanded ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden"}`}>
+        {label}
+      </span>
+    </Link>
+  );
+}
+
 export default function Sidebar() {
   const pathname = usePathname();
   const [me, setMe] = useState<Me>(null);
@@ -100,29 +125,6 @@ export default function Sidebar() {
   const isActive = (href: string) =>
     href === "/home" ? pathname === "/home" : pathname.startsWith(href);
 
-  function NavLink({ href, label, icon, badge }: { href: string; label: string; icon: string; badge?: number }) {
-    return (
-      <Link href={href}
-        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all border ${
-          isActive(href)
-            ? "bg-indigo-950/60 text-indigo-300 border-indigo-800/40"
-            : "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/50 border-transparent"
-        }`}>
-        <span className="shrink-0 relative">
-          <Icon name={icon} size={18} />
-          {badge ? (
-            <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-indigo-500 text-[8px] font-bold text-white">
-              {badge > 9 ? "9+" : badge}
-            </span>
-          ) : null}
-        </span>
-        <span className={`text-sm font-medium whitespace-nowrap transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}>
-          {label}
-        </span>
-      </Link>
-    );
-  }
-
   return (
     <>
       {/* ── Desktop sidebar ── */}
@@ -158,11 +160,11 @@ export default function Sidebar() {
         {/* Nav items */}
         <nav className="flex-1 px-2 space-y-0.5 overflow-y-auto overflow-x-hidden">
           {NAV_ITEMS.filter((item) => !item.authOnly || me).map((item) => (
-            <NavLink key={item.href} href={item.href} label={item.label} icon={item.icon} />
+            <NavLink key={item.href} href={item.href} label={item.label} icon={item.icon} expanded={expanded} active={isActive(item.href)} />
           ))}
 
           {me && (
-            <NavLink href="/notifications" label="Notifications" icon="bell" badge={unread > 0 ? unread : undefined} />
+            <NavLink href="/notifications" label="Notifications" icon="bell" badge={unread > 0 ? unread : undefined} expanded={expanded} active={isActive("/notifications")} />
           )}
 
           {/* More popover */}

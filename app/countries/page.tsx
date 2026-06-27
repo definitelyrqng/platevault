@@ -5,6 +5,12 @@ import { COUNTRY_META, getCountryMeta } from "@/app/lib/countries";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Browse Countries",
+  description: "Browse license plates from every country in the PlateVault archive.",
+  openGraph: { title: "Browse Countries · PlateVault", description: "Pick a country and explore its plates." },
+};
+
 
 function countryLabel(key: string) {
   const meta = COUNTRY_META[key.toLowerCase()];

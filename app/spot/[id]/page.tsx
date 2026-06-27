@@ -110,6 +110,27 @@ async function getCurrentUser() {
   return session.user;
 }
 
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const numericId = Number(id);
+  if (!Number.isInteger(numericId) || numericId < 1) return {};
+  const spot = await prisma.upload.findFirst({
+    where: { numericId, deletedAt: null },
+    select: { plateText: true, country: true, brand: true, model: true, imageUrl: true, user: { select: { username: true } } },
+  });
+  if (!spot) return {};
+  const label = [spot.plateText, spot.brand, spot.model].filter(Boolean).join(" · ");
+  const countryUpper = spot.country.toUpperCase();
+  const title = `${spot.plateText} (${countryUpper})`;
+  const desc = `${label} — spotted by @${spot.user.username} on PlateVault.`;
+  return {
+    title,
+    description: desc,
+    openGraph: { title, description: desc, images: spot.imageUrl ? [{ url: spot.imageUrl }] : [] },
+    twitter: { card: "summary_large_image", title, description: desc, images: spot.imageUrl ? [spot.imageUrl] : [] },
+  };
+}
+
 export default async function SpotPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const numericId = Number(id);

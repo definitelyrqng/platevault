@@ -8,6 +8,12 @@ import SearchAutocomplete from "@/app/components/SearchAutocomplete";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Search",
+  description: "Search the PlateVault archive by plate number, hashtag, or spotter username.",
+  openGraph: { title: "Search · PlateVault", description: "Search license plates, spotters, and hashtags in the vault." },
+};
+
 
 function normalize(s: string) {
   return s.toUpperCase().replace(/[^A-Z0-9]/g, "");

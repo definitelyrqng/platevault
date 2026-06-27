@@ -5,6 +5,20 @@ import { AddGenerationButton, DeleteGenerationButton, RenameGenerationButton } f
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata({ params }: { params: Promise<{ brand: string; model: string }> }) {
+  const { brand, model } = await params;
+  const brandName = brand.charAt(0).toUpperCase() + brand.slice(1);
+  const modelName = model.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  const title = `${brandName} ${modelName}`;
+  const desc = `Browse all ${brandName} ${modelName} license plates spotted and archived on PlateVault.`;
+  return {
+    title,
+    description: desc,
+    openGraph: { title: `${title} · PlateVault`, description: desc },
+  };
+}
+
+
 function toSlug(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }

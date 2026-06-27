@@ -49,6 +49,25 @@ async function getCurrentUser(): Promise<{ id: string; role: string } | null> {
 
 const PER_PAGE = 12;
 
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const numericId = Number(id);
+  if (!Number.isInteger(numericId) || numericId < 1) return {};
+  const user = await prisma.user.findUnique({
+    where: { numericId },
+    select: { username: true, bio: true, avatarUrl: true, _count: { select: { uploads: true } } },
+  });
+  if (!user) return {};
+  const title = `@${user.username} on PlateVault`;
+  const desc = user.bio ?? `${user.username} has spotted ${user._count.uploads} plate${user._count.uploads !== 1 ? "s" : ""} on PlateVault.`;
+  return {
+    title: `@${user.username}`,
+    description: desc,
+    openGraph: { title, description: desc, images: user.avatarUrl ? [{ url: user.avatarUrl }] : [] },
+    twitter: { card: "summary", title, description: desc, images: user.avatarUrl ? [user.avatarUrl] : [] },
+  };
+}
+
 export default async function UserProfilePage({
   params,
   searchParams,

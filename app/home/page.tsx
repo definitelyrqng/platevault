@@ -5,6 +5,12 @@ import { COUNTRY_META, getCountryMeta } from "@/app/lib/countries";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Home",
+  description: "Discover freshly spotted license plates from across Europe. Browse by country, follow spotters, and build your archive.",
+  openGraph: { title: "PlateVault — Home", description: "Fresh plates from across Europe. Browse, follow, collect." },
+};
+
 function relativeDays(d: Date) {
   const ms = Date.now() - d.getTime();
   const days = Math.max(0, Math.floor(ms / 86_400_000));
@@ -181,13 +187,13 @@ export default async function HomePage() {
           );
           return s.href ? (
             <a key={s.label} href={s.href}
-              className="group rounded-2xl border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-900 hover:border-zinc-700 hover:shadow-lg hover:shadow-zinc-950/50 hover:-translate-y-0.5 transition-all">
-              <div className={`h-0.5 w-full rounded-t-2xl ${s.dot} opacity-60 group-hover:opacity-100 transition-opacity`} />
+              className="group rounded-2xl border border-zinc-800 bg-zinc-900/50 overflow-hidden hover:bg-zinc-900 hover:border-zinc-700 hover:shadow-lg hover:shadow-zinc-950/50 hover:-translate-y-0.5 transition-all">
+              <div className={`h-0.5 w-full ${s.dot} opacity-60 group-hover:opacity-100 transition-opacity`} />
               {inner}
             </a>
           ) : (
-            <div key={s.label} className="rounded-2xl border border-zinc-800 bg-zinc-900/50">
-              <div className={`h-0.5 w-full rounded-t-2xl ${s.dot} opacity-40`} />
+            <div key={s.label} className="rounded-2xl border border-zinc-800 bg-zinc-900/50 overflow-hidden">
+              <div className={`h-0.5 w-full ${s.dot} opacity-40`} />
               {inner}
             </div>
           );

@@ -6,6 +6,12 @@ import Flag from "@/app/components/Flag";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "My Stats",
+  description: "Your personal PlateVault statistics — spots, countries, streaks, and achievements.",
+  openGraph: { title: "My Stats · PlateVault", description: "See your spotting stats and achievements." },
+};
+
 async function getSessionUser() {
   const cookieStore = await cookies();
   const token = cookieStore.get("pv_session")?.value;

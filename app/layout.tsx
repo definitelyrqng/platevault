@@ -9,19 +9,21 @@ import { getMaintenanceSettings } from "@/app/lib/maintenance";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.platevault.app"),
-  title: "PlateVault -- Spot. Tag. Archive.",
-  description: "A modern license plate archive. Spot. Tag. Archive.",
+  title: { default: "PlateVault", template: "%s · PlateVault" },
+  description: "The internet\'s license plate archive. Spot plates from across Europe, tag them, and build your collection. Free, forever.",
+  keywords: ["license plates", "number plates", "plate spotting", "car plates", "plate archive", "Europe"],
   openGraph: {
     type: "website",
     url: "https://www.platevault.app",
     siteName: "PlateVault",
-    title: "PlateVault -- Spot. Tag. Archive.",
-    description: "A modern license plate archive. Spot. Tag. Archive.",
+    title: "PlateVault — Spot. Tag. Archive.",
+    description: "The internet\'s license plate archive. Spot plates from across Europe, tag them, and build your collection.",
   },
   twitter: {
-    card: "summary",
-    title: "PlateVault -- Spot. Tag. Archive.",
-    description: "A modern license plate archive. Spot. Tag. Archive.",
+    card: "summary_large_image",
+    site: "@platevault",
+    title: "PlateVault — Spot. Tag. Archive.",
+    description: "The internet\'s license plate archive. Spot plates from across Europe, tag them, and build your collection.",
   },
 };
 

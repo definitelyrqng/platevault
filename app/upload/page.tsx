@@ -1,5 +1,11 @@
 import Flag from "@/app/components/Flag";
 
+export const metadata = {
+  title: "Upload a Spot",
+  description: "Upload a license plate photo to PlateVault. Select your country and fill in the details.",
+  openGraph: { title: "Upload a Spot · PlateVault", description: "Add your plate to the archive." },
+};
+
 const COUNTRIES = [
   {
     href: "/upload/albania",

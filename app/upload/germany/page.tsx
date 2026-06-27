@@ -213,6 +213,17 @@ export default function GermanyUploadPage() {
   const [tags, setTags]             = useState<string[]>([]);
   const [companyId, setCompanyId]   = useState<string | null>(null);
 
+  // ── Auto-tag oldtimer for H-Kennzeichen and Saison-H
+  useEffect(() => {
+    const isOldtimer = category === "oldtimer" || category === "seasonal-h";
+    setTags((prev) => {
+      const hasTag = prev.includes("oldtimer");
+      if (isOldtimer && !hasTag) return [...prev, "oldtimer"];
+      if (!isOldtimer && hasTag) return prev.filter((t) => t !== "oldtimer");
+      return prev;
+    });
+  }, [category]);
+
   // ── File / upload
   const [file, setFile]             = useState<File | null>(null);
   const [preview, setPreview]       = useState<string | null>(null);
@@ -269,10 +280,9 @@ export default function GermanyUploadPage() {
 
   // ── Plate type stored in DB
   const plateTypeStored = useMemo(() => {
-    if (category === "regular" || category === "din" || category === "electric") return `de-${category}-${plateFormat}`;
     if (category === "red") return `de-red-${redCode}`;
     if (category === "federal") return `de-federal-${federalSub}`;
-    return `de-${category}`;
+    return `de-${category}-${plateFormat}`;
   }, [category, plateFormat, redCode, federalSub]);
 
   const plateTypeLabel = PLATE_TYPE_LABELS[plateTypeStored] ?? plateTypeStored;
@@ -560,8 +570,8 @@ export default function GermanyUploadPage() {
                   <OcrHint file={file} />
                 </div>
 
-                {/* ── Plate format (regular / din / electric) ── */}
-                {(category === "regular" || isDIN || category === "electric") && (
+                {/* ── Plate format (all categories) ── */}
+                {category !== "red" && category !== "federal" && (
                   <div>
                     <span className="block text-sm text-zinc-300 mb-2">Format</span>
                     <div className="grid grid-cols-2 gap-2">

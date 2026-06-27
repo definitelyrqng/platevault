@@ -4,6 +4,21 @@ import { prisma } from "@/app/lib/prisma";
 import { cookies } from "next/headers";
 import LikeButton from "./LikeButton";
 
+export async function generateMetadata({ params }: { params: Promise<{ country: string }> }) {
+  const { country } = await params;
+  const { getCountryMeta: gcm } = await import("@/app/lib/countries");
+  const meta = gcm(country);
+  const title = `${meta.name} Plates`;
+  const desc = `Browse all license plates spotted in ${meta.name} on PlateVault.`;
+  return {
+    title,
+    description: desc,
+    openGraph: { title: `${title} · PlateVault`, description: desc },
+  };
+}
+
+
+
 function relativeDays(d: Date) {
   const ms = Date.now() - d.getTime();
   const days = Math.max(0, Math.floor(ms / 86_400_000));

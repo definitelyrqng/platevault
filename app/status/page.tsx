@@ -1,6 +1,12 @@
 import { statusInfo } from "../status-config";
 import { getMaintenanceSettings } from "@/app/lib/maintenance";
 
+export const metadata = {
+  title: "System Status",
+  description: "Live status of PlateVault services — website, uploads, database, and authentication.",
+  openGraph: { title: "System Status · PlateVault", description: "Is PlateVault up? Check here." },
+};
+
 const SERVICES = [
   { name: "Website",         key: "web" },
   { name: "Image uploads",   key: "uploads" },
