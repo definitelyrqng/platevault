@@ -43,8 +43,7 @@ export default async function CollectionPage({
 
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="h-6 w-1 rounded-full bg-indigo-500" />
-            <h1 className="text-2xl font-bold text-zinc-50">{collection.name}</h1>
+            <h1 className="text-2xl font-black text-zinc-50">{collection.name}</h1>
             {!collection.isPublic && (
               <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-500">private</span>
             )}
@@ -86,30 +85,21 @@ export default async function CollectionPage({
                 <a
                   key={u.id}
                   href={`/spot/${u.numericId}`}
-                  className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-md hover:shadow-indigo-950/40 transition-all"
+                  className="group rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-indigo-600/60 hover:shadow-xl hover:shadow-indigo-950/40 hover:-translate-y-0.5 transition-all block bg-zinc-900/50"
                 >
-                  <div className="aspect-video bg-zinc-950 overflow-hidden">
-                    <img
-                      src={u.imageUrl}
-                      alt={u.plateText}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      loading="lazy"
-                    />
+                  <div className="relative overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                    <img src={u.imageUrl} alt={u.plateText}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" loading="lazy" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute top-2 right-2"><Flag iso={meta.iso} /></div>
                   </div>
-                  <div className="p-4">
+                  <div className="px-3 py-2.5">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-base font-bold tracking-widest text-zinc-100 group-hover:text-indigo-200 transition-colors">
-                        {u.plateText}
-                      </span>
-                      <span className="rounded-md px-1.5 py-1 inline-flex items-center gap-1 bg-zinc-800/60">
-                        <Flag iso={meta.iso} size="sm" />
-                      </span>
+                      <span className="font-mono text-sm font-bold tracking-widest text-zinc-100 group-hover:text-indigo-200 transition-colors truncate">{u.plateText}</span>
+                      {u._count.likes > 0 && <span className="text-xs text-rose-400 font-semibold shrink-0">♥ {u._count.likes}</span>}
                     </div>
-                    {carLabel && <div className="text-xs text-zinc-400 mt-0.5">{carLabel}</div>}
-                    <div className="mt-2 flex items-center justify-between text-xs text-zinc-500">
-                      <span>{relativeDays(u.createdAt)}</span>
-                      <span>♡ {u._count.likes}</span>
-                    </div>
+                    {carLabel && <div className="text-xs text-zinc-500 mt-0.5 truncate">{carLabel}</div>}
+                    <div className="mt-2 text-xs text-zinc-600">{relativeDays(u.createdAt)}</div>
                   </div>
                 </a>
               );

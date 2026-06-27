@@ -233,7 +233,7 @@ export default function CatalogPage() {
     return (
       <main className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center gap-3">
         <div className="text-4xl">🔒</div>
-        <h1 className="text-xl font-semibold">Access denied</h1>
+        <h1 className="text-xl font-bold">Access denied</h1>
         <p className="text-sm text-zinc-400">Only superadmins can manage the vehicle catalog.</p>
         <a href="/" className="mt-2 text-xs text-indigo-400 hover:text-indigo-300">← Back home</a>
       </main>
@@ -248,7 +248,7 @@ export default function CatalogPage() {
           <span>›</span>
           <span className="text-zinc-300">Vehicle Catalog</span>
         </div>
-        <h1 className="text-2xl font-semibold">Vehicle Catalog</h1>
+        <h1 className="text-2xl font-black">Vehicle Catalog</h1>
         <p className="mt-1 text-sm text-zinc-400 mb-6">Add, rename, or delete brands, models, and generations.</p>
 
         <div className="flex items-center gap-3 mb-4">

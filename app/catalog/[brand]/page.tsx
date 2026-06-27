@@ -72,9 +72,9 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
 
       <div className="mt-4 mb-8 flex items-end justify-between gap-4 flex-wrap">
         <div className="flex items-start gap-3">
-          <div className="mt-1.5 h-5 w-1 rounded-full bg-indigo-500 shrink-0" />
+          <div className="hidden" />
           <div>
-            <h1 className="text-3xl font-bold">{brand.name}</h1>
+            <h1 className="text-3xl font-black">{brand.name}</h1>
             <p className="mt-1.5 text-sm text-zinc-500">
               {totalSpots} spot{totalSpots !== 1 ? "s" : ""} across {brand.models.length} model{brand.models.length !== 1 ? "s" : ""}
             </p>
@@ -138,7 +138,7 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
                     <a
                       key={s.id}
                       href={"/spot/" + s.numericId}
-                      className="group rounded-xl overflow-hidden border border-zinc-800 hover:border-indigo-800/60 hover:shadow-md hover:shadow-indigo-950/30 transition-all"
+                      className="group rounded-xl overflow-hidden border border-zinc-800/60 bg-zinc-900/50 hover:border-indigo-600/60 hover:shadow-lg hover:shadow-indigo-950/40 transition-all"
                     >
                       <div className="aspect-video bg-zinc-900 overflow-hidden">
                         <img

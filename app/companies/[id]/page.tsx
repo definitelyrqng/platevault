@@ -84,7 +84,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
 
       <div className="mt-4 mb-8 flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-3xl font-bold">{company.name}</h1>
+          <h1 className="text-3xl font-black">{company.name}</h1>
           {(company.city || company.country) && (
             <p className="mt-1 text-sm text-zinc-400">
               {[company.city, company.country].filter(Boolean).join(", ")}
@@ -188,7 +188,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {spots.map((u) => (
               <div key={u.id}
-                className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-lg hover:shadow-indigo-950/40 transition-all">
+                className="group relative flex flex-col rounded-2xl border border-zinc-800/60 bg-zinc-900/50 overflow-hidden hover:border-indigo-600/60 hover:shadow-xl hover:shadow-indigo-950/40 hover:-translate-y-0.5 transition-all">
                 <a href={"/spot/" + u.numericId} className="absolute inset-0 z-0" aria-label={u.plateText} />
                 <div className="relative bg-zinc-950 aspect-video overflow-hidden">
                   <img src={u.imageUrl} alt={u.plateText + " plate"}

@@ -37,15 +37,12 @@ export default function ContactPage() {
   return (
     <main className="mx-auto max-w-xl px-6 pb-20 pt-14">
 
-      <div className="mb-8 flex items-start gap-3">
-        <div className="mt-1.5 h-5 w-1 rounded-full bg-indigo-500 shrink-0" />
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-1">Get in touch</p>
-          <h1 className="text-3xl font-bold text-zinc-50">Contact</h1>
-          <p className="mt-2 text-sm text-zinc-400">
-            Got a question, spotted an issue, or just want to say hi? Send a message and we&apos;ll reply to your email.
-          </p>
-        </div>
+      <div className="mb-8">
+        <p className="text-xs font-bold uppercase tracking-widest text-indigo-400 mb-1">Get in touch</p>
+        <h1 className="text-3xl font-black text-zinc-50">Contact</h1>
+        <p className="mt-2 text-sm text-zinc-400">
+          Got a question, spotted an issue, or just want to say hi? Send a message and we&apos;ll reply to your email.
+        </p>
       </div>
 
       {status === "sent" ? (

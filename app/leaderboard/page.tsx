@@ -40,22 +40,16 @@ export default function LeaderboardPage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       <div className="mx-auto max-w-2xl px-4 py-10">
-        <a href="/home" className="mb-6 inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-indigo-400 transition-colors">
-          ← Home
-        </a>
-
-        <div className="mb-8 flex items-center gap-3">
-          <div className="h-6 w-1 rounded-full bg-amber-500" />
-          <h1 className="text-2xl font-bold text-zinc-50">Leaderboard</h1>
-        </div>
+        <h1 className="text-3xl font-black text-zinc-50 mb-1.5">🏆 Leaderboard</h1>
+        <p className="text-sm text-zinc-500 mb-8">The top spotters in the vault. Respect.</p>
 
         {/* Tab switcher */}
-        <div className="mb-8 flex gap-2 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-1.5">
+        <div className="mb-8 flex gap-2 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-1.5">
           {TABS.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex-1 rounded-xl py-2 text-sm font-medium transition-all ${
+              className={`flex-1 rounded-xl py-2 text-sm font-bold transition-all ${
                 tab === t.id
                   ? "bg-indigo-600 text-white shadow-lg shadow-indigo-950/50"
                   : "text-zinc-400 hover:text-zinc-200"
@@ -85,10 +79,12 @@ export default function LeaderboardPage() {
                 <a
                   key={u.numericId}
                   href={`/u/${u.numericId}`}
-                  className={`flex items-center gap-4 rounded-2xl border px-4 py-3 transition-all hover:border-indigo-800/60 hover:shadow-md hover:shadow-indigo-950/40 ${
-                    isTop3
-                      ? "border-indigo-900/50 bg-indigo-950/20"
-                      : "border-zinc-800 bg-zinc-900/40"
+                  className={`flex items-center gap-4 rounded-2xl border px-4 py-3.5 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-950/40 ${
+                    i === 0
+                      ? "border-amber-700/50 bg-amber-950/10 hover:border-amber-600/60"
+                      : isTop3
+                      ? "border-indigo-900/50 bg-indigo-950/20 hover:border-indigo-700/60"
+                      : "border-zinc-800/70 bg-zinc-900/40 hover:border-indigo-800/50"
                   }`}
                 >
                   {/* Rank */}
@@ -96,7 +92,7 @@ export default function LeaderboardPage() {
                     {isTop3 ? (
                       <span className="text-xl">{MEDAL[i]}</span>
                     ) : (
-                      <span className="text-sm font-semibold text-zinc-500">#{i + 1}</span>
+                      <span className="text-sm font-bold text-zinc-600">#{i + 1}</span>
                     )}
                   </div>
 
@@ -104,17 +100,17 @@ export default function LeaderboardPage() {
 
                   {/* Name + bar */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className={`text-sm font-semibold truncate ${isTop3 ? "text-indigo-200" : "text-zinc-200"}`}>
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <span className={`text-sm font-bold truncate ${i === 0 ? "text-amber-200" : isTop3 ? "text-indigo-200" : "text-zinc-200"}`}>
                         @{u.username}
                       </span>
-                      <span className={`text-sm font-bold tabular-nums shrink-0 ${isTop3 ? "text-indigo-300" : "text-zinc-400"}`}>
+                      <span className={`text-sm font-black tabular-nums shrink-0 ${i === 0 ? "text-amber-300" : isTop3 ? "text-indigo-300" : "text-zinc-400"}`}>
                         {u.value.toLocaleString()} <span className="text-xs font-normal text-zinc-600">{tabMeta.unit}</span>
                       </span>
                     </div>
                     <div className="h-1.5 rounded-full bg-zinc-800 overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all ${isTop3 ? "bg-gradient-to-r from-indigo-600 to-indigo-400" : "bg-zinc-700"}`}
+                        className={`h-full rounded-full transition-all ${i === 0 ? "bg-gradient-to-r from-amber-600 to-amber-400" : isTop3 ? "bg-gradient-to-r from-indigo-600 to-indigo-400" : "bg-zinc-700"}`}
                         style={{ width: `${pct}%` }}
                       />
                     </div>

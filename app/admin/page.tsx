@@ -27,7 +27,7 @@ export default async function AdminPage() {
       {/* Header */}
       <div>
         <p className="text-xs font-mono text-indigo-400 tracking-widest mb-1">SUPERADMIN</p>
-        <h1 className="text-2xl font-bold text-zinc-100">Admin Panel</h1>
+        <h1 className="text-3xl font-black text-zinc-100">Admin Panel</h1>
         <p className="text-sm text-zinc-500 mt-1">Only you can see this. Handle with care.</p>
       </div>
 

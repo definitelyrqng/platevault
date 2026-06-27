@@ -47,15 +47,10 @@ export default async function CatalogPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-12">
-      <div className="mb-8 flex items-end justify-between gap-4 flex-wrap">
-        <div className="flex items-start gap-3">
-          <div className="mt-1.5 h-5 w-1 rounded-full bg-indigo-500 shrink-0" />
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-1">Vehicle Catalog</p>
-            <h1 className="text-3xl font-bold">Browse by Make</h1>
-            <p className="mt-2 text-sm text-zinc-400">Explore spotted plates organised by brand and model.</p>
-          </div>
-        </div>
+      <div className="mb-8">
+        <p className="text-xs font-bold uppercase tracking-widest text-indigo-400 mb-1">Vehicle Catalog</p>
+        <h1 className="text-3xl font-black">Browse by Make</h1>
+        <p className="mt-2 text-sm text-zinc-400">Every spotted plate, sorted by brand and model.</p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -66,14 +61,14 @@ export default async function CatalogPage() {
             <a
               key={brand.id}
               href={"/catalog/" + toSlug(brand.name)}
-              className="group flex flex-col gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 hover:border-indigo-800/60 hover:bg-indigo-950/20 hover:shadow-lg hover:shadow-indigo-950/40 transition-all"
+              className="group flex flex-col gap-3 rounded-2xl border border-zinc-800/60 bg-zinc-900/50 p-5 hover:border-indigo-700/60 hover:bg-indigo-950/20 hover:shadow-xl hover:shadow-indigo-950/40 hover:-translate-y-0.5 transition-all"
             >
               <div className="flex items-start justify-between gap-2">
-                <span className="text-base font-semibold text-zinc-100 group-hover:text-white transition-colors">
+                <span className="text-base font-bold text-zinc-100 group-hover:text-white transition-colors">
                   {brand.name}
                 </span>
                 {spotted > 0 && (
-                  <span className="shrink-0 rounded-full border border-indigo-900/40 bg-indigo-950/20 px-2 py-0.5 text-[10px] font-medium text-indigo-400">
+                  <span className="shrink-0 rounded-full border border-indigo-800/40 bg-indigo-950/30 px-2.5 py-0.5 text-[10px] font-bold text-indigo-400">
                     {spotted} spotted
                   </span>
                 )}
@@ -84,14 +79,14 @@ export default async function CatalogPage() {
                 {genCount} generation{genCount !== 1 ? "s" : ""}
               </p>
               <div className="flex flex-wrap gap-1.5 mt-auto">
-                {brand.models.slice(0, 4).map((m) => (
-                  <span key={m.id} className="rounded-lg bg-zinc-800/60 px-2 py-0.5 text-[11px] text-zinc-400">
+                {brand.models.slice(0, 5).map((m) => (
+                  <span key={m.id} className="rounded-lg bg-zinc-800/70 px-2 py-0.5 text-[11px] text-zinc-400 group-hover:bg-indigo-950/40 transition-colors">
                     {m.name}
                   </span>
                 ))}
-                {brand.models.length > 4 && (
-                  <span className="rounded-lg bg-zinc-800/60 px-2 py-0.5 text-[11px] text-zinc-500">
-                    +{brand.models.length - 4} more
+                {brand.models.length > 5 && (
+                  <span className="rounded-lg bg-zinc-800/40 px-2 py-0.5 text-[11px] text-zinc-600">
+                    +{brand.models.length - 5} more
                   </span>
                 )}
               </div>

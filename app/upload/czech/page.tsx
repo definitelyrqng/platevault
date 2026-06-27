@@ -262,7 +262,7 @@ export default function CzechUploadPage() {
               <span>›</span>
               <span className="text-zinc-300">Czech Republic 🇨🇿</span>
             </div>
-            <h1 className="mt-2 text-2xl font-semibold">Upload — Czech Republic</h1>
+            <h1 className="mt-2 text-2xl font-black">Upload — Czech Republic</h1>
             <p className="mt-1 text-sm text-zinc-400">All Czech plate types — current (2001+) and historical (1960).</p>
           </div>
 

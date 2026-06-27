@@ -186,7 +186,7 @@ export default function BelgiumUploadPage() {
             <span>›</span>
             <span className="text-zinc-300">Belgium 🇧🇪</span>
           </div>
-          <h1 className="mt-2 text-2xl font-semibold">Upload — Belgium</h1>
+          <h1 className="mt-2 text-2xl font-black">Upload — Belgium</h1>
           <p className="mt-1 text-sm text-zinc-400">Regular, transit, diplomatic, dealer, export &amp; historical plates.</p>
         </div>
 

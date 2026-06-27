@@ -63,19 +63,19 @@ export default async function CountryPage({
     <main className="mx-auto max-w-6xl px-6 py-10">
 
       {/* ─── Country hero header ─── */}
-      <div className="relative rounded-2xl overflow-hidden border border-indigo-900/30 bg-gradient-to-br from-indigo-950/40 via-zinc-900/60 to-zinc-900/40 px-7 py-7 mb-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_0%_50%,rgba(99,102,241,0.12),transparent)]" />
-        <div className="relative flex items-end justify-between gap-4">
+      <div className="relative rounded-2xl overflow-hidden border border-indigo-900/30 bg-gradient-to-br from-indigo-950/50 via-zinc-900/60 to-zinc-900/40 px-7 py-8 mb-8">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_0%_50%,rgba(99,102,241,0.15),transparent)]" />
+        <div className="relative flex items-center justify-between gap-4">
           <div>
-            <div className="text-4xl mb-2"><Flag iso={meta?.iso ?? null} /></div>
-            <h1 className="text-2xl font-bold text-zinc-50">{meta?.name ?? country}</h1>
-            <p className="mt-1 text-sm text-zinc-400">
+            <div className="text-5xl mb-3"><Flag iso={meta?.iso ?? null} /></div>
+            <h1 className="text-3xl font-black text-zinc-50">{meta?.name ?? country}</h1>
+            <p className="mt-1.5 text-sm text-zinc-400">
               {uploads.length === 0
                 ? "No spots yet — be the first to upload!"
-                : `${uploads.length} spot${uploads.length === 1 ? "" : "s"} archived`}
+                : `${uploads.length} spot${uploads.length === 1 ? "" : "s"} in the archive`}
             </p>
           </div>
-          <a href="/upload" className="shrink-0 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-950/60">
+          <a href="/upload" className="shrink-0 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-950/60">
             + Upload
           </a>
         </div>
@@ -98,25 +98,26 @@ export default async function CountryPage({
             const isOwner = currentUser?.id === u.userId;
             const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
             return (
-              <div key={u.id} className="group relative rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-indigo-700/50 hover:shadow-lg hover:shadow-indigo-950/30 transition-all">
-                <a href={`/spot/${u.numericId}`} className="absolute inset-0 z-10" aria-label={u.plateText} />
-                <div className="relative bg-zinc-950 overflow-hidden" style={{ aspectRatio: "16/9" }}>
-                  <img src={u.imageUrl} alt={`${u.plateText} plate`} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
+              <a key={u.id} href={`/spot/${u.numericId}`}
+                className="group rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-indigo-600/60 hover:shadow-xl hover:shadow-indigo-950/40 hover:-translate-y-0.5 transition-all block bg-zinc-900/50">
+                <div className="relative overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                  <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" loading="lazy" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  {u.plateType && (
+                    <div className="absolute top-2 left-2">
+                      <span className="rounded-full bg-indigo-950/80 border border-indigo-800/50 px-2 py-0.5 text-[10px] uppercase tracking-wider text-indigo-300 backdrop-blur-sm">{u.plateType.replace(/-/g," ")}</span>
+                    </div>
+                  )}
                 </div>
-                <div className="p-3 border-t border-zinc-800/40 bg-zinc-900/60">
+                <div className="px-3 py-2.5">
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-mono text-sm font-bold tracking-widest text-zinc-100 group-hover:text-indigo-200 transition-colors truncate">{u.plateText}</span>
-                    {u.plateType && <span className="shrink-0 rounded-full bg-indigo-950/40 border border-indigo-800/40 px-2 py-0.5 text-[10px] uppercase tracking-wider text-indigo-400">{u.plateType.replace(/-/g," ")}</span>}
+                    <LikeButton uploadId={u.id} initialLikes={u._count.likes} isOwner={isOwner} isLoggedIn={!!currentUser} />
                   </div>
-                  {carLabel && <div className="text-xs text-zinc-500 mt-0.5">{carLabel}</div>}
-                  <div className="mt-2 flex items-center justify-between">
-                    <a href={`/u/${u.user.numericId}`} className="relative z-20 text-xs text-zinc-500 hover:text-indigo-300 transition-colors">@{u.user.username}</a>
-                    <div className="relative z-20">
-                      <LikeButton uploadId={u.id} initialLikes={u._count.likes} isOwner={isOwner} isLoggedIn={!!currentUser} />
-                    </div>
-                  </div>
+                  {carLabel && <div className="text-xs text-zinc-500 mt-0.5 truncate">{carLabel}</div>}
+                  <div className="mt-2 text-xs text-zinc-600">@{u.user.username}</div>
                 </div>
-              </div>
+              </a>
             );
           })}
         </div>

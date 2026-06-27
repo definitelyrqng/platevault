@@ -129,7 +129,7 @@ export default async function PollPage({
         <div>
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-3xl"><Flag iso={meta.iso} /></span>
-            <h1 className="text-2xl font-bold text-zinc-50">{pollTitle}</h1>
+            <h1 className="text-2xl font-black text-zinc-50">{pollTitle}</h1>
             <span className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${
               isOpen
                 ? "border-emerald-700 bg-emerald-950/40 text-emerald-400"

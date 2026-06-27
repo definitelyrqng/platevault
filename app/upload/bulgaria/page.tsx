@@ -197,7 +197,7 @@ export default function BulgariaUploadPage() {
               <span>›</span>
               <span className="text-zinc-300">Bulgaria 🇧🇬</span>
             </div>
-            <h1 className="mt-2 text-2xl font-semibold">Upload — Bulgaria</h1>
+            <h1 className="mt-2 text-2xl font-black">Upload — Bulgaria</h1>
             <p className="mt-1 text-sm text-zinc-400">
               Standard, motorcycle, military, vanity, temporary, diplomatic and foreign registered plates.
             </p>

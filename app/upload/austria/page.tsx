@@ -205,7 +205,7 @@ export default function AustriaUploadPage() {
             <span>›</span>
             <span className="text-zinc-300">Austria 🇦🇹</span>
           </div>
-          <h1 className="mt-2 text-2xl font-semibold">Upload — Austria</h1>
+          <h1 className="mt-2 text-2xl font-black">Upload — Austria</h1>
           <p className="mt-1 text-sm text-zinc-400">Regular, electric, vanity, official, export, provisional, diplomatic &amp; more.</p>
         </div>
 

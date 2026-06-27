@@ -82,26 +82,25 @@ export default function FeedPage() {
           ← Home
         </a>
 
-        <div className="mb-8 flex items-center gap-3">
-          <div className="h-6 w-1 rounded-full bg-indigo-500" />
-          <h1 className="text-2xl font-bold text-zinc-50">Following Feed</h1>
-        </div>
+        <h1 className="text-3xl font-black text-zinc-50 mb-8">Following Feed</h1>
 
         {!loggedIn && loggedIn !== null && (
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 px-6 py-12 text-center">
-            <p className="text-zinc-400">Sign in to see spots from people you follow.</p>
-            <a href="/login" className="mt-4 inline-block rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 px-6 py-16 text-center">
+            <div className="text-4xl mb-4">👀</div>
+            <p className="text-sm font-semibold text-zinc-200 mb-1">Sign in to see your following feed</p>
+            <p className="text-xs text-zinc-500 mb-5">Spots from the spotters you follow, in one place.</p>
+            <a href="/login" className="inline-block rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-indigo-500 shadow-lg shadow-indigo-950/50 transition-colors">
               Sign in
             </a>
           </div>
         )}
 
         {loggedIn && empty && (
-          <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/30 px-6 py-12 text-center">
-            <div className="text-4xl">🌐</div>
-            <div className="mt-4 text-sm font-medium text-zinc-200">Your feed is empty</div>
-            <p className="mt-1 text-xs text-zinc-500">Follow some spotters and their latest plates will appear here.</p>
-            <a href="/home" className="mt-4 inline-block rounded-xl border border-zinc-700 px-4 py-2 text-sm text-zinc-400 hover:border-indigo-700/60 hover:text-indigo-300 transition-colors">
+          <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/30 px-6 py-16 text-center">
+            <div className="text-4xl mb-4">🌐</div>
+            <p className="text-sm font-semibold text-zinc-200 mb-1">Nothing here yet</p>
+            <p className="text-xs text-zinc-500 mb-5">Follow some spotters and their plates show up here. Revolutionary concept, we know.</p>
+            <a href="/home" className="inline-block rounded-xl border border-zinc-700 bg-zinc-800/60 hover:bg-zinc-700/60 px-5 py-2 text-sm font-medium text-zinc-300 transition-colors">
               Discover spots →
             </a>
           </div>
@@ -126,44 +125,42 @@ export default function FeedPage() {
             const meta = getCountryMeta(u.country);
             const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
             return (
-              <div key={u.id} className="rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-md hover:shadow-indigo-950/40 transition-all group">
+              <div key={u.id} className="rounded-2xl border border-zinc-800 bg-zinc-900/50 overflow-hidden hover:border-indigo-700/50 hover:shadow-lg hover:shadow-indigo-950/40 transition-all group">
                 {/* User row */}
-                <div className="flex items-center gap-3 px-4 pt-4 pb-2">
+                <div className="flex items-center gap-3 px-4 pt-4 pb-3">
                   <Initials username={u.user.username} avatarUrl={u.user.avatarUrl} />
                   <div>
-                    <a href={`/u/${u.user.numericId}`} className="text-sm font-semibold text-zinc-200 hover:text-indigo-300 transition-colors">
+                    <a href={`/u/${u.user.numericId}`} className="text-sm font-semibold text-zinc-100 hover:text-indigo-300 transition-colors">
                       @{u.user.username}
                     </a>
                     <div className="text-xs text-zinc-500">{relativeDays(u.createdAt)}</div>
                   </div>
-                  <div className="ml-auto flex items-center gap-1.5 rounded-md px-1.5 py-1 bg-zinc-800/60">
-                    <Flag iso={meta.iso} size="sm" />
+                  <div className="ml-auto">
+                    <Flag iso={meta.iso} />
                   </div>
                 </div>
 
                 {/* Image */}
-                <a href={`/spot/${u.numericId}`}>
-                  <div className="bg-zinc-950 overflow-hidden" style={{ maxHeight: "320px" }}>
-                    <img
-                      src={u.imageUrl}
-                      alt={u.plateText}
-                      className="w-full object-cover max-h-80 group-hover:scale-[1.01] transition-transform"
-                      loading="lazy"
-                    />
-                  </div>
+                <a href={`/spot/${u.numericId}`} className="block overflow-hidden">
+                  <img
+                    src={u.imageUrl}
+                    alt={u.plateText}
+                    className="w-full object-cover max-h-80 group-hover:scale-[1.02] transition-transform duration-500"
+                    loading="lazy"
+                  />
                 </a>
 
                 {/* Footer */}
-                <div className="px-4 py-3 flex items-center justify-between gap-4">
+                <div className="px-4 py-3.5 flex items-center justify-between gap-4">
                   <div>
-                    <a href={`/spot/${u.numericId}`} className="font-mono text-lg font-bold tracking-widest text-zinc-100 hover:text-indigo-200 transition-colors">
+                    <a href={`/spot/${u.numericId}`} className="font-mono text-xl font-black tracking-widest text-zinc-100 hover:text-indigo-200 transition-colors">
                       {u.plateText}
                     </a>
                     {carLabel && <div className="text-xs text-zinc-500 mt-0.5">{carLabel}</div>}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-zinc-500 shrink-0">
-                    <span>♡ {u._count.likes}</span>
-                    <span>💬 {u._count.comments}</span>
+                  <div className="flex items-center gap-3 text-sm shrink-0">
+                    <span className="text-rose-400 font-semibold">♥ {u._count.likes}</span>
+                    <span className="text-zinc-500">💬 {u._count.comments}</span>
                   </div>
                 </div>
               </div>

@@ -244,7 +244,7 @@ export default function AlbaniaUploadPage() {
             <span>›</span>
             <span className="text-zinc-300">Albania 🇦🇱</span>
           </div>
-          <h1 className="mt-2 text-2xl font-semibold">Upload — Albania</h1>
+          <h1 className="mt-2 text-2xl font-black">Upload — Albania</h1>
           <p className="mt-1 text-sm text-zinc-400">All Albanian plate types — modern, motorcycle, trailer & legacy formats.</p>
         </div>
 

@@ -75,18 +75,18 @@ export default function SignupPage() {
     <main className="min-h-[calc(100vh-96px)] grid place-items-center px-6">
       <div className="w-full max-w-sm">
         {/* Header */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-700/40 bg-indigo-900/20 px-3 py-1 text-xs text-indigo-300 mb-3">
+        <div className="text-center mb-7">
+          <a href="/home" className="inline-flex items-center gap-2 rounded-full border border-indigo-700/40 bg-indigo-900/20 px-3 py-1 text-xs text-indigo-300 mb-4 hover:bg-indigo-900/40 transition-colors">
             <span className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
             PlateVault
-          </div>
-          <h1 className="text-2xl font-bold text-zinc-50">Create account</h1>
-          <p className="text-sm text-zinc-500 mt-1">Uploads require an account</p>
+          </a>
+          <h1 className="text-3xl font-black text-zinc-50">Join the vault</h1>
+          <p className="text-sm text-zinc-500 mt-1.5">It's free. No plates, no entry.</p>
         </div>
 
         <form
           onSubmit={submit}
-          className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6"
+          className="rounded-2xl border border-zinc-800/80 bg-zinc-900/50 p-6"
         >
           {error && (
             <div className="mb-4 rounded-xl border border-red-800/40 bg-red-950/30 px-4 py-3 text-sm text-red-400">
@@ -143,9 +143,9 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="group relative mt-5 w-full overflow-hidden rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed transition-colors shadow-lg shadow-indigo-950/50"
+            className="group relative mt-5 w-full overflow-hidden rounded-xl bg-indigo-600 py-3 text-sm font-bold text-white hover:bg-indigo-500 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-950/50"
           >
-            <span className="relative z-10">{loading ? "Creating…" : "Sign up"}</span>
+            <span className="relative z-10">{loading ? "Creating…" : "Create account"}</span>
             {!loading && <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700" />}
           </button>
 

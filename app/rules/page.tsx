@@ -49,10 +49,10 @@ export default function RulesPage() {
 
       {/* Header */}
       <div className="mb-10 flex items-start gap-3">
-        <div className="mt-1.5 h-5 w-1 rounded-full bg-indigo-500 shrink-0" />
+        <div className="hidden" />
         <div>
         <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-1">PlateVault</p>
-        <h1 className="text-3xl font-bold text-zinc-50">Community Rules</h1>
+        <h1 className="text-3xl font-black text-zinc-50">Community Rules</h1>
         <p className="mt-2 text-sm text-zinc-500">
           Last updated: June 2026 · These rules apply to all users of PlateVault.
         </p>

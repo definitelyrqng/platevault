@@ -44,10 +44,9 @@ export default async function CompaniesPage() {
       <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <div className="h-6 w-1 rounded-full bg-indigo-500" />
-            <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400">Directory</p>
+                        <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400">Directory</p>
           </div>
-          <h1 className="text-3xl font-bold text-zinc-50">Transport Companies</h1>
+          <h1 className="text-3xl font-black text-zinc-50">Transport Companies</h1>
           <p className="mt-2 text-sm text-zinc-400">
             {companies.length} compan{companies.length !== 1 ? "ies" : "y"} in the database
           </p>

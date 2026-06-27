@@ -147,7 +147,7 @@ export default function Sidebar() {
         {/* Upload CTA */}
         <div className="px-2 mb-3">
           <Link href="/upload"
-            className={`flex items-center gap-3 rounded-xl bg-indigo-600 px-3 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-all ${expanded ? "" : "justify-center"}`}>
+            className={`flex items-center gap-3 rounded-xl bg-indigo-600 px-3 py-2.5 text-sm font-bold text-white hover:bg-indigo-500 shadow-lg shadow-indigo-950/50 hover:shadow-indigo-500/20 transition-all active:scale-95 ${expanded ? "" : "justify-center"}`}>
             <span className="shrink-0"><Icon name="upload" size={18} /></span>
             <span className={`whitespace-nowrap overflow-hidden transition-all duration-200 ${expanded ? "opacity-100 w-auto" : "opacity-0 w-0"}`}>
               Upload

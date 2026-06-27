@@ -54,14 +54,11 @@ const COUNTRIES = [
 export default function UploadPage() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
-      <div className="mb-8 flex items-start gap-3">
-        <div className="mt-1 h-6 w-1 rounded-full bg-indigo-500 shrink-0" />
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-50">Upload a spot</h1>
-          <p className="mt-1.5 text-sm text-zinc-400">
-            Select a country to continue. Each country has its own upload form and plate types.
-          </p>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-black text-zinc-50">Upload a spot</h1>
+        <p className="mt-2 text-sm text-zinc-400">
+          Select a country to continue. Each one has its own form and plate types.
+        </p>
       </div>
 
       <div className="grid gap-3">
@@ -69,19 +66,19 @@ export default function UploadPage() {
           <a
             key={c.href}
             href={c.href}
-            className="group flex items-center gap-5 rounded-2xl border border-zinc-800 bg-zinc-900/40 px-5 py-4 hover:border-indigo-800/60 hover:bg-indigo-950/20 hover:shadow-md hover:shadow-indigo-950/40 transition-all"
+            className="group flex items-center gap-5 rounded-2xl border border-zinc-800/70 bg-zinc-900/50 px-5 py-4 hover:border-indigo-700/60 hover:bg-indigo-950/20 hover:shadow-lg hover:shadow-indigo-950/40 hover:-translate-y-0.5 transition-all"
           >
             <span className="shrink-0 group-hover:scale-110 transition-transform duration-200">
               <Flag iso={c.iso} size="lg" />
             </span>
             <div className="min-w-0 flex-1">
-              <div className="font-semibold text-zinc-200 group-hover:text-indigo-200 transition-colors">
+              <div className="font-bold text-zinc-100 group-hover:text-indigo-200 transition-colors">
                 {c.name}
               </div>
               <div className="mt-0.5 text-sm text-zinc-500">{c.desc}</div>
             </div>
             <svg
-              className="h-4 w-4 text-zinc-700 group-hover:text-indigo-500 transition-colors shrink-0"
+              className="h-4 w-4 text-zinc-700 group-hover:text-indigo-400 transition-colors shrink-0"
               viewBox="0 0 20 20"
               fill="currentColor"
             >

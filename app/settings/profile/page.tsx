@@ -197,7 +197,7 @@ export default function EditProfilePage() {
             <span>›</span>
             <span className="text-zinc-300">Edit profile</span>
           </div>
-          <h1 className="text-2xl font-semibold">Edit profile</h1>
+          <h1 className="text-2xl font-black">Edit profile</h1>
         </div>
 
         {saved && (

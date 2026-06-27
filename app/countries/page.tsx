@@ -57,8 +57,7 @@ export default async function CountriesPage() {
       {/* ─── Header ─── */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="h-6 w-1 rounded-full bg-indigo-500" />
-          <h1 className="text-3xl font-bold text-zinc-50">Browse by Country</h1>
+                    <h1 className="text-3xl font-black text-zinc-50">Browse by Country</h1>
         </div>
 
         <form method="GET" action="/search" className="flex gap-2 max-w-lg mt-4">
@@ -104,7 +103,7 @@ export default async function CountriesPage() {
                   <a
                     key={country}
                     href={`/c/${country}`}
-                    className="group flex items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/40 px-5 py-4 hover:border-indigo-800/60 hover:bg-indigo-950/20 hover:shadow-md hover:shadow-indigo-950/40 transition-all"
+                    className="group flex items-center gap-4 rounded-2xl border border-zinc-800/60 bg-zinc-900/50 px-5 py-4 hover:border-indigo-700/60 hover:bg-indigo-950/20 hover:shadow-lg hover:shadow-indigo-950/40 hover:-translate-y-0.5 transition-all"
                   >
                     <span className="text-3xl shrink-0 group-hover:scale-110 transition-transform duration-200"><Flag iso={meta.iso} /></span>
                     <div className="min-w-0 flex-1">

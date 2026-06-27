@@ -68,7 +68,7 @@ export default async function PollsPage() {
     return (
       <a
         href={`/polls/${poll.numericId}`}
-        className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-lg hover:shadow-indigo-950/40 transition-all"
+        className="group flex flex-col rounded-2xl border border-zinc-800/60 bg-zinc-900/50 overflow-hidden hover:border-indigo-600/60 hover:shadow-xl hover:shadow-indigo-950/40 hover:-translate-y-0.5 transition-all"
       >
         {/* Leader thumbnail */}
         {leader && (
@@ -124,10 +124,10 @@ export default async function PollsPage() {
 
       {/* ─── Header ─── */}
       <div className="mb-10 flex items-start gap-3">
-        <div className="mt-1.5 h-5 w-1 rounded-full bg-indigo-500 shrink-0" />
+        <div className="mt-1.5 h-0 w-0 shrink-0 hidden" />
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-1">Community</p>
-          <h1 className="text-3xl font-bold text-zinc-50">Community Votes</h1>
+          <h1 className="text-3xl font-black text-zinc-50">Community Votes</h1>
           <p className="mt-2 text-sm text-zinc-400">
             Every month, the community votes for the best plate per country. Once a year, a Plate of the Year is crowned.
           </p>

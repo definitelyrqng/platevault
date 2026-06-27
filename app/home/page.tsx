@@ -113,80 +113,94 @@ export default async function HomePage() {
       </div>
 
       {/* ─── Hero ─── */}
-      <div className="relative rounded-3xl overflow-hidden border border-indigo-900/40 bg-gradient-to-br from-indigo-950/60 via-zinc-900/80 to-zinc-900/60 px-8 py-14 mb-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_70%_at_10%_120%,rgba(99,102,241,0.18),transparent)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_90%_-20%,rgba(139,92,246,0.10),transparent)]" />
-        {/* Decorative plate strip */}
-        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-48 opacity-5 flex flex-col justify-center gap-2 pr-4 overflow-hidden select-none text-right">
-          {["AB-123-CD","XK 01 001","M-XB 001","TA-123456","Z-XC 001"].map((p, i) => (
-            <div key={i} className="font-mono font-black text-white tracking-widest text-sm">{p}</div>
+      <div className="relative rounded-3xl overflow-hidden border border-indigo-800/30 mb-8" style={{ background: "linear-gradient(135deg, oklch(0.13 0.04 275) 0%, oklch(0.10 0.02 260) 40%, oklch(0.08 0.01 250) 100%)" }}>
+        {/* Radial glows */}
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_0%_100%,rgba(99,102,241,0.22),transparent)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_50%_50%_at_100%_0%,rgba(168,85,247,0.14),transparent)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_40%_40%_at_50%_60%,rgba(99,102,241,0.08),transparent)]" />
+
+        {/* Decorative plate grid — right side, subtle */}
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-64 overflow-hidden select-none">
+          <div className="absolute inset-0 bg-gradient-to-l from-transparent to-indigo-950/0" />
+          {["AB-123-CD","XK 01 001","M-XB 001","TA-123456","Z-XC 001","W-AC 4321","BL-UV 99"].map((p, i) => (
+            <div key={i} className="font-mono font-black tracking-widest text-indigo-300/[0.06] text-lg absolute"
+              style={{ top: `${10 + i * 13}%`, right: "1rem" }}>{p}</div>
           ))}
         </div>
 
-        <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-700/40 bg-indigo-900/30 px-3 py-1 text-xs text-indigo-300 mb-5">
+        <div className="relative px-8 py-16 sm:py-20">
+          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3.5 py-1.5 text-xs font-medium text-indigo-300 mb-6">
             <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
-            Community plate archive
+            Community plate archive · {totalUploads.toLocaleString()} spots
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl bg-gradient-to-br from-zinc-50 via-zinc-200 to-indigo-300 bg-clip-text text-transparent">
-            Spot. Tag. Archive.
+          <h1 className="text-5xl font-black tracking-tight md:text-6xl lg:text-7xl leading-[1.05]">
+            <span className="bg-gradient-to-br from-white via-zinc-100 to-indigo-200 bg-clip-text text-transparent">Spot.</span>{" "}
+            <span className="bg-gradient-to-br from-indigo-200 via-violet-200 to-purple-300 bg-clip-text text-transparent">Tag.</span>{" "}
+            <span className="bg-gradient-to-br from-zinc-100 via-indigo-100 to-indigo-300 bg-clip-text text-transparent">Archive.</span>
           </h1>
-          <p className="mt-4 max-w-xl text-zinc-400 leading-relaxed">
-            A community gallery for license plate spotters. Upload your finds, browse by country, and explore plate formats from around the world.
+          <p className="mt-5 max-w-lg text-zinc-400 leading-relaxed text-base">
+            A community gallery for license plate obsessives. Spot weird plates, flex on your friends, and pretend it&apos;s a serious hobby.
           </p>
-          <div className="mt-7 flex flex-wrap gap-3">
-            <a href="/upload" className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-950/60">
-              + Upload a spot
+          <div className="mt-8 flex flex-wrap gap-3">
+            <a href="/upload"
+              className="group inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-950/60 hover:shadow-indigo-500/25 hover:-translate-y-px active:translate-y-0">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+              </svg>
+              Upload a spot
             </a>
-            <a href={`/c/${heroCountry}`} className="rounded-xl border border-zinc-700 bg-zinc-900/60 px-5 py-2.5 text-sm font-medium text-zinc-300 hover:border-indigo-800/60 hover:bg-indigo-950/30 hover:text-indigo-300 transition-colors">
+            <a href={`/c/${heroCountry}`}
+              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 px-6 py-3 text-sm font-semibold text-zinc-200 transition-all hover:-translate-y-px active:translate-y-0">
               <Flag iso={heroCmeta.iso} /> Browse {heroCmeta.name}
+            </a>
+            <a href="/search"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 px-6 py-3 text-sm font-semibold text-zinc-400 transition-all hover:text-zinc-200 hover:-translate-y-px active:translate-y-0">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              Search
             </a>
           </div>
         </div>
       </div>
 
       {/* ─── Stats ─── */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 mb-8">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 mb-10">
         {[
-          { label: "Spots archived", value: totalUploads.toLocaleString(), icon: "📷", href: null, accent: null },
-          { label: "Spotters",       value: totalUsers.toLocaleString(),   icon: "👤", href: "/leaderboard", accent: "amber" },
-          { label: "Countries",      value: countryCount.toLocaleString(), icon: "🌍", href: "/countries",  accent: "indigo" },
-          { label: "Quiz",           value: "Play →",                      icon: "🎮", href: "/quiz",       accent: "indigo" },
-        ].map((s) => (
-          s.href ? (
+          { label: "Spots archived", value: totalUploads.toLocaleString(), emoji: "📷", href: null,           dot: "bg-violet-500" },
+          { label: "Spotters",       value: totalUsers.toLocaleString(),   emoji: "👤", href: "/leaderboard", dot: "bg-amber-500"  },
+          { label: "Countries",      value: countryCount.toLocaleString(), emoji: "🌍", href: "/countries",   dot: "bg-emerald-500"},
+          { label: "Play the quiz",  value: "Let's go →",                  emoji: "🎮", href: "/quiz",        dot: "bg-rose-500"   },
+        ].map((s) => {
+          const inner = (
+            <div className="px-5 py-5">
+              <div className="text-2xl mb-2">{s.emoji}</div>
+              <div className="text-2xl font-black text-zinc-100 tabular-nums leading-none">{s.value}</div>
+              <div className="mt-1.5 text-xs text-zinc-500">{s.label}</div>
+            </div>
+          );
+          return s.href ? (
             <a key={s.label} href={s.href}
-              className={`group rounded-2xl border bg-gradient-to-b px-5 py-5 transition-all hover:shadow-lg ${
-                s.accent === "amber"
-                  ? "border-zinc-800 from-zinc-900/80 to-zinc-900/30 hover:border-amber-700/40 hover:bg-amber-950/10 hover:shadow-amber-950/30"
-                  : "border-zinc-800 from-zinc-900/80 to-zinc-900/30 hover:border-indigo-800/60 hover:bg-indigo-950/20 hover:shadow-indigo-950/40"
-              }`}
-            >
-              <div className="text-lg mb-1">{s.icon}</div>
-              <div className={`text-2xl font-bold text-zinc-100 transition-colors ${s.accent === "amber" ? "group-hover:text-amber-300" : "group-hover:text-indigo-300"}`}>{s.value}</div>
-              <div className={`mt-0.5 text-xs text-zinc-500 transition-colors ${s.accent === "amber" ? "group-hover:text-amber-500" : "group-hover:text-indigo-400"}`}>{s.label}</div>
+              className="group rounded-2xl border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-900 hover:border-zinc-700 hover:shadow-lg hover:shadow-zinc-950/50 hover:-translate-y-0.5 transition-all">
+              <div className={`h-0.5 w-full rounded-t-2xl ${s.dot} opacity-60 group-hover:opacity-100 transition-opacity`} />
+              {inner}
             </a>
           ) : (
-            <div key={s.label}
-              className="rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900/80 to-zinc-900/30 px-5 py-5"
-            >
-              <div className="text-lg mb-1">{s.icon}</div>
-              <div className="text-2xl font-bold text-zinc-100">{s.value}</div>
-              <div className="mt-0.5 text-xs text-zinc-500">{s.label}</div>
+            <div key={s.label} className="rounded-2xl border border-zinc-800 bg-zinc-900/50">
+              <div className={`h-0.5 w-full rounded-t-2xl ${s.dot} opacity-40`} />
+              {inner}
             </div>
-          )
-        ))}
+          );
+        })}
       </div>
 
       {/* ─── Browse by country ─── */}
       {countryGroups.length > 0 && (
         <section className="mb-8">
           <div className="flex items-baseline justify-between gap-4 mb-5">
-            <div className="flex items-center gap-3">
-              <div className="h-5 w-1 rounded-full bg-indigo-500" />
-              <div>
-                <h2 className="text-xl font-semibold text-zinc-100">Browse by country</h2>
-                <p className="text-xs text-zinc-500 mt-0.5">Pick a country to see all its spots</p>
-              </div>
+            <div>
+              <h2 className="text-2xl font-black text-zinc-100">Browse by country</h2>
+              <p className="text-xs text-zinc-500 mt-0.5">Pick a country to see all its spots</p>
             </div>
             <a href="/countries" className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors">
               All countries →
@@ -196,13 +210,10 @@ export default async function HomePage() {
             {countryGroups.map(({ country, _count }) => {
               const m = COUNTRY_META[country] ?? { iso: null, name: country.charAt(0).toUpperCase() + country.slice(1) };
               return (
-                <a
-                  key={country}
-                  href={`/c/${country}`}
-                  className="group flex flex-col items-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900/40 px-4 py-5 text-center hover:border-indigo-800/60 hover:bg-indigo-950/20 hover:shadow-md hover:shadow-indigo-950/40 transition-all"
-                >
-                  <span className="text-3xl group-hover:scale-110 transition-transform duration-200"><Flag iso={m.iso} /></span>
-                  <span className="text-sm font-medium text-zinc-300 group-hover:text-indigo-200 truncate w-full transition-colors">{m.name}</span>
+                <a key={country} href={`/c/${country}`}
+                  className="group flex flex-col items-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900/40 px-4 py-5 text-center hover:border-indigo-700/60 hover:bg-indigo-950/30 hover:shadow-lg hover:shadow-indigo-950/40 hover:-translate-y-0.5 transition-all">
+                  <span className="text-3xl transition-transform duration-300 group-hover:scale-110"><Flag iso={m.iso} /></span>
+                  <span className="text-sm font-semibold text-zinc-300 group-hover:text-indigo-200 truncate w-full transition-colors">{m.name}</span>
                   <span className="text-xs text-zinc-600 group-hover:text-indigo-500 transition-colors">{_count.id} spot{_count.id === 1 ? "" : "s"}</span>
                 </a>
               );
@@ -215,12 +226,9 @@ export default async function HomePage() {
       {hotSpots.length > 0 && (
         <section className="mb-8">
           <div className="flex items-baseline justify-between gap-4 mb-5">
-            <div className="flex items-center gap-4">
-              <div className="h-5 w-1 rounded-full bg-rose-500 shrink-0" />
-              <div>
-                <h2 className="text-xl font-semibold text-zinc-100">🔥 Hot This Week</h2>
-                <p className="text-xs text-zinc-500 mt-0.5">Most liked spots in the last 7 days</p>
-              </div>
+            <div>
+              <h2 className="text-2xl font-black text-zinc-100">🔥 Hot This Week</h2>
+              <p className="text-xs text-zinc-500 mt-0.5">Most liked spots in the last 7 days</p>
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
@@ -260,12 +268,9 @@ export default async function HomePage() {
       {rareSpots.length > 0 && (
         <section>
           <div className="flex items-baseline justify-between gap-4 mb-5">
-            <div className="flex items-center gap-4">
-              <div className="h-5 w-1 rounded-full bg-amber-500 shrink-0" />
-              <div>
-                <h2 className="text-xl font-semibold text-zinc-100">✨ Rare Plates</h2>
-                <p className="text-xs text-zinc-500 mt-0.5">Community-voted rare finds</p>
-              </div>
+            <div>
+              <h2 className="text-2xl font-black text-zinc-100">✨ Rare Plates</h2>
+              <p className="text-xs text-zinc-500 mt-0.5">Community-voted rare finds</p>
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -300,12 +305,9 @@ export default async function HomePage() {
       {recentUploads.length > 0 && (
         <section>
           <div className="flex items-baseline justify-between gap-4 mb-5">
-            <div className="flex items-center gap-4">
-              <div className="h-5 w-1 rounded-full bg-violet-500 shrink-0" />
-              <div>
-                <h2 className="text-xl font-semibold text-zinc-100">Recent spots</h2>
-                <p className="text-xs text-zinc-500 mt-0.5">Latest from the community</p>
-              </div>
+            <div>
+              <h2 className="text-2xl font-black text-zinc-100">Recent spots</h2>
+              <p className="text-xs text-zinc-500 mt-0.5">Latest from the community</p>
             </div>
           </div>
 
@@ -314,32 +316,40 @@ export default async function HomePage() {
               const meta = COUNTRY_META[u.country] ?? { iso: null, name: u.country };
               const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
               return (
-                <div key={u.id} className="group relative rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-indigo-700/50 hover:shadow-lg hover:shadow-indigo-950/30 transition-all">
-                  <a href={`/spot/${u.numericId}`} className="absolute inset-0 z-10" aria-label={u.plateText} />
-                  <div className="relative bg-zinc-950 overflow-hidden" style={{ aspectRatio: "16/9" }}>
-                    <img src={u.imageUrl} alt={`${u.plateText} plate`} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
-                  </div>
-                  <div className="p-3 border-t border-zinc-800/40 bg-zinc-900/60">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-sm font-bold tracking-widest text-zinc-100 group-hover:text-indigo-200 transition-colors truncate">{u.plateText}</span>
+                <a key={u.id} href={`/spot/${u.numericId}`}
+                  className="group relative rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-indigo-600/60 hover:shadow-xl hover:shadow-indigo-950/40 hover:-translate-y-0.5 transition-all block bg-zinc-900/50">
+                  {/* Image */}
+                  <div className="relative overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                    <img src={u.imageUrl} alt={`${u.plateText} plate`}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" loading="lazy" />
+                    {/* Overlay on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute bottom-2 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <span className="font-mono text-xs font-bold text-white/90 tracking-widest">{u.plateText}</span>
+                    </div>
+                    <div className="absolute top-2 right-2">
                       <Flag iso={meta.iso} />
                     </div>
-                    {carLabel && <div className="text-xs text-zinc-500 mt-0.5">{carLabel}</div>}
-                    <div className="mt-2 flex items-center justify-between">
-                      <a href={`/u/${u.user.numericId}`} className="relative z-20 flex items-center gap-1.5 group/user">
-                        {u.user.avatarUrl ? (
-                          <img src={u.user.avatarUrl} alt={u.user.username} className="h-5 w-5 rounded-md object-cover" />
-                        ) : (
-                          <div className="h-5 w-5 rounded-md bg-zinc-800 grid place-items-center text-[8px] font-bold text-zinc-500">
-                            {u.user.username.slice(0, 2).toUpperCase()}
-                          </div>
-                        )}
-                        <span className="text-xs text-zinc-500 group-hover/user:text-indigo-300 transition-colors">@{u.user.username}</span>
-                      </a>
-                      <span className="text-xs text-zinc-600">♡ {u._count.likes}</span>
+                  </div>
+                  {/* Info */}
+                  <div className="px-3 py-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono text-sm font-bold tracking-widest text-zinc-100 group-hover:text-indigo-200 transition-colors truncate">{u.plateText}</span>
+                      {u._count.likes > 0 && <span className="text-xs text-rose-400 font-semibold shrink-0">♥ {u._count.likes}</span>}
+                    </div>
+                    {carLabel && <div className="text-xs text-zinc-500 mt-0.5 truncate">{carLabel}</div>}
+                    <div className="mt-2 flex items-center gap-1.5">
+                      {u.user.avatarUrl ? (
+                        <img src={u.user.avatarUrl} alt={u.user.username} className="h-4 w-4 rounded-full object-cover" />
+                      ) : (
+                        <div className="h-4 w-4 rounded-full bg-zinc-800 grid place-items-center text-[7px] font-bold text-zinc-500">
+                          {u.user.username.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
+                      <span className="text-xs text-zinc-600">@{u.user.username}</span>
                     </div>
                   </div>
-                </div>
+                </a>
               );
             })}
           </div>

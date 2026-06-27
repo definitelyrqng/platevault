@@ -147,7 +147,7 @@ export default function QuizPage() {
           <a href="/" className="mb-6 inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-indigo-400 transition-colors">
             ← Back to PlateVault
           </a>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-50">Plate Quiz</h1>
+          <h1 className="text-3xl font-black tracking-tight text-zinc-50">Plate Quiz</h1>
           <p className="mt-1 text-sm text-zinc-500">Guess which country the plate is from</p>
         </div>
 

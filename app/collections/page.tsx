@@ -83,8 +83,7 @@ export default function CollectionsPage() {
 
         <div className="mb-8 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="h-6 w-1 rounded-full bg-indigo-500" />
-            <h1 className="text-2xl font-bold text-zinc-50">My Collections</h1>
+            <h1 className="text-3xl font-black text-zinc-50">My Collections</h1>
           </div>
           {loggedIn && !creating && (
             <button
@@ -159,38 +158,36 @@ export default function CollectionsPage() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {collections.map((col) => (
-              <div key={col.numericId} className="flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-md hover:shadow-indigo-950/40 transition-all">
+              <div key={col.numericId} className="flex flex-col rounded-2xl border border-zinc-800/60 bg-zinc-900/50 overflow-hidden hover:border-indigo-600/60 hover:shadow-xl hover:shadow-indigo-950/40 hover:-translate-y-0.5 transition-all">
                 {/* Preview images */}
-                <div className="grid grid-cols-3 h-28 bg-zinc-950">
+                <div className="grid grid-cols-3 h-32 bg-zinc-950">
                   {col.items.slice(0, 3).map((item, i) => (
-                    <div key={i} className="overflow-hidden border-r border-zinc-900 last:border-0">
+                    <div key={i} className="overflow-hidden border-r border-zinc-900/60 last:border-0">
                       <img src={item.upload.imageUrl} alt={item.upload.plateText} className="w-full h-full object-cover" />
                     </div>
                   ))}
                   {col.items.length === 0 && (
-                    <div className="col-span-3 flex items-center justify-center text-zinc-600 text-xs">Empty</div>
+                    <div className="col-span-3 flex items-center justify-center text-zinc-600 text-xs">Empty collection</div>
                   )}
                 </div>
 
-                <div className="flex flex-col flex-1 p-4 gap-1">
+                <div className="flex flex-col flex-1 px-4 py-3.5 gap-1">
                   <div className="flex items-start justify-between gap-2">
-                    <a href={`/collections/${col.numericId}`} className="font-semibold text-zinc-100 hover:text-indigo-200 transition-colors text-sm leading-snug">
+                    <a href={`/collections/${col.numericId}`} className="font-bold text-zinc-100 hover:text-indigo-200 transition-colors text-sm leading-snug">
                       {col.name}
                     </a>
-                    <div className="flex items-center gap-1 shrink-0">
-                      {!col.isPublic && (
-                        <span className="text-[10px] rounded bg-zinc-800 px-1.5 py-0.5 text-zinc-500">private</span>
-                      )}
-                    </div>
+                    {!col.isPublic && (
+                      <span className="text-[10px] rounded-full bg-zinc-800/80 border border-zinc-700/50 px-2 py-0.5 text-zinc-500 shrink-0">private</span>
+                    )}
                   </div>
                   {col.description && (
                     <p className="text-xs text-zinc-500 line-clamp-2">{col.description}</p>
                   )}
-                  <div className="mt-auto pt-2 flex items-center justify-between text-xs text-zinc-500">
-                    <span>{col._count.items} spot{col._count.items !== 1 ? "s" : ""}</span>
+                  <div className="mt-auto pt-2.5 flex items-center justify-between text-xs">
+                    <span className="text-zinc-500">{col._count.items} spot{col._count.items !== 1 ? "s" : ""}</span>
                     <button
                       onClick={() => deleteCollection(col.numericId)}
-                      className="text-zinc-600 hover:text-red-400 transition-colors"
+                      className="text-zinc-700 hover:text-red-400 transition-colors"
                     >
                       Delete
                     </button>

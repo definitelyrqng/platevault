@@ -241,8 +241,7 @@ export default function RoadTripsPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <div className="h-5 w-1 rounded-full bg-indigo-500" />
-            <h1 className="text-2xl font-bold text-zinc-50">Road Trips 🗺️</h1>
+            <h1 className="text-3xl font-black text-zinc-50">Road Trips 🗺️</h1>
           </div>
           <button
             onClick={() => { setShowForm((v) => !v); setEditing(false); }}

@@ -175,74 +175,71 @@ export default async function UserProfilePage({
   const badge = roleBadge(user.role);
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-6 py-10">
+    <main className="mx-auto w-full max-w-6xl px-4 sm:px-6 py-8">
       <section className="relative overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900/40">
         {/* Banner */}
         {user.bannerUrl ? (
-          <div className="h-36 sm:h-44 overflow-hidden">
+          <div className="h-44 sm:h-56 overflow-hidden">
             <img src={user.bannerUrl} alt="Profile banner" className="w-full h-full object-cover" />
+            <div className="absolute inset-x-0 top-0 h-44 sm:h-56 bg-gradient-to-b from-transparent to-zinc-900/40 pointer-events-none" />
           </div>
         ) : (
-          <div className="h-32 bg-gradient-to-br from-indigo-900/40 via-zinc-900 to-zinc-900" />
+          <div className="h-40 sm:h-48" style={{ background: "linear-gradient(135deg, oklch(0.13 0.04 275) 0%, oklch(0.10 0.02 260) 50%, oklch(0.12 0.03 290) 100%)" }}>
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_20%_50%,rgba(99,102,241,0.15),transparent)]" />
+          </div>
         )}
 
         <div className="px-6 pb-8 pt-0 sm:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div className="flex items-end gap-5">
-              {/* Avatar — only the avatar overlaps the banner */}
-              <div className="relative shrink-0 -mt-12">
+              {/* Avatar */}
+              <div className="relative shrink-0 -mt-14">
                 {user.avatarUrl ? (
                   <img
                     src={user.avatarUrl}
                     alt={user.username}
-                    className="h-24 w-24 rounded-3xl object-cover ring-4 ring-zinc-950"
+                    className="h-28 w-28 rounded-3xl object-cover ring-4 ring-zinc-950 shadow-xl"
                   />
                 ) : (
-                  <div className="grid h-24 w-24 place-items-center rounded-3xl bg-gradient-to-br from-zinc-700 to-zinc-900 ring-4 ring-zinc-950">
-                    <span className="text-2xl font-bold text-zinc-100">{initials}</span>
+                  <div className="grid h-28 w-28 place-items-center rounded-3xl bg-gradient-to-br from-indigo-800/60 to-zinc-900 ring-4 ring-zinc-950 shadow-xl">
+                    <span className="text-3xl font-black text-zinc-100">{initials}</span>
                   </div>
                 )}
-                <div className="absolute -bottom-1 -right-1 grid h-7 w-7 place-items-center rounded-full bg-zinc-950 ring-2 ring-zinc-700">
-                  <span className="text-xs font-mono text-zinc-400">#{user.numericId}</span>
+                <div className="absolute -bottom-1 -right-1 grid h-7 w-7 place-items-center rounded-full bg-zinc-900 border border-zinc-700">
+                  <span className="text-[10px] font-mono text-zinc-400">#{user.numericId}</span>
                 </div>
               </div>
 
               <div className="pb-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <div className="text-2xl font-semibold text-zinc-50 sm:text-3xl">@{user.username}</div>
+                  <div className="text-3xl font-black text-zinc-50 sm:text-4xl tracking-tight">@{user.username}</div>
                   {badge.label && (
-                    <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${badge.cls}`}>{badge.label}</span>
+                    <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${badge.cls}`}>{badge.label}</span>
                   )}
                 </div>
-                <div className="mt-1 text-sm text-zinc-400">#{user.numericId} · Spotting since {memberSince}</div>
+                <div className="mt-1.5 text-sm text-zinc-500">Spotting since {memberSince}</div>
               </div>
             </div>
 
-            {/* Buttons — edit for owner, follow for others */}
-            <div className="shrink-0 self-end flex items-center gap-3">
+            {/* Action buttons */}
+            <div className="shrink-0 self-end flex items-center gap-2">
               {isOwnProfile ? (
                 <>
-                <a
-                  href="/settings/profile"
-                  className="rounded-xl border border-zinc-700 bg-zinc-900/60 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-800 transition-colors"
-                >
-                  Edit profile
-                </a>
-                <a
-                  href="/stats"
-                  className="rounded-xl border border-zinc-700 bg-zinc-900/60 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-800 transition-colors"
-                >
-                  My Stats
-                </a>
+                  <a href="/settings/profile"
+                    className="rounded-xl border border-zinc-700 bg-zinc-800/60 hover:bg-zinc-700/60 px-4 py-2 text-sm font-medium text-zinc-200 transition-colors">
+                    Edit profile
+                  </a>
+                  <a href="/stats"
+                    className="rounded-xl border border-zinc-700 bg-zinc-800/60 hover:bg-zinc-700/60 px-4 py-2 text-sm font-medium text-zinc-200 transition-colors">
+                    My Stats
+                  </a>
                 </>
               ) : (
                 <>
                   <FollowButton targetNumericId={user.numericId} />
                   {sessionUserId && (
-                    <a
-                      href={`/messages?with=${user.numericId}`}
-                      className="rounded-xl border border-zinc-700 bg-zinc-900/60 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-800 transition-colors"
-                    >
+                    <a href={`/messages?with=${user.numericId}`}
+                      className="rounded-xl border border-zinc-700 bg-zinc-800/60 hover:bg-zinc-700/60 px-4 py-2 text-sm font-medium text-zinc-200 transition-colors">
                       💬 Message
                     </a>
                   )}
@@ -255,14 +252,12 @@ export default async function UserProfilePage({
           {user.bio ? (
             <p className="mt-5 max-w-2xl text-sm leading-relaxed text-zinc-300">{user.bio}</p>
           ) : isOwnProfile ? (
-            <a
-              href="/settings/profile"
-              className="mt-5 block max-w-2xl rounded-2xl border border-dashed border-zinc-700 bg-zinc-950/20 px-4 py-3 text-sm text-zinc-500 hover:border-zinc-600 hover:text-zinc-400 transition-colors"
-            >
-              + Add a bio
+            <a href="/settings/profile"
+              className="mt-5 inline-block rounded-2xl border border-dashed border-zinc-700 bg-zinc-950/20 px-4 py-3 text-sm text-zinc-500 hover:border-indigo-700/60 hover:text-zinc-400 transition-colors">
+              + Add a bio to your profile
             </a>
           ) : (
-            <p className="mt-5 text-sm text-zinc-500">No bio yet.</p>
+            <p className="mt-5 text-sm text-zinc-600 italic">No bio yet. A mystery!</p>
           )}
 
           {/* Ban notice — shown to the banned user themselves */}
@@ -336,7 +331,6 @@ export default async function UserProfilePage({
       {/* ─── Achievements ─────────────────────────────────────────────────────── */}
       <section className="mt-6">
         <div className="mb-3 flex items-center gap-3">
-          <div className="h-5 w-1 rounded-full bg-indigo-500" />
           <h2 className="text-lg font-semibold text-zinc-100">Achievements</h2>
           <span className="ml-auto text-xs text-zinc-500">
             {ACHIEVEMENTS.filter((a) => a.earned).length}/{ACHIEVEMENTS.length} earned
@@ -369,7 +363,6 @@ export default async function UserProfilePage({
       <section className="mt-4 rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900/60 to-zinc-900/20 p-5">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className="h-5 w-1 rounded-full bg-indigo-500" />
             <h2 className="text-sm font-semibold text-zinc-100">Country Completion</h2>
           </div>
           <span className="text-xs text-zinc-400">
@@ -403,20 +396,22 @@ export default async function UserProfilePage({
                 const meta = getCountryMeta(u.country);
                 const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
                 return (
-                  <a key={u.id} href={`/spot/${u.numericId}`} className="group relative rounded-2xl overflow-hidden border border-amber-900/40 hover:border-amber-700/60 hover:shadow-lg hover:shadow-amber-950/30 transition-all">
-                    <div className="relative bg-zinc-950 overflow-hidden" style={{ aspectRatio: "16/9" }}>
-                      <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
+                  <a key={u.id} href={`/spot/${u.numericId}`}
+                    className="group rounded-2xl overflow-hidden border border-amber-900/40 hover:border-amber-600/60 hover:shadow-xl hover:shadow-amber-950/30 hover:-translate-y-0.5 transition-all block bg-zinc-900/50">
+                    <div className="relative overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                      <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" loading="lazy" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute top-2 right-2"><Flag iso={meta.iso} /></div>
+                      <div className="absolute top-2 left-2">
+                        <span className="text-[10px] font-bold text-amber-400 bg-amber-950/80 border border-amber-800/50 rounded-full px-2 py-0.5 backdrop-blur-sm">★ Pinned</span>
+                      </div>
                     </div>
-                    <div className="p-3 border-t border-amber-900/30 bg-zinc-900/60">
+                    <div className="px-3 py-2.5">
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-mono text-sm font-bold tracking-widest text-zinc-100 group-hover:text-amber-200 transition-colors truncate">{u.plateText}</span>
-                        <Flag iso={meta.iso} />
+                        {u._count.likes > 0 && <span className="text-xs text-rose-400 font-semibold shrink-0">♥ {u._count.likes}</span>}
                       </div>
-                      {carLabel && <div className="text-xs text-zinc-500 mt-0.5">{carLabel}</div>}
-                      <div className="mt-1.5 flex items-center justify-between text-xs">
-                        <span className="text-amber-600/70">★ Pinned</span>
-                        <span className="text-zinc-600">♡ {u._count.likes}</span>
-                      </div>
+                      {carLabel && <div className="text-xs text-zinc-500 mt-0.5 truncate">{carLabel}</div>}
                     </div>
                   </a>
                 );
@@ -426,10 +421,7 @@ export default async function UserProfilePage({
         )}
 
         <div className="mb-4 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="h-5 w-1 rounded-full bg-indigo-500" />
-            <h2 className="text-lg font-semibold text-zinc-100">Spots</h2>
-          </div>
+          <h2 className="text-lg font-bold text-zinc-100">Spots</h2>
           <span className="text-xs text-zinc-500">{user._count.uploads} total</span>
         </div>
         {user.uploads.length === 0 ? (
@@ -444,23 +436,22 @@ export default async function UserProfilePage({
               const meta = getCountryMeta(u.country);
               const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
               return (
-                <div key={u.id} className="group relative rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-indigo-700/50 hover:shadow-lg hover:shadow-indigo-950/30 transition-all">
-                  <a href={`/spot/${u.numericId}`} className="absolute inset-0 z-10" aria-label={u.plateText} />
-                  <div className="relative bg-zinc-950 overflow-hidden" style={{ aspectRatio: "16/9" }}>
-                    <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
+                <a key={u.id} href={`/spot/${u.numericId}`}
+                  className="group rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-indigo-600/60 hover:shadow-xl hover:shadow-indigo-950/40 hover:-translate-y-0.5 transition-all block bg-zinc-900/50">
+                  <div className="relative overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                    <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" loading="lazy" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute top-2 right-2"><Flag iso={meta.iso} /></div>
                   </div>
-                  <div className="p-3 border-t border-zinc-800/40 bg-zinc-900/60">
+                  <div className="px-3 py-2.5">
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-mono text-sm font-bold tracking-widest text-zinc-100 group-hover:text-indigo-200 transition-colors truncate">{u.plateText}</span>
-                      <Flag iso={meta.iso} />
+                      {u._count.likes > 0 && <span className="text-xs text-rose-400 font-semibold shrink-0">♥ {u._count.likes}</span>}
                     </div>
-                    {carLabel && <div className="text-xs text-zinc-500 mt-0.5">{carLabel}</div>}
-                    <div className="mt-1.5 flex items-center justify-between text-xs text-zinc-600">
-                      <span>{relativeDays(u.createdAt)}</span>
-                      <span>♡ {u._count.likes}</span>
-                    </div>
+                    {carLabel && <div className="text-xs text-zinc-500 mt-0.5 truncate">{carLabel}</div>}
+                    <div className="mt-2 text-xs text-zinc-600">{relativeDays(u.createdAt)}</div>
                   </div>
-                </div>
+                </a>
               );
             })}
           </div>
@@ -482,15 +473,4 @@ export default async function UserProfilePage({
               {page < totalPages ? (
                 <a href={`?page=${page + 1}#spots`} className="rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-2 text-sm text-zinc-400 hover:border-indigo-800/60 hover:bg-indigo-950/20 hover:text-indigo-300 transition-colors">
                   Next →
-                </a>
-              ) : (
-                <span className="rounded-xl border border-zinc-800/40 px-4 py-2 text-sm text-zinc-700 cursor-default">Next →</span>
-              )}
-            </div>
-          )}
-          </>
-        )}
-      </section>
-    </main>
-  );
-}
+   

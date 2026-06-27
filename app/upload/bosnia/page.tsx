@@ -163,7 +163,7 @@ export default function BosniaUploadPage() {
             <span>›</span>
             <span className="text-zinc-300">Bosnia &amp; Herzegovina 🇧🇦</span>
           </div>
-          <h1 className="mt-2 text-2xl font-semibold">Upload — Bosnia &amp; Herzegovina</h1>
+          <h1 className="mt-2 text-2xl font-black">Upload — Bosnia &amp; Herzegovina</h1>
           <p className="mt-1 text-sm text-zinc-400">Regular, diplomatic, dealer, export &amp; old-format plates.</p>
         </div>
 

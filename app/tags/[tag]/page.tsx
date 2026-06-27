@@ -38,10 +38,9 @@ export default async function TagPage({ params }: { params: Promise<{ tag: strin
         </div>
 
         <div className="mb-8 flex items-start gap-3">
-          <div className="mt-1.5 h-5 w-1 rounded-full bg-indigo-500 shrink-0" />
-          <div>
+                    <div>
           <div className="text-xs uppercase tracking-widest text-indigo-400 mb-1">{tagDef.group}</div>
-          <h1 className="text-3xl font-bold">#{tagDef.label}</h1>
+          <h1 className="text-3xl font-black">#{tagDef.label}</h1>
           <p className="mt-2 text-zinc-400 text-sm">{spots.length} spot{spots.length !== 1 ? "s" : ""} tagged</p>
           </div>
         </div>
@@ -54,7 +53,7 @@ export default async function TagPage({ params }: { params: Promise<{ tag: strin
               <a
                 key={s.numericId}
                 href={`/spot/${s.numericId}`}
-                className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-lg hover:shadow-indigo-950/40 transition-all"
+                className="group relative flex flex-col rounded-2xl border border-zinc-800/60 bg-zinc-900/50 overflow-hidden hover:border-indigo-600/60 hover:shadow-xl hover:shadow-indigo-950/40 hover:-translate-y-0.5 transition-all"
               >
                 <div className="aspect-video bg-zinc-950 overflow-hidden">
                   <img

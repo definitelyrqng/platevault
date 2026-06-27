@@ -45,11 +45,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             <SidebarGate />
             <div className="flex flex-col flex-1 min-w-0 md:ml-16">
               <main className="flex-1 pb-20 md:pb-0">{children}</main>
-              <footer className="py-8 text-center text-xs text-zinc-600 space-y-3 border-t border-zinc-800/40">
-                <div className="flex items-center justify-center gap-1 mb-2">
-                  <span className="text-zinc-700 font-mono tracking-widest text-[10px]">PV</span>
-                  <span className="h-1 w-1 rounded-full bg-indigo-800 mx-1" />
-                  <span className="text-zinc-700 text-[10px]">PLATEVAULT</span>
+              <footer className="py-10 text-center text-xs text-zinc-600 space-y-3 border-t border-zinc-800/30">
+                <div className="flex items-center justify-center gap-1.5 mb-3">
+                  <span className="text-zinc-600 font-black font-mono tracking-[0.2em] text-[11px]">PV</span>
+                  <span className="h-1 w-1 rounded-full bg-indigo-700 mx-1" />
+                  <span className="text-zinc-600 font-medium tracking-widest text-[10px]">PLATEVAULT</span>
                 </div>
                 <div className="flex items-center justify-center gap-5 flex-wrap">
                   <span className="text-zinc-700">&#169; {new Date().getFullYear()}</span>

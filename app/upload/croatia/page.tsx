@@ -185,7 +185,7 @@ export default function CroatiaUploadPage() {
           <span>›</span>
           <span className="text-zinc-300">Croatia 🇭🇷</span>
         </div>
-        <h1 className="text-2xl font-semibold">Upload — Croatia</h1>
+        <h1 className="text-2xl font-black">Upload — Croatia</h1>
         <p className="mt-1 text-sm text-zinc-400">Regular, foreign, exceptional, motorcycle, vanity, dealer, oldtimer, military, export and police plates</p>
       </div>
 

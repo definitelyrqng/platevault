@@ -95,9 +95,9 @@ export default async function ModelPage({
 
       <div className="mt-4 mb-10 flex items-end justify-between gap-4 flex-wrap">
         <div className="flex items-start gap-3">
-          <div className="mt-1.5 h-5 w-1 rounded-full bg-indigo-500 shrink-0" />
+          <div className="hidden" />
           <div>
-            <h1 className="text-3xl font-bold">{brandData.name} {modelData.name}</h1>
+            <h1 className="text-3xl font-black">{brandData.name} {modelData.name}</h1>
             <p className="mt-1.5 text-sm text-zinc-500">
               {spots.length === 0
                 ? "No spots yet"
@@ -175,47 +175,29 @@ export default async function ModelPage({
 
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {gSpots.map((u) => (
-                      <div
-                        key={u.id}
-                        className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-lg hover:shadow-indigo-950/40 transition-all"
-                      >
-                        <a href={"/spot/" + u.numericId} className="absolute inset-0 z-0" aria-label={u.plateText} />
-                        <div className="relative bg-zinc-950 aspect-video overflow-hidden">
-                          <img
-                            src={u.imageUrl}
-                            alt={u.plateText + " plate"}
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            loading="lazy"
-                          />
-                        </div>
-                        <div className="p-4 flex flex-col gap-2 flex-1">
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <div className="font-mono text-lg font-bold tracking-widest text-zinc-100">{u.plateText}</div>
-                              {(u.badge || u.color) && (
-                                <div className="text-xs text-zinc-400 mt-0.5">
-                                  {[u.badge, u.color].filter(Boolean).join(" · ")}
-                                </div>
-                              )}
-                            </div>
-                            {u.plateType && (
-                              <span className="shrink-0 rounded-full border border-zinc-800 bg-zinc-950/60 px-2 py-0.5 text-[10px] uppercase tracking-wider text-zinc-500">
+                      <a key={u.id} href={"/spot/" + u.numericId}
+                        className="group rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-indigo-600/60 hover:shadow-xl hover:shadow-indigo-950/40 hover:-translate-y-0.5 transition-all block bg-zinc-900/50">
+                        <div className="relative overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                          <img src={u.imageUrl} alt={u.plateText}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" loading="lazy" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          {u.plateType && (
+                            <div className="absolute top-2 left-2">
+                              <span className="rounded-full bg-zinc-950/80 border border-zinc-700/50 px-2 py-0.5 text-[10px] uppercase tracking-wider text-zinc-400 backdrop-blur-sm">
                                 {u.plateType.replace(/-/g, " ")}
                               </span>
-                            )}
-                          </div>
-                          <div className="mt-auto flex items-center justify-between pt-2 border-t border-zinc-800">
-                            <a href={"/u/" + u.user.numericId} className="relative z-10 text-xs text-zinc-500 hover:text-indigo-400 transition-colors">
-                              @{u.user.username}
-                            </a>
-                            <div className="flex items-center gap-2 text-xs text-zinc-600">
-                              <span>{relativeDays(u.createdAt)}</span>
-                              <span>&#128172; {u._count.comments}</span>
-                              <span>&#10084; {u._count.likes}</span>
                             </div>
-                          </div>
+                          )}
                         </div>
-                      </div>
+                        <div className="px-3 py-2.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-mono text-sm font-bold tracking-widest text-zinc-100 group-hover:text-indigo-200 transition-colors truncate">{u.plateText}</span>
+                            {u._count.likes > 0 && <span className="text-xs text-rose-400 font-semibold shrink-0">♥ {u._count.likes}</span>}
+                          </div>
+                          {(u.badge || u.color) && <div className="text-xs text-zinc-500 mt-0.5 truncate">{[u.badge, u.color].filter(Boolean).join(" · ")}</div>}
+                          <div className="mt-2 text-xs text-zinc-600">@{u.user.username}</div>
+                        </div>
+                      </a>
                     ))}
                   </div>
                 </>
@@ -239,14 +221,15 @@ export default async function ModelPage({
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {ungrouped.map((u) => (
                 <a key={u.id} href={"/spot/" + u.numericId}
-                  className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-lg hover:shadow-indigo-950/40 transition-all">
-                  <div className="bg-zinc-950 aspect-video overflow-hidden">
+                  className="group rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-indigo-600/60 hover:shadow-xl hover:shadow-indigo-950/40 hover:-translate-y-0.5 transition-all block bg-zinc-900/50">
+                  <div className="relative overflow-hidden" style={{ aspectRatio: "16/9" }}>
                     <img src={u.imageUrl} alt={u.plateText}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" loading="lazy" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>
-                  <div className="p-4">
-                    <div className="font-mono text-base font-bold tracking-widest text-zinc-100">{u.plateText}</div>
-                    <div className="mt-1 text-xs text-zinc-500">@{u.user.username}</div>
+                  <div className="px-3 py-2.5">
+                    <span className="font-mono text-sm font-bold tracking-widest text-zinc-100 group-hover:text-indigo-200 transition-colors">{u.plateText}</span>
+                    <div className="mt-1.5 text-xs text-zinc-600">@{u.user.username}</div>
                   </div>
                 </a>
               ))}

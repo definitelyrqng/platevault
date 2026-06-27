@@ -73,17 +73,14 @@ export default function ForYouPage() {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <div className="h-6 w-1 rounded-full bg-indigo-500" />
-          <h1 className="text-2xl font-bold text-zinc-50">For You</h1>
+          <h1 className="text-3xl font-black text-zinc-50">For You</h1>
           {personalised && (
-            <span className="rounded-full bg-indigo-950/60 border border-indigo-800/40 px-2.5 py-0.5 text-[10px] font-medium text-indigo-400 uppercase tracking-wider">
+            <span className="rounded-full bg-indigo-950/60 border border-indigo-800/40 px-2.5 py-0.5 text-[10px] font-bold text-indigo-400 uppercase tracking-widest">
               Personalised
             </span>
           )}
         </div>
-        <a href="/feed" className="text-xs text-zinc-500 hover:text-indigo-300 transition-colors">
-          Following →
-        </a>
+        <a href="/feed" className="text-xs font-medium text-zinc-500 hover:text-indigo-300 transition-colors">Following →</a>
       </div>
 
       {/* Country chips (if personalised) */}
@@ -130,32 +127,27 @@ export default function ForYouPage() {
             const meta = getCountryMeta(u.country);
             const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
             return (
-              <div key={u.id} className="group relative rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-indigo-700/50 hover:shadow-lg hover:shadow-indigo-950/30 transition-all">
-                <a href={`/spot/${u.numericId}`} className="absolute inset-0 z-10" aria-label={u.plateText} />
-                <div className="relative bg-zinc-950 overflow-hidden" style={{ aspectRatio: "16/9" }}>
-                  <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
+              <a key={u.id} href={`/spot/${u.numericId}`}
+                className="group rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-indigo-600/60 hover:shadow-xl hover:shadow-indigo-950/40 hover:-translate-y-0.5 transition-all block bg-zinc-900/50">
+                <div className="relative overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                  <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" loading="lazy" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute top-2 right-2"><Flag iso={meta.iso} /></div>
                 </div>
-                <div className="p-3 border-t border-zinc-800/40 bg-zinc-900/60">
+                <div className="px-3 py-2.5">
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-mono text-sm font-bold tracking-widest text-zinc-100 group-hover:text-indigo-200 transition-colors truncate">{u.plateText}</span>
-                    <Flag iso={meta.iso} />
+                    {u._count.likes > 0 && <span className="text-xs text-rose-400 font-semibold shrink-0">♥ {u._count.likes}</span>}
                   </div>
-                  {carLabel && <div className="text-xs text-zinc-500 mt-0.5">{carLabel}</div>}
-                  <div className="mt-2 flex items-center justify-between">
-                    <a href={`/u/${u.user.numericId}`} className="relative z-20 flex items-center gap-1.5 group/u">
-                      {u.user.avatarUrl ? (
-                        <img src={u.user.avatarUrl} alt={u.user.username} className="h-5 w-5 rounded-md object-cover" />
-                      ) : (
-                        <div className="h-5 w-5 rounded-md bg-zinc-800 grid place-items-center text-[8px] font-bold text-zinc-500">
-                          {u.user.username.slice(0, 2).toUpperCase()}
-                        </div>
-                      )}
-                      <span className="text-xs text-zinc-500 group-hover/u:text-indigo-300 transition-colors">@{u.user.username}</span>
-                    </a>
-                    <span className="text-xs text-zinc-600">♡ {u._count.likes}</span>
+                  {carLabel && <div className="text-xs text-zinc-500 mt-0.5 truncate">{carLabel}</div>}
+                  <div className="mt-2 flex items-center gap-1.5">
+                    {u.user.avatarUrl
+                      ? <img src={u.user.avatarUrl} alt={u.user.username} className="h-4 w-4 rounded-full object-cover" />
+                      : <div className="h-4 w-4 rounded-full bg-zinc-800 grid place-items-center text-[7px] font-bold text-zinc-500">{u.user.username.slice(0,2).toUpperCase()}</div>}
+                    <span className="text-xs text-zinc-600">@{u.user.username}</span>
                   </div>
                 </div>
-              </div>
+              </a>
             );
           })}
         </div>

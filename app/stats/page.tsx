@@ -102,39 +102,31 @@ export default async function StatsPage() {
   return (
     <main className="mx-auto w-full max-w-4xl px-6 py-10">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-zinc-50">My Stats</h1>
-        <p className="mt-1 text-sm text-zinc-400">
+      <div className="mb-8">
+        <h1 className="text-3xl font-black text-zinc-50">My Stats</h1>
+        <p className="mt-1.5 text-sm text-zinc-400">
           @{user.username} · all-time spotting summary
         </p>
       </div>
 
       {/* Summary cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {summary.map((s) => (
-          <div
-            key={s.label}
-            className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5"
-          >
-            <div className="text-xs uppercase tracking-wider text-zinc-500">
-              {s.label}
+        {summary.map((s, i) => {
+          const accents = ["from-indigo-600 to-violet-600", "from-amber-500 to-orange-500", "from-rose-500 to-pink-500", "from-emerald-500 to-teal-500"];
+          return (
+            <div key={s.label} className="rounded-2xl border border-zinc-800/70 bg-zinc-900/50 p-5 relative overflow-hidden">
+              <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${accents[i]}`} />
+              <div className="text-xs font-bold uppercase tracking-widest text-zinc-500">{s.label}</div>
+              <div className="mt-2 text-3xl font-black text-zinc-50">{s.value}</div>
             </div>
-            <div className="mt-1.5 text-3xl font-semibold text-zinc-50">
-              {s.value}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Country completion */}
-      <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
+      <div className="mt-4 rounded-2xl border border-zinc-800/70 bg-zinc-900/50 p-5">
         <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-5 w-1 rounded-full bg-indigo-500" />
-            <h2 className="text-sm font-semibold text-zinc-100">
-              Country Completion
-            </h2>
-          </div>
+          <h2 className="text-sm font-bold text-zinc-100">Country Completion</h2>
           <span className="text-xs text-zinc-400">
             <span className="font-semibold text-indigo-300">
               {countriesSpotted}
@@ -157,13 +149,8 @@ export default async function StatsPage() {
       {/* Top countries + top brands */}
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         {/* Top countries */}
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="h-5 w-1 rounded-full bg-indigo-500" />
-            <h2 className="text-sm font-semibold text-zinc-100">
-              Top Countries
-            </h2>
-          </div>
+        <div className="rounded-2xl border border-zinc-800/70 bg-zinc-900/50 p-5">
+          <h2 className="text-sm font-bold text-zinc-100 mb-4">Top Countries</h2>
           {topCountries.length === 0 ? (
             <p className="text-xs text-zinc-500">No spots yet.</p>
           ) : (
@@ -194,11 +181,8 @@ export default async function StatsPage() {
         </div>
 
         {/* Top brands */}
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="h-5 w-1 rounded-full bg-violet-500" />
-            <h2 className="text-sm font-semibold text-zinc-100">Top Brands</h2>
-          </div>
+        <div className="rounded-2xl border border-zinc-800/70 bg-zinc-900/50 p-5">
+          <h2 className="text-sm font-bold text-zinc-100 mb-4">Top Brands</h2>
           {topBrands.length === 0 ? (
             <p className="text-xs text-zinc-500">
               No spots with brand info yet.
@@ -230,13 +214,10 @@ export default async function StatsPage() {
       </div>
 
       {/* Monthly activity bar chart */}
-      <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
-        <div className="mb-4 flex items-center gap-3">
-          <div className="h-5 w-1 rounded-full bg-indigo-500" />
-          <h2 className="text-sm font-semibold text-zinc-100">
-            Monthly Activity
-          </h2>
-          <span className="ml-auto text-xs text-zinc-500">last 12 months</span>
+      <div className="mt-6 rounded-2xl border border-zinc-800/70 bg-zinc-900/50 p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-sm font-bold text-zinc-100">Monthly Activity</h2>
+          <span className="text-xs text-zinc-500">last 12 months</span>
         </div>
         {/* Bar chart */}
         <div className="flex items-end gap-1" style={{ height: "80px" }}>

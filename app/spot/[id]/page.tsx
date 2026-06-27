@@ -325,23 +325,24 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
           )}
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
+        <div className="grid gap-6 lg:grid-cols-[1fr_310px]">
           {/* ─── Left: image + comments ─── */}
           <div className="space-y-5">
 
             {/* Hero image */}
-            <div className="relative overflow-hidden rounded-3xl bg-zinc-900 border border-zinc-800 shadow-2xl">
+            <div className="relative overflow-hidden rounded-3xl bg-zinc-900 border border-zinc-800/60 shadow-2xl shadow-zinc-950/60 group">
               <img
                 src={upload.imageUrl}
                 alt={`${upload.plateText} — ${meta.name}`}
-                className="w-full object-contain max-h-[65vh]"
+                className="w-full object-contain max-h-[70vh] transition-transform duration-700 group-hover:scale-[1.01]"
               />
-              {/* Overlay badges */}
-              <div className="absolute bottom-3 left-3 flex items-center gap-2">
-                <span className="rounded-full bg-zinc-950/80 backdrop-blur border border-zinc-700 px-3 py-1 text-xs text-zinc-300 inline-flex items-center gap-1.5">
+              {/* Bottom gradient + badges */}
+              <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-zinc-950/80 to-transparent pointer-events-none" />
+              <div className="absolute bottom-4 left-4 flex items-center gap-2">
+                <span className="glass rounded-full bg-zinc-950/60 border border-zinc-700/60 px-3 py-1.5 text-xs text-zinc-300 inline-flex items-center gap-1.5 shadow">
                   <Flag iso={meta.iso} />{meta.name}
                 </span>
-                <span className="rounded-full bg-zinc-950/80 backdrop-blur border border-zinc-700 px-3 py-1 text-xs font-mono font-bold text-zinc-100 tracking-widest">
+                <span className="glass rounded-full bg-zinc-950/60 border border-zinc-700/60 px-3 py-1.5 text-xs font-mono font-bold text-zinc-100 tracking-widest shadow">
                   {upload.plateText}
                 </span>
               </div>
@@ -598,7 +599,6 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
         {otherSightings.length > 0 && (
           <section className="mt-12">
             <div className="flex items-center gap-3 mb-4">
-              <div className="h-5 w-1 rounded-full bg-indigo-500" />
               <h2 className="text-lg font-semibold text-zinc-100">Multi Spots</h2>
               <span className="rounded-full bg-indigo-500/20 border border-indigo-500/30 px-2.5 py-0.5 text-xs text-indigo-400 font-medium">
                 📍 {otherSightings.length} other sighting{otherSightings.length !== 1 ? "s" : ""}
@@ -612,7 +612,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 <a
                   key={s.numericId}
                   href={`/spot/${s.numericId}`}
-                  className="group relative flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/40 overflow-hidden hover:border-indigo-800/60 hover:shadow-md hover:shadow-indigo-950/40 transition-all"
+                  className="group relative flex flex-col rounded-2xl border border-zinc-800/60 bg-zinc-900/50 overflow-hidden hover:border-indigo-600/60 hover:shadow-xl hover:shadow-indigo-950/40 hover:-translate-y-0.5 transition-all"
                 >
                   <div className="aspect-video bg-zinc-950 overflow-hidden">
                     <img
@@ -648,10 +648,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
         {/* ─── More from same car model ─── */}
         {moreFromModel.length > 0 && (
           <section className="mt-10">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="h-5 w-1 rounded-full bg-purple-500" />
-              <h2 className="text-lg font-semibold text-zinc-100">More {upload.brand} {upload.model}</h2>
-            </div>
+            <h2 className="text-lg font-bold text-zinc-100 mb-4">More {upload.brand} {upload.model}</h2>
             <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
               {moreFromModel.map((s) => (
                 <a key={s.id} href={`/spot/${s.numericId}`} className="group rounded-xl overflow-hidden border border-zinc-800/60 hover:border-purple-700/50 hover:shadow-lg hover:shadow-purple-950/30 transition-all block">
@@ -673,7 +670,6 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
           <section className="mt-10">
             <div className="flex items-center justify-between gap-4 mb-4">
               <div className="flex items-center gap-3">
-                <div className="h-5 w-1 rounded-full bg-indigo-500" />
                 <h2 className="text-lg font-semibold text-zinc-100">More from {meta?.name ?? upload.country}</h2>
               </div>
               <a href={`/c/${upload.country}`} className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
@@ -688,14 +684,4 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                   </div>
                   <div className="p-2.5 border-t border-zinc-800/40 bg-zinc-900/60">
                     <div className="font-mono text-xs font-bold tracking-widest text-zinc-200 group-hover:text-indigo-200 transition-colors truncate">{s.plateText}</div>
-                    <div className="text-[10px] text-zinc-600 mt-0.5">♡ {s._count.likes}</div>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
-    </main>
-  );
-}
+   

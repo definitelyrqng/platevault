@@ -429,7 +429,7 @@ export default function GermanyUploadPage() {
               <span>›</span>
               <span className="text-zinc-300">Germany 🇩🇪</span>
             </div>
-            <h1 className="mt-2 text-2xl font-semibold">Upload — Germany</h1>
+            <h1 className="mt-2 text-2xl font-black">Upload — Germany</h1>
             <p className="mt-1 text-sm text-zinc-400">All Kfz-Kennzeichen types — regular, historic, official, federal & diplomatic.</p>
           </div>
 

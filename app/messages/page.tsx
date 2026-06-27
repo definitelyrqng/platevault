@@ -117,8 +117,7 @@ function MessagesInner() {
     <main className="min-h-screen bg-zinc-950 text-zinc-100">
       <div className="mx-auto max-w-5xl px-4 py-8">
         <div className="mb-6 flex items-center gap-3">
-          <div className="h-5 w-1 rounded-full bg-indigo-500" />
-          <h1 className="text-2xl font-bold text-zinc-50">Messages</h1>
+          <h1 className="text-2xl font-black text-zinc-50">Messages</h1>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-[280px_1fr]">

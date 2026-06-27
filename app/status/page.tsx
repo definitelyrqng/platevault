@@ -20,14 +20,14 @@ export default async function StatusPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
           <div>
-            <div className="text-xs uppercase tracking-widest text-zinc-500 mb-1">PlateVault</div>
-            <h1 className="text-2xl font-semibold">System Status</h1>
+            <div className="text-xs font-bold uppercase tracking-widest text-indigo-400 mb-1">PlateVault</div>
+            <h1 className="text-3xl font-black">System Status</h1>
           </div>
           <a
             href="/home"
-            className="rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-300 hover:border-indigo-800/60 hover:text-indigo-300 hover:bg-indigo-950/20 transition-colors"
+            className="rounded-xl border border-zinc-800/70 bg-zinc-900/50 px-4 py-2 text-sm font-medium text-zinc-300 hover:border-indigo-700/60 hover:text-indigo-300 hover:bg-indigo-950/20 transition-colors"
           >
-            Back to PlateVault
+            ← Home
           </a>
         </div>
 

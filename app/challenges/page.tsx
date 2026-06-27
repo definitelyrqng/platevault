@@ -44,8 +44,7 @@ export default function ChallengesPage() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-1">
-            <div className="h-5 w-1 rounded-full bg-indigo-500" />
-            <h1 className="text-2xl font-bold text-zinc-50">Weekly Challenges</h1>
+            <h1 className="text-3xl font-black text-zinc-50">Weekly Challenges</h1>
           </div>
           {data?.wEnd && (
             <p className="text-sm text-zinc-400 ml-4">
