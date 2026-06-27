@@ -473,4 +473,15 @@ export default async function UserProfilePage({
               {page < totalPages ? (
                 <a href={`?page=${page + 1}#spots`} className="rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-2 text-sm text-zinc-400 hover:border-indigo-800/60 hover:bg-indigo-950/20 hover:text-indigo-300 transition-colors">
                   Next →
-   
+                </a>
+              ) : (
+                <span className="rounded-xl border border-zinc-800/40 px-4 py-2 text-sm text-zinc-700 cursor-default">Next →</span>
+              )}
+            </div>
+          )}
+          </>
+        )}
+      </section>
+    </main>
+  );
+}

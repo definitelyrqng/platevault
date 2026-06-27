@@ -684,4 +684,14 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                   </div>
                   <div className="p-2.5 border-t border-zinc-800/40 bg-zinc-900/60">
                     <div className="font-mono text-xs font-bold tracking-widest text-zinc-200 group-hover:text-indigo-200 transition-colors truncate">{s.plateText}</div>
-   
+                    <div className="text-[10px] text-zinc-600 mt-0.5">♡ {s._count.likes}</div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+    </main>
+  );
+}
