@@ -21,26 +21,20 @@ export default function AnnouncementBanner() {
   if (!visible) return null;
 
   return (
-    <div className="relative z-50 bg-gradient-to-r from-indigo-950/90 via-violet-950/90 to-indigo-950/90 border-b border-indigo-700/30 backdrop-blur-sm">
-      <div className="mx-auto max-w-5xl flex items-center justify-between gap-3 px-4 py-2.5">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text-base shrink-0">✨</span>
-          <p className="text-sm text-zinc-300 leading-tight min-w-0">
-            <span className="font-semibold text-indigo-300">New on PlateVault: </span>
-            <span className="hidden sm:inline">Weekly Challenges, Direct Messages, Road Trips, Collection Export &amp; Germany plates are live!</span>
-            <span className="sm:hidden">Weekly Challenges, DMs, Road Trips &amp; more!</span>
-            <a
-              href="/challenges"
-              className="ml-2 text-indigo-400 hover:text-indigo-200 underline underline-offset-2 transition-colors text-xs whitespace-nowrap"
-            >
-              Try now →
-            </a>
-          </p>
-        </div>
+    <div className="relative z-50 border-b border-zinc-800/80 bg-zinc-900">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2 sm:px-6">
+        <p className="min-w-0 truncate text-[13px] text-zinc-400">
+          <span className="mr-2 rounded bg-indigo-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">New</span>
+          <span className="hidden sm:inline">Weekly challenges, direct messages, road trips, collection export &amp; Germany plates are live.</span>
+          <span className="sm:hidden">Challenges, DMs, road trips &amp; more.</span>
+          <a href="/challenges" className="ml-2 font-medium text-zinc-200 underline-offset-2 hover:text-white hover:underline">
+            Try now →
+          </a>
+        </p>
         <button
           onClick={dismiss}
           aria-label="Dismiss announcement"
-          className="shrink-0 rounded-full p-1.5 text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/50 transition-colors"
+          className="shrink-0 rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-200"
         >
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
             <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />

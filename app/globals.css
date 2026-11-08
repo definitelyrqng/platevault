@@ -1,5 +1,28 @@
 @import "tailwindcss";
 
+/* ─── Design tokens ───────────────────────────────────────────────────────── */
+/*
+  Accent: the `indigo` scale is remapped to a crisp plate-blue so every existing
+  indigo-* class across the site picks up the new accent without per-page edits.
+*/
+@theme {
+  --color-indigo-50:  oklch(0.970 0.014 262);
+  --color-indigo-100: oklch(0.932 0.032 262);
+  --color-indigo-200: oklch(0.882 0.059 262);
+  --color-indigo-300: oklch(0.809 0.105 262);
+  --color-indigo-400: oklch(0.707 0.165 262);
+  --color-indigo-500: oklch(0.623 0.210 262);
+  --color-indigo-600: oklch(0.560 0.225 262);
+  --color-indigo-700: oklch(0.490 0.215 262);
+  --color-indigo-800: oklch(0.420 0.175 262);
+  --color-indigo-900: oklch(0.360 0.130 262);
+  --color-indigo-950: oklch(0.260 0.085 262);
+}
+
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
 @font-face {
   font-family: 'FE-Schrift';
   src: url('/fonts/FE-FONT.woff2') format('woff2');
@@ -105,6 +128,26 @@ html {
   -webkit-text-fill-color: transparent;
   animation: shimmer 5s linear infinite;
 }
+
+/* Marquee (latest plates ticker) */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.animate-marquee { animation: marquee 70s linear infinite; }
+.marquee:hover .animate-marquee { animation-play-state: paused; }
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee, .animate-float, .text-shimmer { animation: none; }
+}
+
+/* Hide scrollbars on horizontal strips */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
 
 /* Glass morphism */
 .glass {

@@ -1,13 +1,17 @@
 import Flag from "@/app/components/Flag";
+import SpotCard from "@/app/components/SpotCard";
 import { getCountryMeta } from "@/app/lib/countries";
 import { prisma } from "@/app/lib/prisma";
 import { cookies } from "next/headers";
 import LikeButton from "./LikeButton";
 
+const PAGE_SIZE = 48;
+// Countries that have a dedicated upload form under /upload/<country>
+const UPLOAD_COUNTRIES = new Set(["albania", "austria", "belgium", "bosnia", "bulgaria", "croatia", "czech", "germany"]);
+
 export async function generateMetadata({ params }: { params: Promise<{ country: string }> }) {
   const { country } = await params;
-  const { getCountryMeta: gcm } = await import("@/app/lib/countries");
-  const meta = gcm(country);
+  const meta = getCountryMeta(country);
   const title = `${meta.name} Plates`;
   const desc = `Browse all license plates spotted in ${meta.name} on PlateVault.`;
   return {
@@ -17,18 +21,8 @@ export async function generateMetadata({ params }: { params: Promise<{ country: 
   };
 }
 
-
-
-function relativeDays(d: Date) {
-  const ms = Date.now() - d.getTime();
-  const days = Math.max(0, Math.floor(ms / 86_400_000));
-  if (days === 0) return "today";
-  if (days === 1) return "1 day ago";
-  if (days < 30) return `${days} days ago`;
-  const months = Math.floor(days / 30);
-  if (months === 1) return "1 month ago";
-  if (months < 12) return `${months} months ago`;
-  return `${Math.floor(months / 12)} years ago`;
+function prettyType(t: string) {
+  return t.replace(/^(de|at|al|be|ba|bg|hr|cz)-/i, "").replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 async function getCurrentUser() {
@@ -45,97 +39,162 @@ async function getCurrentUser() {
 
 export default async function CountryPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ country: string }>;
+  searchParams: Promise<{ type?: string; page?: string }>;
 }) {
-  const { country: rawCountry } = await params;
+  const [{ country: rawCountry }, sp] = await Promise.all([params, searchParams]);
   const country = rawCountry.toLowerCase();
   const meta = getCountryMeta(country);
+  const type = sp.type || null;
+  const page = Math.max(1, Number(sp.page) || 1);
 
-  const [uploads, currentUser] = await Promise.all([
+  const base = { country, deletedAt: null, hidden: false };
+  const where = type ? { ...base, plateType: type } : base;
+
+  const [uploads, filteredCount, totalCount, typeGroups, spotterGroups, currentUser] = await Promise.all([
     prisma.upload.findMany({
-      where: { country, deletedAt: null, hidden: false },
+      where,
       orderBy: { createdAt: "desc" },
-      take: 60,
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
       select: {
         id: true,
         numericId: true,
         plateText: true,
         plateType: true,
+        country: true,
         imageUrl: true,
         createdAt: true,
         userId: true,
         brand: true,
         model: true,
-        user: { select: { username: true, numericId: true } },
+        user: { select: { username: true } },
         _count: { select: { likes: true, comments: true } },
       },
     }),
+    prisma.upload.count({ where }),
+    prisma.upload.count({ where: base }),
+    prisma.upload.groupBy({
+      by: ["plateType"],
+      where: { ...base, plateType: { not: null } },
+      _count: { id: true },
+      orderBy: { _count: { id: "desc" } },
+    }),
+    prisma.upload.groupBy({ by: ["userId"], where: base }),
     getCurrentUser(),
   ]);
 
-  return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
+  const uploadHref = UPLOAD_COUNTRIES.has(country) ? `/upload/${country}` : "/upload";
+  const pages = Math.max(1, Math.ceil(filteredCount / PAGE_SIZE));
+  const href = (p: { type?: string | null; page?: number }) => {
+    const qs = new URLSearchParams();
+    const t = p.type === undefined ? type : p.type;
+    if (t) qs.set("type", t);
+    if (p.page && p.page > 1) qs.set("page", String(p.page));
+    const s = qs.toString();
+    return `/c/${country}${s ? `?${s}` : ""}`;
+  };
 
-      {/* ─── Country hero header ─── */}
-      <div className="relative rounded-2xl overflow-hidden border border-indigo-900/30 bg-gradient-to-br from-indigo-950/50 via-zinc-900/60 to-zinc-900/40 px-7 py-8 mb-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_0%_50%,rgba(99,102,241,0.15),transparent)]" />
-        <div className="relative flex items-center justify-between gap-4">
+  return (
+    <main className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6">
+
+      {/* ─── Header ─── */}
+      <nav className="mb-4 text-xs text-zinc-500">
+        <a href="/countries" className="transition-colors hover:text-zinc-300">Countries</a>
+        <span className="mx-1.5">/</span>
+        <span className="text-zinc-300">{meta.name}</span>
+      </nav>
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-zinc-800/60 pb-6">
+        <div className="flex items-center gap-4">
+          <span className="leading-none shadow-md ring-1 ring-black/30"><Flag iso={meta.iso} size="lg" /></span>
           <div>
-            <div className="text-5xl mb-3"><Flag iso={meta?.iso ?? null} /></div>
-            <h1 className="text-3xl font-black text-zinc-50">{meta?.name ?? country}</h1>
-            <p className="mt-1.5 text-sm text-zinc-400">
-              {uploads.length === 0
-                ? "No spots yet — be the first to upload!"
-                : `${uploads.length} spot${uploads.length === 1 ? "" : "s"} in the archive`}
+            <h1 className="text-3xl font-bold tracking-tight text-white">{meta.name}</h1>
+            <p className="mt-1 text-sm text-zinc-400 tabular-nums">
+              {totalCount.toLocaleString()} photo{totalCount === 1 ? "" : "s"} · {spotterGroups.length} spotter{spotterGroups.length === 1 ? "" : "s"}
             </p>
           </div>
-          <a href="/upload" className="shrink-0 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-950/60">
-            + Upload
-          </a>
         </div>
+        <a href={uploadHref}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-500">
+          ↑ Upload a spot
+        </a>
       </div>
 
+      {/* ─── Plate type filter ─── */}
+      {typeGroups.length > 1 && (
+        <div className="no-scrollbar -mx-4 mt-5 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
+          <a href={href({ type: null })}
+            className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+              !type ? "border-indigo-500 bg-indigo-600 text-white" : "border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-white"
+            }`}>
+            All <span className="ml-1 opacity-70 tabular-nums">{totalCount}</span>
+          </a>
+          {typeGroups.map((g) => g.plateType && (
+            <a key={g.plateType} href={href({ type: g.plateType })}
+              className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                type === g.plateType ? "border-indigo-500 bg-indigo-600 text-white" : "border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-white"
+              }`}>
+              {prettyType(g.plateType)} <span className="ml-1 opacity-70 tabular-nums">{g._count.id}</span>
+            </a>
+          ))}
+        </div>
+      )}
+
+      {/* ─── Grid ─── */}
       {uploads.length === 0 ? (
-        <div className="mt-8 text-center">
-          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-zinc-900 ring-1 ring-zinc-800 text-2xl">
-            <Flag iso={meta?.iso ?? null} />
-          </div>
-          <div className="mt-4 text-sm font-medium text-zinc-200">No spots yet</div>
-          <p className="mt-1 text-xs text-zinc-500">Be the first to upload a plate from {meta?.name ?? country}.</p>
-          <a href="/upload" className="mt-4 inline-flex rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 transition-colors">
+        <div className="mt-10 rounded-2xl border border-dashed border-zinc-800 px-6 py-16 text-center">
+          <div className="mx-auto w-fit leading-none"><Flag iso={meta.iso} size="lg" /></div>
+          <div className="mt-4 text-sm font-medium text-zinc-200">No spots here yet</div>
+          <p className="mt-1 text-sm text-zinc-500">Be the first to upload a plate from {meta.name}.</p>
+          <a href={uploadHref} className="mt-5 inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-500">
             Upload now
           </a>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {uploads.map((u) => {
-            const isOwner = currentUser?.id === u.userId;
-            const carLabel = [u.brand, u.model].filter(Boolean).join(" ");
-            return (
-              <a key={u.id} href={`/spot/${u.numericId}`}
-                className="group rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-indigo-600/60 hover:shadow-xl hover:shadow-indigo-950/40 hover:-translate-y-0.5 transition-all block bg-zinc-900/50">
-                <div className="relative overflow-hidden" style={{ aspectRatio: "16/9" }}>
-                  <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" loading="lazy" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  {u.plateType && (
-                    <div className="absolute top-2 left-2">
-                      <span className="rounded-full bg-indigo-950/80 border border-indigo-800/50 px-2 py-0.5 text-[10px] uppercase tracking-wider text-indigo-300 backdrop-blur-sm">{u.plateType.replace(/-/g," ")}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="px-3 py-2.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-sm font-bold tracking-widest text-zinc-100 group-hover:text-indigo-200 transition-colors truncate">{u.plateText}</span>
-                    <LikeButton uploadId={u.id} initialLikes={u._count.likes} isOwner={isOwner} isLoggedIn={!!currentUser} />
-                  </div>
-                  {carLabel && <div className="text-xs text-zinc-500 mt-0.5 truncate">{carLabel}</div>}
-                  <div className="mt-2 text-xs text-zinc-600">@{u.user.username}</div>
-                </div>
-              </a>
-            );
-          })}
+        <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
+          {uploads.map((u) => (
+            <SpotCard
+              key={u.id}
+              spot={u}
+              showFlag={false}
+              action={
+                <LikeButton
+                  uploadId={u.id}
+                  initialLikes={u._count.likes}
+                  isOwner={currentUser?.id === u.userId}
+                  isLoggedIn={!!currentUser}
+                />
+              }
+            />
+          ))}
         </div>
+      )}
+
+      {/* ─── Pagination ─── */}
+      {pages > 1 && (
+        <nav className="mt-10 flex items-center justify-center gap-1 text-sm" aria-label="Pagination">
+          {page > 1 && (
+            <a href={href({ page: page - 1 })} className="rounded-lg border border-zinc-800 px-3 py-2 text-zinc-300 hover:border-zinc-600 hover:text-white">← Prev</a>
+          )}
+          {Array.from({ length: pages }, (_, i) => i + 1)
+            .filter((p) => p === 1 || p === pages || Math.abs(p - page) <= 2)
+            .map((p, i, arr) => (
+              <span key={p} className="flex items-center gap-1">
+                {i > 0 && p - arr[i - 1] > 1 && <span className="px-1 text-zinc-600">…</span>}
+                <a href={href({ page: p })}
+                  className={`min-w-9 rounded-lg px-3 py-2 text-center tabular-nums ${
+                    p === page ? "bg-indigo-600 font-semibold text-white" : "border border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-white"
+                  }`}>
+                  {p}
+                </a>
+              </span>
+            ))}
+          {page < pages && (
+            <a href={href({ page: page + 1 })} className="rounded-lg border border-zinc-800 px-3 py-2 text-zinc-300 hover:border-zinc-600 hover:text-white">Next →</a>
+          )}
+        </nav>
       )}
     </main>
   );

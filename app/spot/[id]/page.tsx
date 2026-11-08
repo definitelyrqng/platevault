@@ -16,6 +16,8 @@ import AddToRoadTripButton from "./AddToRoadTripButton";
 import { tagById } from "@/app/lib/tags";
 import { getAlbaniaRegion, ALBANIA_PLATE_TYPE_LABELS } from "@/app/lib/albaniaRegions";
 import Flag from "@/app/components/Flag";
+import PlateBadge from "@/app/components/PlateBadge";
+import SpotCard from "@/app/components/SpotCard";
 import { getCountryMeta } from "@/app/lib/countries";
 import { AUSTRIA_PLATE_TYPE_LABELS } from "@/app/lib/austriaData";
 import { GERMANY_REGIONS, GERMANY_FEDERAL_BD, GERMANY_BP_VEHICLE_TYPES, GERMANY_BW_BRANCHES } from "@/app/lib/germanyData";
@@ -305,8 +307,8 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
   const fullCarLabel = [upload.brand, upload.model, upload.generation].filter(Boolean).join(" ");
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-100">
-      <div className="mx-auto max-w-5xl px-4 py-8">
+    <main className="text-zinc-100">
+      <div className="mx-auto max-w-6xl px-4 pb-16 pt-6 sm:px-6">
 
         {/* Breadcrumb */}
         <div className="flex items-center gap-1.5 text-xs text-zinc-500 mb-6">
@@ -351,52 +353,51 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
           <div className="space-y-5">
 
             {/* Hero image */}
-            <div className="relative overflow-hidden rounded-3xl bg-zinc-900 border border-zinc-800/60 shadow-2xl shadow-zinc-950/60 group">
+            <div className="overflow-hidden rounded-2xl bg-black ring-1 ring-zinc-800/80">
               <img
                 src={upload.imageUrl}
                 alt={`${upload.plateText} — ${meta.name}`}
-                className="w-full object-contain max-h-[70vh] transition-transform duration-700 group-hover:scale-[1.01]"
+                className="mx-auto max-h-[72vh] w-full object-contain"
               />
-              {/* Bottom gradient + badges */}
-              <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-zinc-950/80 to-transparent pointer-events-none" />
-              <div className="absolute bottom-4 left-4 flex items-center gap-2">
-                <span className="glass rounded-full bg-zinc-950/60 border border-zinc-700/60 px-3 py-1.5 text-xs text-zinc-300 inline-flex items-center gap-1.5 shadow">
-                  <Flag iso={meta.iso} />{meta.name}
-                </span>
-                <span className="glass rounded-full bg-zinc-950/60 border border-zinc-700/60 px-3 py-1.5 text-xs font-mono font-bold text-zinc-100 tracking-widest shadow">
-                  {upload.plateText}
-                </span>
-              </div>
             </div>
 
-            {/* Car name */}
-            {fullCarLabel && (
-              <div className="text-center space-y-0.5">
-                <div className="text-xl font-semibold text-zinc-100 flex items-center justify-center gap-2 flex-wrap">
-                  {upload.brand && (
-                    <a href={"/catalog/" + toSlug(upload.brand)} className="hover:text-blue-400 transition-colors">
-                      {upload.brand}
-                    </a>
+            {/* Title: plate + vehicle */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0 space-y-2">
+                <PlateBadge country={upload.country} text={upload.plateText} size="lg" />
+                <h1 className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-xl font-semibold tracking-tight text-zinc-100 sm:text-2xl">
+                  {fullCarLabel ? (
+                    <>
+                      {upload.brand && (
+                        <a href={"/catalog/" + toSlug(upload.brand)} className="transition-colors hover:text-indigo-400">
+                          {upload.brand}
+                        </a>
+                      )}
+                      {upload.model && (
+                        <a href={"/catalog/" + toSlug(upload.brand ?? "") + "/" + toSlug(upload.model)} className="transition-colors hover:text-indigo-400">
+                          {upload.model}
+                        </a>
+                      )}
+                      {upload.generation && (
+                        <span className="text-base font-normal text-zinc-400">{upload.generation}</span>
+                      )}
+                      {upload.badge && (
+                        <span className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-0.5 font-mono text-sm text-zinc-300">
+                          {upload.badge}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-zinc-400">Unknown vehicle</span>
                   )}
-                  {upload.model && (
-                    <a href={"/catalog/" + toSlug(upload.brand ?? "") + "/" + toSlug(upload.model)} className="hover:text-blue-400 transition-colors">
-                      {upload.model}
-                    </a>
-                  )}
-                  {upload.generation && (
-                    <span className="text-zinc-400 text-base font-normal">{upload.generation}</span>
-                  )}
-                  {upload.badge && (
-                    <span className="rounded-md bg-zinc-800 border border-zinc-700 px-2 py-0.5 text-sm font-mono text-zinc-300">
-                      {upload.badge}
-                    </span>
-                  )}
-                </div>
-                {upload.trim && (
-                  <div className="text-sm text-zinc-400">{upload.trim}</div>
-                )}
+                </h1>
+                {upload.trim && <div className="text-sm text-zinc-400">{upload.trim}</div>}
               </div>
-            )}
+              <a href={`/c/${upload.country}`}
+                className="inline-flex w-fit shrink-0 items-center gap-2 rounded-lg border border-zinc-800 px-3 py-2 text-sm text-zinc-300 transition-colors hover:border-zinc-600 hover:text-white">
+                <Flag iso={meta.iso} /> {meta.name}
+              </a>
+            </div>
 
             {/* Tags */}
             {upload.tags.length > 0 && (
@@ -628,38 +629,13 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
             <p className="text-sm text-zinc-400 mb-5">
               <span className="font-mono font-bold text-indigo-200">{upload.plateText}</span> has been spotted {otherSightings.length + 1} times in {meta.name} by the community.
             </p>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
               {otherSightings.map((s) => (
-                <a
+                <SpotCard
                   key={s.numericId}
-                  href={`/spot/${s.numericId}`}
-                  className="group relative flex flex-col rounded-2xl border border-zinc-800/60 bg-zinc-900/50 overflow-hidden hover:border-indigo-600/60 hover:shadow-xl hover:shadow-indigo-950/40 hover:-translate-y-0.5 transition-all"
-                >
-                  <div className="aspect-video bg-zinc-950 overflow-hidden">
-                    <img
-                      src={s.imageUrl}
-                      alt={upload.plateText}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className="p-4 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      {s.user.avatarUrl ? (
-                        <img src={s.user.avatarUrl} alt={s.user.username} className="h-6 w-6 rounded-lg object-cover" />
-                      ) : (
-                        <div className="h-6 w-6 rounded-lg bg-zinc-800 grid place-items-center text-[9px] font-bold text-zinc-500">
-                          {s.user.username.slice(0, 2).toUpperCase()}
-                        </div>
-                      )}
-                      <span className="text-xs text-zinc-400 group-hover:text-indigo-300 transition-colors">@{s.user.username}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-zinc-500">
-                      <span>{fmtShort(s.createdAt)}</span>
-                      <span>♡ {s._count.likes}</span>
-                    </div>
-                  </div>
-                </a>
+                  showFlag={false}
+                  spot={{ ...s, plateText: upload.plateText, country: upload.country, brand: upload.brand, model: upload.model }}
+                />
               ))}
             </div>
           </section>
@@ -670,17 +646,9 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
         {moreFromModel.length > 0 && (
           <section className="mt-10">
             <h2 className="text-lg font-bold text-zinc-100 mb-4">More {upload.brand} {upload.model}</h2>
-            <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4">
               {moreFromModel.map((s) => (
-                <a key={s.id} href={`/spot/${s.numericId}`} className="group rounded-xl overflow-hidden border border-zinc-800/60 hover:border-purple-700/50 hover:shadow-lg hover:shadow-purple-950/30 transition-all block">
-                  <div className="relative bg-zinc-900 overflow-hidden" style={{ aspectRatio: "16/9" }}>
-                    <img src={s.imageUrl} alt={s.plateText} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
-                  </div>
-                  <div className="p-2.5 border-t border-zinc-800/40 bg-zinc-900/60">
-                    <div className="font-mono text-xs font-bold tracking-widest text-zinc-200 group-hover:text-purple-200 transition-colors truncate">{s.plateText}</div>
-                    <div className="text-[10px] text-zinc-600 mt-0.5">♡ {s._count.likes}</div>
-                  </div>
-                </a>
+                <SpotCard key={s.id} spot={s} />
               ))}
             </div>
           </section>
@@ -697,17 +665,9 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 Browse all →
               </a>
             </div>
-            <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4">
               {moreFromCountry.map((s) => (
-                <a key={s.id} href={`/spot/${s.numericId}`} className="group rounded-xl overflow-hidden border border-zinc-800/60 hover:border-indigo-700/50 hover:shadow-lg hover:shadow-indigo-950/30 transition-all block">
-                  <div className="relative bg-zinc-900 overflow-hidden" style={{ aspectRatio: "16/9" }}>
-                    <img src={s.imageUrl} alt={s.plateText} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" loading="lazy" />
-                  </div>
-                  <div className="p-2.5 border-t border-zinc-800/40 bg-zinc-900/60">
-                    <div className="font-mono text-xs font-bold tracking-widest text-zinc-200 group-hover:text-indigo-200 transition-colors truncate">{s.plateText}</div>
-                    <div className="text-[10px] text-zinc-600 mt-0.5">♡ {s._count.likes}</div>
-                  </div>
-                </a>
+                <SpotCard key={s.id} showFlag={false} spot={{ ...s, country: upload.country }} />
               ))}
             </div>
           </section>

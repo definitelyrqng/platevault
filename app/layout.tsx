@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import SidebarGate from "./components/SidebarGate";
 import ThemeProvider from "./components/ThemeProvider";
@@ -6,6 +7,12 @@ import AnnouncementBanner from "./components/AnnouncementBanner";
 import MaintenanceBanner from "./components/MaintenanceBanner";
 import { statusInfo } from "./status-config";
 import { getMaintenanceSettings } from "@/app/lib/maintenance";
+
+const inter = Inter({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.platevault.app"),
@@ -27,11 +34,20 @@ export const metadata: Metadata = {
   },
 };
 
+const FOOTER_LINKS = [
+  { href: "/countries",   label: "Countries" },
+  { href: "/leaderboard", label: "Leaderboard" },
+  { href: "/quiz",        label: "Quiz" },
+  { href: "/rules",       label: "Rules" },
+  { href: "/legal",       label: "Terms & Privacy" },
+  { href: "/contact",     label: "Contact" },
+];
+
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const { maintenanceMode } = await getMaintenanceSettings();
   const info = statusInfo[maintenanceMode ? "maintenance" : "online"];
   return (
-    <html lang="en" suppressHydrationWarning data-theme="dark">
+    <html lang="en" suppressHydrationWarning data-theme="dark" className={inter.variable}>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -39,41 +55,34 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           }}
         />
       </head>
-      <body className="min-h-screen bg-zinc-950 text-zinc-100 transition-colors duration-200">
+      <body className="min-h-screen bg-zinc-950 font-sans text-zinc-100 transition-colors duration-200">
         <ThemeProvider>
           <MaintenanceBanner />
           <AnnouncementBanner />
-          <div className="min-h-screen flex">
-            <SidebarGate />
-            <div className="flex flex-col flex-1 min-w-0 md:ml-16">
-              <main className="flex-1 pb-20 md:pb-0">{children}</main>
-              <footer className="py-10 text-center text-xs text-zinc-600 space-y-3 border-t border-zinc-800/30">
-                <div className="flex items-center justify-center gap-1.5 mb-3">
-                  <span className="text-zinc-600 font-black font-mono tracking-[0.2em] text-[11px]">PV</span>
-                  <span className="h-1 w-1 rounded-full bg-indigo-700 mx-1" />
-                  <span className="text-zinc-600 font-medium tracking-widest text-[10px]">PLATEVAULT</span>
-                </div>
-                <div className="flex items-center justify-center gap-5 flex-wrap">
-                  <span className="text-zinc-700">&#169; {new Date().getFullYear()}</span>
-                  <a href="/leaderboard" className="hover:text-amber-400 transition-colors">🏆 Leaderboard</a>
-                  <a href="/quiz" className="hover:text-indigo-400 transition-colors">🎮 Quiz</a>
-                  <a href="/rules" className="hover:text-indigo-400 transition-colors">Rules</a>
-                  <a href="/legal" className="hover:text-indigo-400 transition-colors">Terms &amp; Privacy</a>
-                  <a href="/contact" className="hover:text-indigo-400 transition-colors">Contact</a>
-                  <a href="https://x.com/platevault" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 hover:text-indigo-400 transition-colors">
-                    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                    @platevault
-                  </a>
-                </div>
-                <div>
-                  <a href="/status" className={"inline-flex items-center gap-1.5 transition-colors hover:text-zinc-400 " + info.text}>
-                    <span className={"h-1.5 w-1.5 rounded-full " + info.dotBg} />
-                    {info.label}
-                  </a>
-                </div>
-              </footer>
+          <SidebarGate />
+          <div className="min-h-[70vh]">{children}</div>
+          <footer className="mb-20 border-t border-zinc-800/60 md:mb-0">
+            <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-xs text-zinc-500 sm:px-6 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center gap-2.5">
+                <img src="/logo.png" alt="" className="h-5 w-5 object-contain opacity-80" />
+                <span className="font-semibold text-zinc-400">PlateVault</span>
+                <span className="text-zinc-600">© {new Date().getFullYear()}</span>
+              </div>
+              <nav className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                {FOOTER_LINKS.map((l) => (
+                  <a key={l.href} href={l.href} className="transition-colors hover:text-zinc-200">{l.label}</a>
+                ))}
+                <a href="https://x.com/platevault" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 transition-colors hover:text-zinc-200">
+                  <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                  @platevault
+                </a>
+              </nav>
+              <a href="/status" className={"inline-flex items-center gap-1.5 transition-colors hover:text-zinc-300 " + info.text}>
+                <span className={"h-1.5 w-1.5 rounded-full " + info.dotBg} />
+                {info.label}
+              </a>
             </div>
-          </div>
+          </footer>
         </ThemeProvider>
       </body>
     </html>

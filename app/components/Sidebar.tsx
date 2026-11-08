@@ -2,29 +2,36 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
+import Flag from "./Flag";
+import { COUNTRY_META } from "@/app/lib/countries";
 
 type Me = { id: string; numericId: number; username: string; role?: string } | null;
+type Menu = "countries" | "more" | "user" | null;
 
-const NAV_ITEMS = [
-  { href: "/home",        label: "Home",        icon: "home" },
-  { href: "/search",      label: "Search",      icon: "search" },
-  { href: "/for-you",     label: "For You",     icon: "sparkles", authOnly: false },
-  { href: "/feed",        label: "Following",   icon: "users",   authOnly: true },
-  { href: "/catalog",     label: "Catalog",     icon: "books" },
-  { href: "/collections", label: "Collections", icon: "folders", authOnly: true },
-  { href: "/stats",       label: "Stats",       icon: "chart-bar" },
+const PRIMARY = [
+  { href: "/for-you",     label: "For You" },
+  { href: "/catalog",     label: "Catalog" },
+  { href: "/leaderboard", label: "Leaderboard" },
 ];
 
 const MORE_ITEMS = [
-  { href: "/companies",   label: "Companies",  icon: "building" },
-  { href: "/leaderboard", label: "Leaderboard",icon: "trophy" },
-  { href: "/quiz",        label: "Quiz",       icon: "question-mark" },
-  { href: "/roadtrips",   label: "Road Trips", icon: "map-pin" },
-  { href: "/challenges",  label: "Challenges", icon: "target" },
-  { href: "/polls",       label: "Polls",      icon: "chart-dots" },
-  { href: "/messages",    label: "Messages",   icon: "message" },
+  { href: "/feed",        label: "Following",   icon: "users",         authOnly: true },
+  { href: "/companies",   label: "Companies",   icon: "building" },
+  { href: "/polls",       label: "Polls",       icon: "chart-dots" },
+  { href: "/challenges",  label: "Challenges",  icon: "target" },
+  { href: "/quiz",        label: "Quiz",        icon: "question-mark" },
+  { href: "/roadtrips",   label: "Road Trips",  icon: "map-pin" },
+  { href: "/rules",       label: "Rules",       icon: "books" },
+];
+
+const USER_ITEMS = [
+  { href: "/stats",            label: "My stats",    icon: "chart-bar" },
+  { href: "/collections",      label: "Collections", icon: "folders" },
+  { href: "/messages",         label: "Messages",    icon: "message" },
+  { href: "/roadtrips",        label: "Road trips",  icon: "map-pin" },
+  { href: "/settings/profile", label: "Settings",    icon: "cog" },
 ];
 
 function Icon({ name, size = 20 }: { name: string; size?: number }) {
@@ -38,57 +45,54 @@ function Icon({ name, size = 20 }: { name: string; size?: number }) {
     bell:          "M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9",
     user:          "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
     building:      "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4",
-    trophy:        "M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z",
+    trophy:        "M8 21h8m-4-4v4m-5-17h10v5a5 5 0 01-10 0V4zM7 6H4a3 3 0 003 3m10-3h3a3 3 0 01-3 3",
     "question-mark":"M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-    "map-pin":     "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z",
+    "map-pin":     "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z",
     target:        "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",
     "chart-dots":  "M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z",
     message:       "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
     upload:        "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12",
     logout:        "M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1",
+    cog:           "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z",
+    shield:        "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
+    chevron:       "M19 9l-7 7-7-7",
+    globe:         "M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
     dots:          "M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z",
-    sparkles:      "M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z",
   };
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill="none" viewBox="0 0 24 24"
-      stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d={icons[name] ?? icons.dots} />
     </svg>
   );
 }
 
-function NavLink({ href, label, icon, badge, expanded, active }: {
-  href: string; label: string; icon: string; badge?: number; expanded: boolean; active: boolean;
+const COUNTRY_LIST = Object.entries(COUNTRY_META)
+  .map(([key, m]) => ({ key, ...m }))
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+function MenuLink({ href, icon, children, onClick, tone }: {
+  href: string; icon?: string; children: React.ReactNode; onClick?: () => void; tone?: "amber";
 }) {
   return (
-    <Link href={href}
-      className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all border ${
-        active
-          ? "bg-indigo-950/60 text-indigo-300 border-indigo-800/40"
-          : "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/50 border-transparent"
+    <Link href={href} onClick={onClick}
+      className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
+        tone === "amber" ? "text-amber-400 hover:bg-amber-500/10" : "text-zinc-300 hover:bg-zinc-800 hover:text-white"
       }`}>
-      <span className="shrink-0 relative">
-        <Icon name={icon} size={18} />
-        {badge ? (
-          <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-indigo-500 text-[8px] font-bold text-white">
-            {badge > 9 ? "9+" : badge}
-          </span>
-        ) : null}
-      </span>
-      <span className={`text-sm font-medium whitespace-nowrap transition-all duration-200 ${expanded ? "opacity-100 w-auto" : "opacity-0 w-0 overflow-hidden"}`}>
-        {label}
-      </span>
+      {icon && <span className="text-zinc-500"><Icon name={icon} size={16} /></span>}
+      {children}
     </Link>
   );
 }
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [me, setMe] = useState<Me>(null);
   const [unread, setUnread] = useState(0);
-  const [moreOpen, setMoreOpen] = useState(false);
-  const [expanded, setExpanded] = useState(false);
-  const moreRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState<Menu>(null);
+  const [q, setQ] = useState("");
+  const headerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     (async () => {
@@ -107,165 +111,215 @@ export default function Sidebar() {
     })();
   }, []);
 
+  // Close menus on outside click / route change / Escape
   useEffect(() => {
-    const h = (e: MouseEvent) => {
-      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
-        setMoreOpen(false);
-      }
+    const onDown = (e: MouseEvent) => {
+      if (headerRef.current && !headerRef.current.contains(e.target as Node)) setOpen(null);
     };
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(null); };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
   }, []);
+  useEffect(() => { setOpen(null); }, [pathname]);
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
-    window.location.href = "/login";
+    window.location.href = "/home";
   }
 
+  function submitSearch(e: React.FormEvent) {
+    e.preventDefault();
+    const term = q.trim();
+    router.push(term ? `/search?q=${encodeURIComponent(term)}` : "/search");
+  }
+
+  const toggle = (m: Menu) => setOpen((cur) => (cur === m ? null : m));
   const isActive = (href: string) =>
     href === "/home" ? pathname === "/home" : pathname.startsWith(href);
+  const countryActive = pathname.startsWith("/c/") || pathname === "/countries";
+
+  const navBtn = (active: boolean) =>
+    `inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+      active ? "text-white bg-zinc-800/70" : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
+    }`;
 
   return (
     <>
-      {/* ── Desktop sidebar ── */}
-      <aside
-        onMouseEnter={() => setExpanded(true)}
-        onMouseLeave={() => { setExpanded(false); setMoreOpen(false); }}
-        className={`fixed left-0 top-0 h-screen z-40 flex-col border-r border-zinc-800/60 bg-zinc-950 transition-[width] duration-200 hidden md:flex ${
-          expanded ? "w-56" : "w-16"
-        }`}
-      >
-        {/* Logo */}
-        <Link href="/home" className="flex items-center gap-3 px-3 py-4 shrink-0">
-          <div className="h-9 w-9 shrink-0 rounded-xl overflow-hidden bg-zinc-900 ring-1 ring-zinc-800 flex items-center justify-center">
-            <img src="/logo.png" alt="PlateVault" className="h-7 w-7 object-contain" />
-          </div>
-          <div className={`overflow-hidden transition-all duration-200 ${expanded ? "opacity-100 w-auto" : "opacity-0 w-0"}`}>
-            <div className="font-bold text-zinc-100 text-sm whitespace-nowrap leading-tight">PlateVault</div>
-            <div className="text-[10px] text-zinc-600 whitespace-nowrap">Spot. Tag. Archive.</div>
-          </div>
-        </Link>
-
-        {/* Upload CTA */}
-        <div className="px-2 mb-3">
-          <Link href="/upload"
-            className={`flex items-center gap-3 rounded-xl bg-indigo-600 px-3 py-2.5 text-sm font-bold text-white hover:bg-indigo-500 shadow-lg shadow-indigo-950/50 hover:shadow-indigo-500/20 transition-all active:scale-95 ${expanded ? "" : "justify-center"}`}>
-            <span className="shrink-0"><Icon name="upload" size={18} /></span>
-            <span className={`whitespace-nowrap overflow-hidden transition-all duration-200 ${expanded ? "opacity-100 w-auto" : "opacity-0 w-0"}`}>
-              Upload
-            </span>
+      {/* ── Top header ── */}
+      <header ref={headerRef} className="sticky top-0 z-40 border-b border-zinc-800/70 bg-zinc-950/85 backdrop-blur-md">
+        <div className="mx-auto flex h-14 max-w-6xl items-center gap-2 px-4 sm:px-6">
+          {/* Logo */}
+          <Link href="/home" className="mr-2 flex shrink-0 items-center gap-2.5">
+            <img src="/logo.png" alt="" className="h-7 w-7 object-contain" />
+            <span className="text-[15px] font-bold tracking-tight text-zinc-100">PlateVault</span>
           </Link>
-        </div>
 
-        {/* Nav items */}
-        <nav className="flex-1 px-2 space-y-0.5 overflow-y-auto overflow-x-hidden">
-          {NAV_ITEMS.filter((item) => !item.authOnly || me).map((item) => (
-            <NavLink key={item.href} href={item.href} label={item.label} icon={item.icon} expanded={expanded} active={isActive(item.href)} />
-          ))}
-
-          {me && (
-            <NavLink href="/notifications" label="Notifications" icon="bell" badge={unread > 0 ? unread : undefined} expanded={expanded} active={isActive("/notifications")} />
-          )}
-
-          {/* More popover */}
-          <div className="relative" ref={moreRef}>
-            <button
-              onClick={() => setMoreOpen((v) => !v)}
-              className={`w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all border ${
-                moreOpen
-                  ? "bg-zinc-800/60 text-zinc-200 border-zinc-700/40"
-                  : "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/50 border-transparent"
-              }`}
-            >
-              <span className="shrink-0"><Icon name="dots" size={18} /></span>
-              <span className={`font-medium whitespace-nowrap overflow-hidden transition-all duration-200 ${expanded ? "opacity-100 w-auto" : "opacity-0 w-0"}`}>
-                More
-              </span>
-            </button>
-            {moreOpen && (
-              <div className={`absolute z-50 rounded-2xl border border-zinc-800 bg-zinc-900 shadow-xl shadow-zinc-950/60 py-1 ${
-                expanded ? "left-0 right-0 top-full mt-1" : "left-full ml-2 top-0 w-44"
-              }`}>
-                {MORE_ITEMS.map((item) => (
-                  <Link key={item.href} href={item.href} onClick={() => setMoreOpen(false)}
-                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-300 hover:bg-indigo-950/30 hover:text-indigo-200 transition-colors">
-                    <Icon name={item.icon} size={16} />
-                    {item.label}
+          {/* Desktop nav */}
+          <nav className="hidden items-center gap-0.5 md:flex">
+            {/* Countries mega-menu */}
+            <div className="relative">
+              <button onClick={() => toggle("countries")} className={navBtn(countryActive || open === "countries")}
+                aria-expanded={open === "countries"}>
+                Countries
+                <span className={`transition-transform ${open === "countries" ? "rotate-180" : ""}`}><Icon name="chevron" size={14} /></span>
+              </button>
+              {open === "countries" && (
+                <div className="absolute left-0 top-full mt-2 w-[min(560px,90vw)] rounded-xl border border-zinc-800 bg-zinc-900 p-2 shadow-2xl shadow-black/50">
+                  <div className="grid grid-cols-2 gap-0.5 sm:grid-cols-3">
+                    {COUNTRY_LIST.map((c) => (
+                      <Link key={c.key} href={`/c/${c.key}`}
+                        className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
+                          pathname === `/c/${c.key}` ? "bg-indigo-600/15 text-white" : "text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                        }`}>
+                        <Flag iso={c.iso} size="sm" />
+                        <span className="truncate">{c.name}</span>
+                      </Link>
+                    ))}
+                  </div>
+                  <Link href="/countries"
+                    className="mt-1 flex items-center justify-between rounded-lg border-t border-zinc-800 px-3 pb-1.5 pt-2.5 text-sm font-medium text-indigo-400 hover:text-indigo-300">
+                    All countries &amp; stats <span>→</span>
                   </Link>
-                ))}
-                {me?.role === "SUPERADMIN" && (
-                  <>
-                    <div className="my-1 border-t border-zinc-800" />
-                    <Link href="/admin" onClick={() => setMoreOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-amber-400 hover:bg-amber-950/30 hover:text-amber-300 transition-colors">
-                      <svg xmlns="http://www.w3.org/2000/svg" width={16} height={16} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                      </svg>
-                      Admin Panel
-                    </Link>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-        </nav>
+                </div>
+              )}
+            </div>
 
-        {/* Bottom: theme + profile */}
-        <div className="px-2 pb-4 space-y-0.5 border-t border-zinc-800/60 pt-3">
-          <div className={`px-3 py-1.5 ${expanded ? "flex items-center gap-2 text-xs text-zinc-600" : "flex justify-center"}`}>
-            <ThemeToggle />
-            <span className={`whitespace-nowrap overflow-hidden transition-all duration-200 ${expanded ? "opacity-100 w-auto" : "opacity-0 w-0"}`}>
-              Theme
-            </span>
-          </div>
+            {PRIMARY.map((item) => (
+              <Link key={item.href} href={item.href} className={`${navBtn(isActive(item.href))} hidden lg:inline-flex`}>{item.label}</Link>
+            ))}
+
+            {/* More */}
+            <div className="relative">
+              <button onClick={() => toggle("more")} className={navBtn(open === "more")} aria-expanded={open === "more"}>
+                More
+                <span className={`transition-transform ${open === "more" ? "rotate-180" : ""}`}><Icon name="chevron" size={14} /></span>
+              </button>
+              {open === "more" && (
+                <div className="absolute left-0 top-full mt-2 w-52 rounded-xl border border-zinc-800 bg-zinc-900 p-1.5 shadow-2xl shadow-black/50">
+                  {/* Primary links collapse into this menu below lg */}
+                  <div className="lg:hidden">
+                    {PRIMARY.map((i) => (
+                      <MenuLink key={i.href} href={i.href}>{i.label}</MenuLink>
+                    ))}
+                    <div className="my-1 border-t border-zinc-800" />
+                  </div>
+                  {MORE_ITEMS.filter((i) => !i.authOnly || me).map((i) => (
+                    <MenuLink key={i.href} href={i.href} icon={i.icon}>{i.label}</MenuLink>
+                  ))}
+                  {!me && (
+                    <div className="mt-1 flex items-center justify-between border-t border-zinc-800 px-3 pb-0.5 pt-2 text-sm text-zinc-400 xl:hidden">
+                      Theme <ThemeToggle />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </nav>
+
+          <div className="flex-1" />
+
+          {/* Plate search */}
+          <form onSubmit={submitSearch} className="hidden lg:block" role="search">
+            <div className="flex h-9 items-center overflow-hidden rounded-lg border border-zinc-700/80 bg-zinc-900 transition-colors focus-within:border-indigo-500">
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Search plate or user"
+                aria-label="Search plates or users"
+                className="h-full w-52 bg-transparent px-3 text-sm uppercase tracking-wider text-zinc-100 outline-none placeholder:normal-case placeholder:tracking-normal placeholder:text-zinc-500 xl:w-60"
+              />
+              <button type="submit" aria-label="Search"
+                className="grid h-full w-9 place-items-center bg-indigo-600 text-white transition-colors hover:bg-indigo-500">
+                <Icon name="search" size={16} />
+              </button>
+            </div>
+          </form>
+
+          {/* Search icon (below lg) */}
+          <Link href="/search" aria-label="Search"
+            className="grid h-9 w-9 place-items-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white lg:hidden">
+            <Icon name="search" size={18} />
+          </Link>
+
+          <Link href="/upload"
+            className="hidden h-9 items-center gap-1.5 whitespace-nowrap rounded-lg bg-indigo-600 px-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-500 md:inline-flex">
+            <Icon name="upload" size={16} />
+            Upload
+          </Link>
+
           {me ? (
             <>
-              <Link href={`/u/${me.numericId}`}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all border ${
-                  pathname.startsWith("/u/") ? "bg-indigo-950/60 text-indigo-300 border-indigo-800/40" : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 border-transparent"
-                }`}>
-                <span className="shrink-0"><Icon name="user" size={18} /></span>
-                <span className={`font-medium whitespace-nowrap overflow-hidden transition-all duration-200 ${expanded ? "opacity-100 w-auto" : "opacity-0 w-0"}`}>
-                  @{me.username}
-                </span>
+              <Link href="/notifications" aria-label="Notifications"
+                className="relative grid h-9 w-9 place-items-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white">
+                <Icon name="bell" size={18} />
+                {unread > 0 && (
+                  <span className="absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white">
+                    {unread > 9 ? "9+" : unread}
+                  </span>
+                )}
               </Link>
-              <button onClick={logout}
-                className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-zinc-600 hover:text-zinc-400 hover:bg-zinc-800/30 transition-all border border-transparent">
-                <span className="shrink-0"><Icon name="logout" size={18} /></span>
-                <span className={`font-medium whitespace-nowrap overflow-hidden transition-all duration-200 ${expanded ? "opacity-100 w-auto" : "opacity-0 w-0"}`}>
-                  Log out
-                </span>
-              </button>
+
+              <div className="relative hidden md:block">
+                <button onClick={() => toggle("user")} aria-expanded={open === "user"} aria-label="Account menu"
+                  className={`grid h-9 w-9 place-items-center rounded-full text-xs font-bold uppercase ring-1 transition ${
+                    open === "user" ? "bg-indigo-600 text-white ring-indigo-400" : "bg-zinc-800 text-zinc-200 ring-zinc-700 hover:ring-zinc-500"
+                  }`}>
+                  {me.username.slice(0, 2)}
+                </button>
+                {open === "user" && (
+                  <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-zinc-800 bg-zinc-900 p-1.5 shadow-2xl shadow-black/50">
+                    <Link href={`/u/${me.numericId}`} className="mb-1 block rounded-lg px-3 py-2.5 hover:bg-zinc-800">
+                      <div className="text-sm font-semibold text-white">@{me.username}</div>
+                      <div className="text-xs text-zinc-500">View profile</div>
+                    </Link>
+                    <div className="my-1 border-t border-zinc-800" />
+                    {USER_ITEMS.map((i) => (
+                      <MenuLink key={i.href} href={i.href} icon={i.icon}>{i.label}</MenuLink>
+                    ))}
+                    {me.role === "SUPERADMIN" && (
+                      <MenuLink href="/admin" icon="shield" tone="amber">Admin panel</MenuLink>
+                    )}
+                    <div className="my-1 border-t border-zinc-800" />
+                    <div className="flex items-center justify-between px-3 py-1.5 text-sm text-zinc-400">
+                      Theme <ThemeToggle />
+                    </div>
+                    <button onClick={logout}
+                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white">
+                      <span className="text-zinc-500"><Icon name="logout" size={16} /></span>
+                      Log out
+                    </button>
+                  </div>
+                )}
+              </div>
             </>
           ) : (
-            <>
-              <Link href="/login"
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 transition-all border border-transparent">
-                <span className="shrink-0"><Icon name="user" size={18} /></span>
-                <span className={`font-medium whitespace-nowrap overflow-hidden transition-all duration-200 ${expanded ? "opacity-100 w-auto" : "opacity-0 w-0"}`}>
-                  Log in
-                </span>
+            <div className="hidden items-center gap-1 whitespace-nowrap md:flex">
+              <span className="hidden xl:block"><ThemeToggle /></span>
+              <Link href="/login" className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-300 transition-colors hover:text-white">
+                Log in
               </Link>
-              <Link href="/signup"
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-indigo-400 hover:text-indigo-200 hover:bg-indigo-950/30 transition-all border border-transparent">
-                <span className="shrink-0"><Icon name="user" size={18} /></span>
-                <span className={`font-medium whitespace-nowrap overflow-hidden transition-all duration-200 ${expanded ? "opacity-100 w-auto" : "opacity-0 w-0"}`}>
-                  Sign up
-                </span>
+              <Link href="/signup" className="rounded-lg bg-zinc-100 px-3.5 py-2 text-sm font-semibold text-zinc-950 transition-colors hover:bg-white">
+                Sign up
               </Link>
-            </>
+            </div>
           )}
         </div>
-      </aside>
+      </header>
 
       {/* ── Mobile bottom nav ── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-zinc-800/60 bg-zinc-950/95 backdrop-blur px-2 pt-2 pb-3">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-zinc-800/70 bg-zinc-950/95 px-2 pb-3 pt-2 backdrop-blur md:hidden">
         {(
           [
-            { href: "/home",          icon: "home",   label: "Home" },
-            { href: "/search",        icon: "search", label: "Search" },
-            { href: "/upload",        icon: "upload", label: "Upload", cta: true },
-            { href: "/notifications", icon: "bell",   label: "Alerts", badge: unread },
+            { href: "/home",      icon: "home",   label: "Home" },
+            { href: "/countries", icon: "globe",  label: "Countries" },
+            { href: "/upload",    icon: "upload", label: "Upload", cta: true },
+            me
+              ? { href: "/notifications", icon: "bell", label: "Alerts", badge: unread }
+              : { href: "/leaderboard",   icon: "trophy", label: "Top" },
             me
               ? { href: `/u/${me.numericId}`, icon: "user", label: "Profile" }
               : { href: "/login",             icon: "user", label: "Log in" },
@@ -274,17 +328,13 @@ export default function Sidebar() {
           const active = isActive(item.href);
           return (
             <Link key={item.href} href={item.href}
-              className={`relative flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 transition-all ${
-                item.cta
-                  ? "bg-indigo-600 text-white rounded-2xl px-4"
-                  : active
-                  ? "text-indigo-300"
-                  : "text-zinc-600 hover:text-zinc-400"
+              className={`relative flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 transition-colors ${
+                item.cta ? "bg-indigo-600 px-4 text-white" : active ? "text-white" : "text-zinc-500 hover:text-zinc-300"
               }`}>
               <span className="relative">
                 <Icon name={item.icon} size={20} />
                 {item.badge ? (
-                  <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-indigo-500 text-[8px] font-bold text-white">
+                  <span className="absolute -right-1.5 -top-1 grid h-3.5 min-w-3.5 place-items-center rounded-full bg-rose-500 px-0.5 text-[8px] font-bold text-white">
                     {item.badge > 9 ? "9+" : item.badge}
                   </span>
                 ) : null}
