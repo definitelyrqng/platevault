@@ -7,13 +7,12 @@ import { NextRequest, NextResponse } from "next/server";
 const PROTECTED_PREFIXES = [
   "/upload",
   "/roadtrips",
-  "/home",
   "/profile/edit",
   "/settings",
 ];
 
 /** Exact paths that are also protected */
-const PROTECTED_EXACT = new Set(["/home"]);
+const PROTECTED_EXACT = new Set<string>([]);
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
