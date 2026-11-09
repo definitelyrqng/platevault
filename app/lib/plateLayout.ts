@@ -159,7 +159,7 @@ export const PLATE_ART: Record<string, PlateArt> = {
   // ── Austria: backgrounds in public/plates/austria; one row per line of lettering ──
   "austria:regular-single": { src: "/plates/austria/regular-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1015, slots: 1 }], split: "whole" },
   "austria:regular-single-noeuro": { src: "/plates/austria/regular-single-noeuro.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 40, x1: 1000, slots: 1 }], split: "whole" },
-  "austria:repeater-single": { src: "/plates/austria/repeater-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1005, slots: 1 }], split: "whole", textColor: "#fff" },
+  "austria:repeater-single": { src: "/plates/austria/repeater-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1005, slots: 1 }], split: "whole" },
   "austria:provisional-single": { src: "/plates/austria/provisional-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 60, x1: 880, slots: 1 }], split: "whole", textColor: "#fff" },
   "austria:provisional-single-small": { src: "/plates/austria/provisional-single-small.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 60, x1: 880, slots: 1 }], split: "whole", textColor: "#fff" },
   "austria:dealer-single": { src: "/plates/austria/dealer-single.png", w: 1040, h: 240, rows: [{ y0: 30, y1: 208, x0: 60, x1: 985, slots: 1 }], split: "whole", textColor: "#fff" },
@@ -179,7 +179,7 @@ function austriaArtKey(plateType?: string | null): string | null {
   const m = (plateType ?? "").match(/^at-(.+?)-(single-euroband|double-euroband|single-no-euroband|double-no-euroband|repeater|moped|moped-green)$/);
   if (!m) return "austria:regular-single";
   const [, cat, fmt] = m;
-  if (fmt === "moped" || fmt === "moped-green") return cat === "provisional" ? "austria:provisional-single-small" : null;
+  if (fmt === "moped" || fmt === "moped-green") return cat === "provisional" ? "austria:provisional-single-small" : "austria:regular-two-noeuro";
   if (fmt === "repeater") return "austria:repeater-single";
   const two = fmt.startsWith("double");
   const euro = !fmt.includes("no-euroband");
@@ -195,7 +195,9 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
   const key = country.toLowerCase();
   if (key === "austria") {
     const k = austriaArtKey(plateType);
-    return k ? PLATE_ART[k] ?? null : null;
+    const art = k ? PLATE_ART[k] ?? null : null;
+    // green-lettered mopeds: same plate, green characters
+    return art && plateType?.endsWith("moped-green") && k === "austria:regular-two-noeuro" ? { ...art, textColor: "#0b7a3b" } : art;
   }
   return (plateType && PLATE_ART[`${key}:${plateType}`]) || PLATE_ART[key] || null;
 }
