@@ -26,7 +26,7 @@ const PLATE_TYPES = [
   { id: "car-2011-us",         label: "US-size",          hint: "US import size" },
   { id: "moto-2011",           label: "Motorcycle",       hint: "New square plate" },
   { id: "trailer-2011-single", label: "Trailer",          hint: "Teal, white text" },
-  { id: "trailer-2011-double", label: "Trailer two-line", hint: "Green, two rows" },
+  { id: "trailer-2011-double", label: "Trailer two-line", hint: "Teal, two rows" },
   { id: "car-1993-single",     label: "1993 Series",      hint: "Old red band" },
 ] as const;
 

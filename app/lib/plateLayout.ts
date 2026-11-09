@@ -116,7 +116,7 @@ export const PLATE_ART: Record<string, PlateArt> = {
     split: "al-twoline",
     seal: "/plates/albania/seal.png",
   },
-  // trailer_double.png (486×392, border 8): green; top row between the bands x107–386, y13–196,
+  // trailer_double.png (486×392, border 8): teal like the single-line trailer; top row between the bands x107–386, y13–196,
   // seal left of the letters; bottom row y197–378.  "AB R 456" → ● AB / R 456. White lettering.
   "albania:trailer-2011-double": {
     src: "/plates/albania/trailer_double.png",
