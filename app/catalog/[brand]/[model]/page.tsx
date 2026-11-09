@@ -1,4 +1,5 @@
 import { prisma } from "@/app/lib/prisma";
+import { plateTypeLabel } from "@/app/lib/plateTypes";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { AddGenerationButton, DeleteGenerationButton, RenameGenerationButton } from "../../CatalogAdminControls";
@@ -80,7 +81,7 @@ export default async function ModelPage({
     orderBy: { createdAt: "desc" },
     take: 200,
     select: {
-      id: true, numericId: true, plateText: true, plateType: true,
+      id: true, numericId: true, plateText: true, plateType: true, country: true,
       generation: true, badge: true, color: true,
       imageUrl: true, createdAt: true,
       user: { select: { username: true, numericId: true } },
@@ -197,8 +198,8 @@ export default async function ModelPage({
                           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                           {u.plateType && (
                             <div className="absolute top-2 left-2">
-                              <span className="rounded-full bg-zinc-950/80 border border-zinc-700/50 px-2 py-0.5 text-[10px] uppercase tracking-wider text-zinc-400 backdrop-blur-sm">
-                                {u.plateType.replace(/-/g, " ")}
+                              <span className="rounded-md bg-black/70 px-2 py-0.5 text-[11px] font-medium text-white/90 backdrop-blur-sm">
+                                {plateTypeLabel(u.country, u.plateType)}
                               </span>
                             </div>
                           )}

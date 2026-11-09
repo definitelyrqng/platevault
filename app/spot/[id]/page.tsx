@@ -14,12 +14,12 @@ import { DescriptionText } from "@/app/components/DescriptionInput";
 import PinButton from "@/app/components/PinButton";
 import AddToRoadTripButton from "./AddToRoadTripButton";
 import { tagById } from "@/app/lib/tags";
-import { getAlbaniaRegion, ALBANIA_PLATE_TYPE_LABELS } from "@/app/lib/albaniaRegions";
+import { getAlbaniaRegion } from "@/app/lib/albaniaRegions";
+import { plateTypeLabel } from "@/app/lib/plateTypes";
 import Flag from "@/app/components/Flag";
 import PlateBadge, { formatPlateText } from "@/app/components/PlateBadge";
 import SpotCard from "@/app/components/SpotCard";
 import { getCountryMeta } from "@/app/lib/countries";
-import { AUSTRIA_PLATE_TYPE_LABELS } from "@/app/lib/austriaData";
 import { GERMANY_REGIONS, GERMANY_FEDERAL_BD, GERMANY_BP_VEHICLE_TYPES, GERMANY_BW_BRANCHES } from "@/app/lib/germanyData";
 import { CZECH_REGIONS_2001, CZECH_REGIONS_1960, CZECH_REGION_NUMS } from "@/app/lib/czechData";
 
@@ -305,10 +305,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
 
   const carLabel = [upload.brand, upload.model].filter(Boolean).join(" ");
   const fullCarLabel = [upload.brand, upload.model, upload.generation].filter(Boolean).join(" ");
-  const plateTypeLabel = upload.plateType
-    ? ALBANIA_PLATE_TYPE_LABELS[upload.plateType] ?? AUSTRIA_PLATE_TYPE_LABELS[upload.plateType]
-      ?? upload.plateType.replace(/^(de|at|al|be|ba|bg|hr|cz)-/i, "").replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-    : null;
+  const plateTypeName = plateTypeLabel(upload.country, upload.plateType);
 
   return (
     <main className="text-zinc-100">
@@ -517,10 +514,10 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                     <Flag iso={meta.iso} size="sm" /> {meta.name} gallery
                   </a>
                 </li>
-                {upload.plateType && plateTypeLabel && (
+                {upload.plateType && plateTypeName && (
                   <li>
                     <a href={`/c/${upload.country}?type=${encodeURIComponent(upload.plateType)}`} className="flex items-center gap-2 text-zinc-300 transition-colors hover:text-white">
-                      <span className="w-4 text-center text-zinc-500">▤</span> {plateTypeLabel} plates
+                      <span className="w-4 text-center text-zinc-500">▤</span> {plateTypeName} plates
                     </a>
                   </li>
                 )}
@@ -558,7 +555,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
               )}
 
               {upload.location  && <Detail label="Location"   value={upload.location} />}
-              {upload.plateType && <Detail label="Plate type" value={ALBANIA_PLATE_TYPE_LABELS[upload.plateType] ?? AUSTRIA_PLATE_TYPE_LABELS[upload.plateType] ?? upload.plateType.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())} />}
+              {plateTypeName && <Detail label="Plate type" value={plateTypeName} />}
               {upload.badge      && <Detail label="Badge"      value={upload.badge} />}
               {upload.color      && <Detail label="Color"      value={upload.color} />}
               {upload.trim       && <Detail label="Trim"       value={upload.trim} />}

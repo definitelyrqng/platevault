@@ -1,6 +1,7 @@
 import Flag from "@/app/components/Flag";
 import SpotCard from "@/app/components/SpotCard";
 import { getCountryMeta } from "@/app/lib/countries";
+import { plateTypeLabel } from "@/app/lib/plateTypes";
 import { prisma } from "@/app/lib/prisma";
 import { cookies } from "next/headers";
 import LikeButton from "./LikeButton";
@@ -21,9 +22,6 @@ export async function generateMetadata({ params }: { params: Promise<{ country: 
   };
 }
 
-function prettyType(t: string) {
-  return t.replace(/^(de|at|al|be|ba|bg|hr|cz)-/i, "").replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
 
 async function getCurrentUser() {
   const cookieStore = await cookies();
@@ -47,11 +45,13 @@ export default async function CountryPage({
   const [{ country: rawCountry }, sp] = await Promise.all([params, searchParams]);
   const country = rawCountry.toLowerCase();
   const meta = getCountryMeta(country);
+  // ?type= may hold several IDs (comma-separated) that share one display name
   const type = sp.type || null;
+  const selectedTypes = type ? type.split(",").filter(Boolean) : [];
   const page = Math.max(1, Number(sp.page) || 1);
 
   const base = { country, deletedAt: null, hidden: false };
-  const where = type ? { ...base, plateType: type } : base;
+  const where = selectedTypes.length ? { ...base, plateType: { in: selectedTypes } } : base;
 
   const [uploads, filteredCount, totalCount, typeGroups, spotterGroups, currentUser] = await Promise.all([
     prisma.upload.findMany({
@@ -85,6 +85,19 @@ export default async function CountryPage({
     prisma.upload.groupBy({ by: ["userId"], where: base }),
     getCurrentUser(),
   ]);
+
+  // Merge stored type IDs that share a display name into one filter chip
+  const chips: { label: string; types: string[]; count: number }[] = [];
+  for (const g of typeGroups) {
+    if (!g.plateType) continue;
+    const label = plateTypeLabel(country, g.plateType) ?? g.plateType;
+    const chip = chips.find((c) => c.label === label);
+    if (chip) { chip.types.push(g.plateType); chip.count += g._count.id; }
+    else chips.push({ label, types: [g.plateType], count: g._count.id });
+  }
+  chips.sort((a, b) => b.count - a.count);
+  const chipActive = (c: { types: string[] }) =>
+    selectedTypes.length > 0 && selectedTypes.every((t) => c.types.includes(t));
 
   const uploadHref = UPLOAD_COUNTRIES.has(country) ? `/upload/${country}` : "/upload";
   const pages = Math.max(1, Math.ceil(filteredCount / PAGE_SIZE));
@@ -123,7 +136,7 @@ export default async function CountryPage({
       </div>
 
       {/* ─── Plate type filter ─── */}
-      {typeGroups.length > 1 && (
+      {chips.length > 1 && (
         <div className="no-scrollbar -mx-4 mt-5 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
           <a href={href({ type: null })}
             className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
@@ -131,12 +144,12 @@ export default async function CountryPage({
             }`}>
             All <span className="ml-1 opacity-70 tabular-nums">{totalCount}</span>
           </a>
-          {typeGroups.map((g) => g.plateType && (
-            <a key={g.plateType} href={href({ type: g.plateType })}
+          {chips.map((c) => (
+            <a key={c.label} href={href({ type: c.types.join(",") })}
               className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                type === g.plateType ? "border-indigo-500 bg-indigo-600 text-white" : "border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-white"
+                chipActive(c) ? "border-indigo-500 bg-indigo-600 text-white" : "border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-white"
               }`}>
-              {prettyType(g.plateType)} <span className="ml-1 opacity-70 tabular-nums">{g._count.id}</span>
+              {c.label} <span className="ml-1 opacity-70 tabular-nums">{c.count}</span>
             </a>
           ))}
         </div>
