@@ -6,13 +6,14 @@
  */
 import { AL_CAP_HEIGHT, AL_WIDTHS } from "./albaniaFontMetrics";
 import { AT_CAP_HEIGHT, AT_WIDTHS } from "./austriaFontMetrics";
+import { AT47_CAP_HEIGHT, AT47_WIDTHS } from "./austria1947FontMetrics";
 
 /**
  * Lettering per country. "fe" = FE-Schrift (default everywhere);
  * "al" = Albanian plate glyphs traced from assets/fonts/albania-glyphs.png
  * (scripts/build-albania-font.cjs). Only used on plates with real artwork.
  */
-export type PlateFont = "fe" | "al" | "at";
+export type PlateFont = "fe" | "al" | "at" | "at47";
 const COUNTRY_FONT: Record<string, PlateFont> = { albania: "al", austria: "at" };
 export function plateFont(country: string): PlateFont {
   return COUNTRY_FONT[country.toLowerCase()] ?? "fe";
@@ -24,6 +25,14 @@ export const AL_SPACE = 70;
 /** Austrian glyph spacing (assets/fonts/austria-glyphs.png), in glyph-sheet pixels. */
 export const AT_SIDE_BEARING = 12;
 export const AT_SPACE = 80;
+/** 1947-system lettering (assets/fonts/austria-1947-glyphs.png). */
+export const AT47_SIDE_BEARING = 14;
+export const AT47_SPACE = 60;
+/** Glyph keys of a run: the state prefix "St" is a single ligature glyph. */
+export function glyphKeys47(s: string): string[] {
+  const m = s.match(/^ST(?=[ \d])/);
+  return m ? ["St", ...s.slice(2)] : [...s];
+}
 
 /**
  * One line of writing on the plate (artwork pixels): its writable area and how
@@ -50,7 +59,7 @@ export type ArtRow = {
  *  - "al-moto":    letters | digits                    ("AB 123" → AB | 123)
  *  - "al-trailer-two": letters | "R" + digits          ("AB R 456" → AB | R 456)
  */
-export type SplitRule = "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
+export type SplitRule = "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
 
 export type PlateArt = {
   src: string;          // path under /public
@@ -64,6 +73,8 @@ export type PlateArt = {
   stateSeals?: boolean;
   /** Height of a state coat of arms as a fraction of its row. */
   sealH?: number;
+  /** Lettering for this artwork (default: the country's). */
+  font?: PlateFont;
   /** Lettering colour (default near-black). */
   textColor?: string;
 };
@@ -172,6 +183,9 @@ export const PLATE_ART: Record<string, PlateArt> = {
   "austria:export-single": { src: "/plates/austria/export-single.png", w: 1040, h: 240, rows: [{ y0: 30, y1: 208, x0: 50, x1: 880, slots: 1 }], split: "whole", textColor: "#fff" },
   // diplomatic: the euroband plate, single text run ("WD-56"), no coat of arms
   "austria:diplomatic": { src: "/plates/austria/regular-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1015, slots: 1 }], split: "whole" },
+  // 1947 year system: black plates with white lettering (state prefix + 6 digits, "K 146.804")
+  "austria:1947-single": { src: "/plates/austria/y1947-single.png", w: 720, h: 280, rows: [{ y0: 42, y1: 238, x0: 44, x1: 676, slots: 1 }], split: "whole", font: "at47", textColor: "#fff" },
+  "austria:1947-two": { src: "/plates/austria/y1947-two.png", w: 500, h: 480, rows: [{ y0: 44, y1: 228, x0: 44, x1: 456, slots: 1 }, { y0: 252, y1: 436, x0: 44, x1: 456, slots: 1 }], split: "at47-two", font: "at47", textColor: "#fff" },
   "austria:regular-two": { src: "/plates/austria/regular-two.png", w: 500, h: 400, rows: [{ y0: 24, y1: 195, x0: 120, x1: 480, slots: 1, seal: "right", gap: 0.2 }, { y0: 200, y1: 376, x0: 30, x1: 470, slots: 1 }], split: "at-two", stateSeals: true, sealH: 0.78 },
   "austria:regular-two-noeuro": { src: "/plates/austria/regular-two-noeuro.png", w: 540, h: 400, rows: [{ y0: 24, y1: 195, x0: 30, x1: 510, slots: 1, seal: "right", gap: 0.2 }, { y0: 200, y1: 376, x0: 30, x1: 510, slots: 1 }], split: "at-two", stateSeals: true, sealH: 0.78 },
   "austria:provisional-two": { src: "/plates/austria/provisional-two.png", w: 540, h: 400, rows: [{ y0: 28, y1: 195, x0: 40, x1: 500, slots: 1 }, { y0: 202, y1: 376, x0: 40, x1: 395, slots: 1 }, { y0: 202, y1: 376, x0: 414, x1: 509, slots: 1, own: true }], split: "at-prov-two", textColor: "#fff" },
@@ -190,6 +204,7 @@ function austriaArtKey(plateType?: string | null): string | null {
   if (fmt === "moped" || fmt === "moped-green") return cat === "provisional" ? "austria:provisional-single-small" : "austria:regular-two-noeuro";
   if (fmt === "repeater") return "austria:repeater-single";
   if (cat === "diplomatic") return "austria:diplomatic";
+  if (cat === "1947" || cat === "dealer-1947") return fmt.startsWith("double") ? "austria:1947-two" : "austria:1947-single";
   const two = fmt.startsWith("double");
   const euro = !fmt.includes("no-euroband");
   if (cat === "export") return two ? "austria:export-two" : "austria:export-single";
@@ -274,6 +289,11 @@ const AT_PX_TO_EM = (CAP_BOTTOM - CAP_TOP) / AT_CAP_HEIGHT;
 
 /** Rendered width of a text run in em, for the given lettering (condensing included). */
 export function textWidthEm(s: string, font: PlateFont) {
+  if (font === "at47") {
+    let px = 0;
+    for (const k of glyphKeys47(s)) px += k in AT47_WIDTHS ? AT47_WIDTHS[k] + 2 * AT47_SIDE_BEARING : AT47_SPACE;
+    return px * ((CAP_BOTTOM - CAP_TOP) / AT47_CAP_HEIGHT);
+  }
   if (font === "at") {
     let px = 0;
     for (const ch of s) px += ch in AT_WIDTHS ? AT_WIDTHS[ch] + 2 * AT_SIDE_BEARING : AT_SPACE;
@@ -301,6 +321,10 @@ export function formatPlateText(country: string, raw: string) {
 
 /** Divide plate text into pieces, one per slot. Returns null if the text doesn't fit the rule. */
 function splitText(rule: SplitRule, text: string): string[] | null {
+  if (rule === "at47-two") {                                                           // "K 146.804" → K 146 | 804
+    const m = text.trim().match(/^(\S+)\s+(\d{1,3})\.?(\d{1,3})$/);
+    return m ? [`${m[1]} ${m[2]}`, m[3]] : null;
+  }
   if (rule === "at-prov" || rule === "at-prov-two") {                                   // "W 12345 A 12" → W 12345 A | 12  (month in the red box)
     const t = text.trim().split(" ");
     if (t.length < 3 || !/^\d{1,2}$/.test(t[t.length - 1])) return null;
@@ -373,7 +397,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
   const capH = CAP_BOTTOM - CAP_TOP; // em
 
   if (art) {
-    const font = plateFont(key);
+    const font = art.font ?? plateFont(key);
     const stateSrc = art.stateSeals ? austriaSealFor(printed.split(" ")[0], plateType) : null;
     const s = h / art.h;
     const width = Math.round(art.w * s);

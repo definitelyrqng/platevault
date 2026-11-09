@@ -28,17 +28,22 @@ export const AUSTRIA_SEGMENTS: Record<AustriaCategoryId, Seg[]> = {
   "electric-vanity": [DISTRICT, { kind: "alnum", len: 7, placeholder: "AYA7" }],
   official: [{ kind: "service", len: 2, placeholder: "Service" }, DIGITS5, LETTERS],
   provisional: [DISTRICT, DIGITS5, LETTERS, { kind: "digits", len: 2, placeholder: "12" }],
-  "1947": [{ kind: "state", len: 2, placeholder: "State" }, { kind: "alnum", len: 6, placeholder: "123456" }],
-  "dealer-1947": [{ kind: "state", len: 2, placeholder: "State" }, { kind: "alnum", len: 6, placeholder: "123456" }],
+  "1947": [{ kind: "state", len: 2, placeholder: "State" }, { kind: "digits", len: 6, placeholder: "146804" }],
+  "dealer-1947": [{ kind: "state", len: 2, placeholder: "State" }, { kind: "digits", len: 6, placeholder: "146804" }],
   dealer: [DISTRICT, { kind: "alnum", len: 7, placeholder: "1DSJ" }],
   diplomatic: [{ kind: "diplo", len: 2, placeholder: "Prefix" }, { kind: "digits", len: 3, placeholder: "56" }],
 };
 
 const EXAMPLE_PREFIX: Partial<Record<Kind, string>> = { district: "W", service: "BP", state: "ST", code: "A", diplo: "WD" };
 
+const is1947 = (c: AustriaCategoryId) => c === "1947" || c === "dealer-1947";
+/** 1947 plates print the six digits as 146.804 */
+const dot47 = (d: string) => (d.length > 3 ? `${d.slice(0, 3)}.${d.slice(3)}` : d);
+
 /** Example text per category, for previews before anything is typed. */
 export function austriaExample(category: AustriaCategoryId) {
   const segs = AUSTRIA_SEGMENTS[category] ?? AUSTRIA_SEGMENTS.regular;
+  if (is1947(category)) return "K 146.804";
   return segs.map((s) => EXAMPLE_PREFIX[s.kind] ?? s.placeholder).join(category === "diplomatic" ? "-" : " ");
 }
 
@@ -76,7 +81,8 @@ export default function AustriaPlateInput({
   }, [layoutKey]);
 
   useEffect(() => {
-    onChange(vals.filter(Boolean).join(category === "diplomatic" ? "-" : " "), vals[0] ?? "");
+    const shown = is1947(category) ? vals.map((v, i) => (i === 1 ? dot47(v) : v)) : vals;
+    onChange(shown.filter(Boolean).join(category === "diplomatic" ? "-" : " "), vals[0] ?? "");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vals]);
 

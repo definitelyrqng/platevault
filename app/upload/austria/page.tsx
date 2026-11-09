@@ -42,7 +42,8 @@ const PLATE_TYPES: PlateTypeDef[] = [
   { id: "at-provisional-moped",           category: "provisional",     label: "Provisional small", hint: "Admins only", adminOnly: true },
   { id: "at-dealer-single-no-euroband",   category: "dealer",          label: "Dealer",           hint: "W-1DSJ or vanity" },
   { id: "at-dealer-double-no-euroband",   category: "dealer",          label: "Dealer two-line",  hint: "Blue, two rows" },
-  { id: "at-1947-single-no-euroband",     category: "1947",            label: "1947 system",      hint: "State letters" },
+  { id: "at-1947-single-no-euroband",     category: "1947",            label: "1947 system",      hint: "Single line, e.g. K 146.804" },
+  { id: "at-1947-double-no-euroband",     category: "1947",            label: "1947 two-line",    hint: "Square plate" },
   { id: "at-dealer-1947-single-no-euroband", category: "dealer-1947",  label: "Dealer 1947",      hint: "1947 dealer" },
 ];
 

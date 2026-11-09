@@ -3,10 +3,11 @@ import path from "node:path";
 import sharp from "sharp";
 import opentype from "opentype.js";
 import {
-  plateLayout, runStartX, CAP_TOP, CAP_BOTTOM, CONDENSE, STROKE, UMLAUT_BASE, AL_SIDE_BEARING, AL_SPACE, AT_SIDE_BEARING, AT_SPACE, type TextRun, type PlateFont,
+  plateLayout, runStartX, CAP_TOP, CAP_BOTTOM, CONDENSE, STROKE, UMLAUT_BASE, AL_SIDE_BEARING, AL_SPACE, AT_SIDE_BEARING, AT_SPACE, AT47_SIDE_BEARING, AT47_SPACE, glyphKeys47, type TextRun, type PlateFont,
 } from "@/app/lib/plateLayout";
 import albaniaFont from "@/app/lib/albaniaFont.json";
 import austriaFont from "@/app/lib/austriaFont.json";
+import austria1947Font from "@/app/lib/austria1947Font.json";
 
 /**
  * GET /api/plate?c=<country>&t=<plate text>&h=<height px>[&p=<plateType>]
@@ -80,8 +81,8 @@ function runSvg(font: opentype.Font, run: TextRun, color = "#111") {
 }
 
 /** SVG for one run in the traced Albanian plate lettering (see scripts/build-albania-font.cjs). */
-function runSvgTraced(run: TextRun, color: string, which: "al" | "at") {
-  const [source, bearing, space] = which === "at" ? [austriaFont, AT_SIDE_BEARING, AT_SPACE] : [albaniaFont, AL_SIDE_BEARING, AL_SPACE];
+function runSvgTraced(run: TextRun, color: string, which: "al" | "at" | "at47") {
+  const [source, bearing, space] = which === "at47" ? [austria1947Font, AT47_SIDE_BEARING, AT47_SPACE] : which === "at" ? [austriaFont, AT_SIDE_BEARING, AT_SPACE] : [albaniaFont, AL_SIDE_BEARING, AL_SPACE];
   const { text, fontSize, centerY } = run;
   const { capHeight, glyphs } = source as {
     capHeight: number;
@@ -91,7 +92,7 @@ function runSvgTraced(run: TextRun, color: string, which: "al" | "at") {
   const scale = capPx / capHeight;
   const paths: string[] = [];
   let x = 0;
-  for (const ch of text) {
+  for (const ch of which === "at47" ? glyphKeys47(text) : text) {
     const g = glyphs[ch];
     if (!g) { x += space; continue; }
     paths.push(`<path transform="translate(${x + bearing + g.dx} ${g.dy})" d="${g.d}"/>`);
