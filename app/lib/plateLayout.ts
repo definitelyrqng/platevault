@@ -163,7 +163,7 @@ export const PLATE_ART: Record<string, PlateArt> = {
   // ── Austria: backgrounds in public/plates/austria; one row per line of lettering ──
   "austria:regular-single": { src: "/plates/austria/regular-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1015, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.7 },
   "austria:regular-single-noeuro": { src: "/plates/austria/regular-single-noeuro.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 40, x1: 1000, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.7 },
-  "austria:repeater-single": { src: "/plates/austria/repeater-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1005, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.7 },
+  "austria:repeater-single": { src: "/plates/austria/repeater-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1005, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.7, textColor: "#fff" },
   "austria:provisional-single": { src: "/plates/austria/provisional-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 60, x1: 880, slots: 1 }], split: "whole", textColor: "#fff" },
   "austria:provisional-single-small": { src: "/plates/austria/provisional-single-small.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 60, x1: 880, slots: 1 }], split: "whole", textColor: "#fff" },
   "austria:dealer-single": { src: "/plates/austria/dealer-single.png", w: 1040, h: 240, rows: [{ y0: 30, y1: 208, x0: 60, x1: 985, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.7, textColor: "#fff" },
@@ -231,8 +231,9 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
   if (key === "austria") {
     const k = austriaArtKey(plateType);
     const art = k ? PLATE_ART[k] ?? null : null;
-    // green-lettered mopeds: same plate, green characters
-    return art && plateType?.endsWith("moped-green") && k === "austria:regular-two-noeuro" ? { ...art, textColor: "#0b7a3b" } : art;
+    // electric vehicles and green-lettered mopeds: same plate, green characters
+    const green = /^at-electric/.test(plateType ?? "") || /moped-green$/.test(plateType ?? "");
+    return art && green && !art.textColor ? { ...art, textColor: "#0b7a3b" } : art;
   }
   return (plateType && PLATE_ART[`${key}:${plateType}`]) || PLATE_ART[key] || null;
 }
