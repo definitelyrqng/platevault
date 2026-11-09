@@ -28,7 +28,12 @@ export const AL_SPACE = 70;
  * drawn by the renderer, not baked into the artwork, so every plate comes out
  * centred with equal margins.
  */
-export type ArtRow = { y0: number; y1: number; x0: number; x1: number; slots: number; seal?: boolean | "left" };
+export type ArtRow = {
+  y0: number; y1: number; x0: number; x1: number; slots: number;
+  seal?: boolean | "left";
+  /** Gap beside the seal as a fraction of the row height (default SEAL_GAP) — smaller on narrow rows. */
+  gap?: number;
+};
 
 /**
  * How plate text is divided over the pieces (all rows, in order):
@@ -36,8 +41,10 @@ export type ArtRow = { y0: number; y1: number; x0: number; x1: number; slots: nu
  *  - "seal":      first letter group | rest            ("AB 195 IF" → AB | 195 IF)
  *  - "al-double":  letters | digits | final letters     ("AB 123 CD" → AB | 123 | CD)
  *  - "al-twoline": letters | digits+final letters      ("AB 123 FG" → AB | 123FG)
+ *  - "al-moto":    letters | digits                    ("AB 123" → AB | 123)
+ *  - "al-trailer-two": letters | "R" + digits          ("AB R 456" → AB | R 456)
  */
-export type SplitRule = "whole" | "seal" | "al-double" | "al-twoline";
+export type SplitRule = "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
 
 export type PlateArt = {
   src: string;          // path under /public
@@ -107,6 +114,34 @@ export const PLATE_ART: Record<string, PlateArt> = {
       { y0: 198, y1: 379, x0: 36, x1: 452, slots: 1 },
     ],
     split: "al-twoline",
+    seal: "/plates/albania/seal.png",
+  },
+  // trailer_double.png (486×392, border 8): green; top row between the bands x107–386, y13–196,
+  // seal left of the letters; bottom row y197–378.  "AB R 456" → ● AB / R 456. White lettering.
+  "albania:trailer-2011-double": {
+    src: "/plates/albania/trailer_double.png",
+    w: 486,
+    h: 392,
+    rows: [
+      { y0: 13, y1: 196, x0: 119, x1: 375, slots: 1, seal: "left" },
+      { y0: 197, y1: 378, x0: 35, x1: 451, slots: 1 },
+    ],
+    split: "al-trailer-two",
+    seal: "/plates/albania/seal.png",
+    textColor: "#fff",
+  },
+  // moto.png (408×394, border 8): new square motorcycle plate. Top row between the bands
+  // x108–308, y14–197, seal left of the letters (tight — the row is narrow); bottom row y198–379.
+  // "AB 123" → ● AB / 123
+  "albania:moto-2011": {
+    src: "/plates/albania/moto.png",
+    w: 408,
+    h: 394,
+    rows: [
+      { y0: 14, y1: 197, x0: 112, x1: 306, slots: 1, seal: "left", gap: 0.04 },
+      { y0: 198, y1: 379, x0: 34, x1: 374, slots: 1 },
+    ],
+    split: "al-moto",
     seal: "/plates/albania/seal.png",
   },
   // cars_old.png (1602×358): pre-2011 plate, red band; white area x179–1570, y23–334. No seal.
@@ -183,6 +218,14 @@ function splitText(rule: SplitRule, text: string): string[] | null {
     const m = text.match(/^([A-Z]{1,3})\s?(.+)$/);          // "AB 195 IF" → AB | 195 IF
     return m ? [m[1], m[2].trim()] : null;
   }
+  if (rule === "al-moto") {
+    const m = text.replace(/\s+/g, "").match(/^([A-Z]{1,3})(\d{1,4})$/);                 // AB123 → AB | 123
+    return m ? [m[1], m[2]] : null;
+  }
+  if (rule === "al-trailer-two") {
+    const m = text.replace(/\s+/g, " ").trim().match(/^([A-Z]{1,3}) ?R ?(\d{1,4})$/);     // AB R 456 → AB | R 456
+    return m ? [m[1], `R ${m[2]}`] : null;
+  }
   if (rule === "al-twoline") {
     const m = text.replace(/\s+/g, "").match(/^([A-Z]{1,3})(\d{1,4}[A-Z]{1,3})$/);   // AB123FG → AB | 123FG
     return m ? [m[1], m[2]] : null;
@@ -256,7 +299,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
         : row.seal === "left" ? (texts.length >= 1 ? "left" : null)
         : (texts.length === 2 ? "between" : null);
       const sealD = mode ? rowH * SEAL_DIAMETER : 0;
-      const gap = mode ? rowH * SEAL_GAP : 0;
+      const gap = mode ? rowH * (row.gap ?? SEAL_GAP) : 0;
       const gaps = mode === "between" ? 2 : mode === "left" ? 1 : 0;   // gaps touching the seal
       const ems = texts.map((t) => textWidthEm(t, font));
       return { row, texts, rowH, mode, sealD, gap, gaps, ems, avail: (row.x1 - row.x0) * s };
