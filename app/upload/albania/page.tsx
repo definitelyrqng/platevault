@@ -22,8 +22,8 @@ const { useUploadThing } = generateReactHelpers<OurFileRouter>();
 
 const PLATE_TYPES = [
   { id: "car-2011-standard",   label: "2011 Series",      hint: "Most cars" },
-  { id: "car-2011-double",     label: "Two-line",         hint: "Square plate" },
-  { id: "car-2011-us",         label: "US-size",          hint: "Short single line" },
+  { id: "car-2011-double",     label: "Two-line",         hint: "Letters above digits" },
+  { id: "car-2011-us",         label: "US-size",          hint: "US import size" },
   { id: "moto-2011",           label: "Motorcycle",       hint: "2011+" },
   { id: "trailer-2011-single", label: "Trailer",          hint: "Teal, white text" },
   { id: "trailer-2011-double", label: "Trailer two-line", hint: "Square trailer" },

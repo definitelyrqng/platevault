@@ -24,18 +24,20 @@ export const AL_SPACE = 70;
 /**
  * One line of writing on the plate (artwork pixels): its writable area and how
  * many text pieces it holds. With `seal`, the line is laid out as
- * "<piece 1> ● <piece 2>" — the seal is drawn by the renderer, not baked into
- * the artwork, so every plate comes out centred with equal margins.
+ * "<piece 1> ● <piece 2>" (seal: true) or "● <piece 1>" (seal: "left") — the seal is
+ * drawn by the renderer, not baked into the artwork, so every plate comes out
+ * centred with equal margins.
  */
-export type ArtRow = { y0: number; y1: number; x0: number; x1: number; slots: number; seal?: boolean };
+export type ArtRow = { y0: number; y1: number; x0: number; x1: number; slots: number; seal?: boolean | "left" };
 
 /**
  * How plate text is divided over the pieces (all rows, in order):
  *  - "whole":     everything as one piece
  *  - "seal":      first letter group | rest            ("AB 195 IF" → AB | 195 IF)
- *  - "al-double": letters | digits | final letters     ("AB 123 CD" → AB | 123 | CD)
+ *  - "al-double":  letters | digits | final letters     ("AB 123 CD" → AB | 123 | CD)
+ *  - "al-twoline": letters | digits+final letters      ("AB 123 FG" → AB | 123FG)
  */
-export type SplitRule = "whole" | "seal" | "al-double";
+export type SplitRule = "whole" | "seal" | "al-double" | "al-twoline";
 
 export type PlateArt = {
   src: string;          // path under /public
@@ -81,10 +83,10 @@ export const PLATE_ART: Record<string, PlateArt> = {
     seal: "/plates/albania/seal.png",
     textColor: "#fff",
   },
-  // cars_double.png (940×474): top row between the bands x178–761, y23–241;
+  // cars_us.png (940×474): US-size plate. Top row between the bands x178–761, y23–241;
   // bottom row full width y242–450.  "AB 123 CD" → AB ● 123 / CD
-  "albania:car-2011-double": {
-    src: "/plates/albania/cars_double.png",
+  "albania:car-2011-us": {
+    src: "/plates/albania/cars_us.png",
     w: 940,
     h: 474,
     rows: [
@@ -92,6 +94,19 @@ export const PLATE_ART: Record<string, PlateArt> = {
       { y0: 242, y1: 450, x0: 60, x1: 880, slots: 1 },
     ],
     split: "al-double",
+    seal: "/plates/albania/seal.png",
+  },
+  // cars_double.png (488×394): the two-line plate. Top row between the bands x108–387, y14–197,
+  // seal to the LEFT of the letters; bottom row full width y198–379.  "AB 123 FG" → ● AB / 123FG
+  "albania:car-2011-double": {
+    src: "/plates/albania/cars_double.png",
+    w: 488,
+    h: 394,
+    rows: [
+      { y0: 14, y1: 197, x0: 120, x1: 376, slots: 1, seal: "left" },
+      { y0: 198, y1: 379, x0: 36, x1: 452, slots: 1 },
+    ],
+    split: "al-twoline",
     seal: "/plates/albania/seal.png",
   },
   // cars_old.png (1602×358): pre-2011 plate, red band; white area x179–1570, y23–334. No seal.
@@ -168,6 +183,10 @@ function splitText(rule: SplitRule, text: string): string[] | null {
     const m = text.match(/^([A-Z]{1,3})\s?(.+)$/);          // "AB 195 IF" → AB | 195 IF
     return m ? [m[1], m[2].trim()] : null;
   }
+  if (rule === "al-twoline") {
+    const m = text.replace(/\s+/g, "").match(/^([A-Z]{1,3})(\d{1,4}[A-Z]{1,3})$/);   // AB123FG → AB | 123FG
+    return m ? [m[1], m[2]] : null;
+  }
   if (rule === "al-double") {
     const m = text.replace(/\s+/g, "").match(/^([A-Z]{1,3})(\d{1,4})([A-Z]{1,3})$/); // AB123CD
     return m ? [m[1], m[2], m[3]] : null;
@@ -232,31 +251,39 @@ export function plateLayout(country: string, rawText: string, height: number, pl
 
     const lines = rows.map(({ row, texts }) => {
       const rowH = (row.y1 - row.y0) * s;
-      const withSeal = !!(row.seal && art.seal && texts.length === 2);
-      const sealD = withSeal ? rowH * SEAL_DIAMETER : 0;
-      const gap = withSeal ? rowH * SEAL_GAP : 0;
+      // seal: true → between the first two pieces; seal: "left" → before the first piece
+      const mode: "between" | "left" | null = !art.seal || !row.seal ? null
+        : row.seal === "left" ? (texts.length >= 1 ? "left" : null)
+        : (texts.length === 2 ? "between" : null);
+      const sealD = mode ? rowH * SEAL_DIAMETER : 0;
+      const gap = mode ? rowH * SEAL_GAP : 0;
+      const gaps = mode === "between" ? 2 : mode === "left" ? 1 : 0;   // gaps touching the seal
       const ems = texts.map((t) => textWidthEm(t, font));
-      return { row, texts, rowH, withSeal, sealD, gap, ems, avail: (row.x1 - row.x0) * s };
+      return { row, texts, rowH, mode, sealD, gap, gaps, ems, avail: (row.x1 - row.x0) * s };
     });
 
     // One letter height for the whole plate: capped by every row's height and by
     // every row's width (text + seal must fit between the bands).
     const fontSize = Math.min(
       ...lines.map((l) => (l.rowH * 0.72) / capH),                 // capitals fill ~72% of the row
-      ...lines.map((l) => (l.avail - l.sealD - 2 * l.gap) / Math.max(l.ems.reduce((x, y) => x + y, 0), 0.5)),
+      ...lines.map((l) => (l.avail - l.sealD - l.gaps * l.gap) / Math.max(l.ems.reduce((x, y) => x + y, 0), 0.5)),
     );
 
     const runs: TextRun[] = [];
     const seals: { cx: number; cy: number; d: number }[] = [];
     for (const l of lines) {
       const widths = l.ems.map((em) => em * fontSize);
-      const total = widths.reduce((x, y) => x + y, 0) + l.sealD + 2 * l.gap;
+      const total = widths.reduce((x, y) => x + y, 0) + l.sealD + l.gaps * l.gap;
       let x = l.row.x0 * s + (l.avail - total) / 2;               // centred → equal margins
       const centerY = ((l.row.y0 + l.row.y1) / 2) * s;
+      if (l.mode === "left") {                                    // ● then the text
+        seals.push({ cx: x + l.sealD / 2, cy: centerY, d: l.sealD });
+        x += l.sealD + l.gap;
+      }
       l.texts.forEach((text, i) => {
         runs.push({ text, x0: x, x1: x + widths[i], align: "left", fontSize, centerY });
         x += widths[i];
-        if (l.withSeal && i === 0) {
+        if (l.mode === "between" && i === 0) {                    // piece ● piece
           seals.push({ cx: x + l.gap + l.sealD / 2, cy: centerY, d: l.sealD });
           x += l.sealD + 2 * l.gap;
         }
