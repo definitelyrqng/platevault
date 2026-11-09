@@ -70,6 +70,8 @@ export function plateTypeLabel(country: string, type: string | null | undefined)
   if (exact) return exact;
 
   let rest = type.toLowerCase().replace(COUNTRY_PREFIX, "");
+  // these Austrian plates never have a euroband, so "No Euroband" would just be noise
+  const neverEuro = country.toLowerCase() === "austria" && /^(provisional|dealer|export|1947|official)(-|$)/.test(rest);
 
   // Category: first matching key at the start of the remaining ID
   let category = "";
@@ -81,7 +83,7 @@ export function plateTypeLabel(country: string, type: string | null | undefined)
     }
   }
 
-  const suffixes = FORMATS.filter(([re]) => re.test(rest)).map(([, label]) => label);
+  const suffixes = FORMATS.filter(([re]) => re.test(rest)).map(([, label]) => label).filter((l) => !(neverEuro && l === "No Euroband"));
 
   // Unknown leftover words (not just format words) — show them title-cased so nothing is lost
   const formatWords = /^(single|single-line|line|euroband|no-euroband|euro|dash|two-line|double|us|moto|repeater|din)$/;

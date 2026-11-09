@@ -177,8 +177,8 @@ export const PLATE_ART: Record<string, PlateArt> = {
   "austria:regular-single": { src: "/plates/austria/regular-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1015, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.78 },
   "austria:regular-single-noeuro": { src: "/plates/austria/regular-single-noeuro.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 40, x1: 1000, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.78 },
   "austria:repeater-single": { src: "/plates/austria/repeater-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1005, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.78, textColor: "#fff" },
-  "austria:provisional-single": { src: "/plates/austria/provisional-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 60, x1: 880, slots: 1 }, { y0: 26, y1: 194, x0: 922, x1: 1018, slots: 1, own: true }], split: "at-prov", textColor: "#fff" },
-  "austria:provisional-single-small": { src: "/plates/austria/provisional-single-small.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 60, x1: 880, slots: 1 }, { y0: 26, y1: 194, x0: 922, x1: 1018, slots: 1, own: true }], split: "at-prov", textColor: "#fff" },
+  "austria:provisional-single": { src: "/plates/austria/provisional-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 60, x1: 880, slots: 2, seal: true, gap: 0.22 }, { y0: 26, y1: 194, x0: 922, x1: 1018, slots: 1, own: true }], split: "at-prov", stateSeals: true, sealH: 0.78, textColor: "#fff" },
+  "austria:provisional-single-small": { src: "/plates/austria/provisional-single-small.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 60, x1: 880, slots: 2, seal: true, gap: 0.22 }, { y0: 26, y1: 194, x0: 922, x1: 1018, slots: 1, own: true }], split: "at-prov", stateSeals: true, sealH: 0.78, textColor: "#fff" },
   "austria:dealer-single": { src: "/plates/austria/dealer-single.png", w: 1040, h: 240, rows: [{ y0: 30, y1: 208, x0: 60, x1: 985, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.78, textColor: "#fff" },
   "austria:export-single": { src: "/plates/austria/export-single.png", w: 1040, h: 240, rows: [{ y0: 30, y1: 208, x0: 50, x1: 880, slots: 1 }], split: "whole", textColor: "#fff" },
   // diplomatic: the euroband plate, single text run ("WD-56"), no coat of arms
@@ -188,7 +188,7 @@ export const PLATE_ART: Record<string, PlateArt> = {
   "austria:1947-two": { src: "/plates/austria/y1947-two.png", w: 500, h: 480, rows: [{ y0: 44, y1: 228, x0: 44, x1: 456, slots: 1 }, { y0: 252, y1: 436, x0: 44, x1: 456, slots: 1 }], split: "at47-two", font: "at47", textColor: "#fff" },
   "austria:regular-two": { src: "/plates/austria/regular-two.png", w: 500, h: 400, rows: [{ y0: 24, y1: 195, x0: 120, x1: 480, slots: 1, seal: "right", gap: 0.2 }, { y0: 200, y1: 376, x0: 30, x1: 470, slots: 1 }], split: "at-two", stateSeals: true, sealH: 0.78 },
   "austria:regular-two-noeuro": { src: "/plates/austria/regular-two-noeuro.png", w: 540, h: 400, rows: [{ y0: 24, y1: 195, x0: 30, x1: 510, slots: 1, seal: "right", gap: 0.2 }, { y0: 200, y1: 376, x0: 30, x1: 510, slots: 1 }], split: "at-two", stateSeals: true, sealH: 0.78 },
-  "austria:provisional-two": { src: "/plates/austria/provisional-two.png", w: 540, h: 400, rows: [{ y0: 28, y1: 195, x0: 40, x1: 500, slots: 1 }, { y0: 202, y1: 376, x0: 40, x1: 395, slots: 1 }, { y0: 202, y1: 376, x0: 421, x1: 502, slots: 1, own: true }], split: "at-prov-two", textColor: "#fff" },
+  "austria:provisional-two": { src: "/plates/austria/provisional-two.png", w: 540, h: 400, rows: [{ y0: 28, y1: 195, x0: 40, x1: 500, slots: 1, seal: "right", gap: 0.2 }, { y0: 202, y1: 376, x0: 40, x1: 395, slots: 1 }, { y0: 202, y1: 376, x0: 421, x1: 502, slots: 1, own: true }], split: "at-prov-two", stateSeals: true, sealH: 0.78, textColor: "#fff" },
   "austria:dealer-two": { src: "/plates/austria/dealer-two.png", w: 540, h: 400, rows: [{ y0: 28, y1: 195, x0: 40, x1: 500, slots: 1, seal: "right", gap: 0.2 }, { y0: 202, y1: 376, x0: 40, x1: 500, slots: 1 }], split: "at-two", stateSeals: true, sealH: 0.78, textColor: "#fff" },
   "austria:export-two": { src: "/plates/austria/export-two.png", w: 540, h: 400, rows: [{ y0: 22, y1: 195, x0: 40, x1: 500, slots: 1 }, { y0: 200, y1: 376, x0: 40, x1: 365, slots: 1 }], split: "at-two", textColor: "#fff" },
 };
@@ -329,7 +329,7 @@ function splitText(rule: SplitRule, text: string): string[] | null {
     const t = text.trim().split(" ");
     if (t.length < 3 || !/^\d{1,2}$/.test(t[t.length - 1])) return null;
     const month = t.pop()!;
-    if (rule === "at-prov") return [t.join(" "), month];
+    if (rule === "at-prov") return t.length >= 2 ? [t[0], t.slice(1).join(" "), month] : null;
     return t.length >= 2 ? [t[0], t.slice(1).join(" "), month] : null;
   }
   if (rule === "at-two" || rule === "at-seal") {
