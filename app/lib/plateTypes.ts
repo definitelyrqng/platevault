@@ -18,7 +18,6 @@ const EXACT: Record<string, Record<string, string>> = {
     "trailer-2011-single": "2011 Trailer",
     "trailer-2011-double": "2011 Trailer · Two-line",
     "car-1993-single":     "1993 Series",
-    "car-1993-double":     "1993 Series · Two-line",
   },
 };
 

@@ -431,6 +431,12 @@ export default function LegalPage() {
             </div>
           </Section>
 
+          <div id="credits" className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 text-xs leading-relaxed text-zinc-400">
+            <p className="mb-1 font-semibold text-zinc-200">Credits</p>
+            <p>Albanian plate lettering is traced from the &ldquo;Albania&rdquo; plate glyph set created by Vinswie (2024).</p>
+            <p>Other plates use FE-Schrift, the German licence plate typeface.</p>
+          </div>
+
         </div>
       </div>
     </main>

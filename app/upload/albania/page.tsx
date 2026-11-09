@@ -41,7 +41,6 @@ const PLATE_TYPES_BY_CATEGORY: Record<VehicleCategory, { id: string; name: strin
   ],
   "Cars (1993–2010)": [
     { id: "car-1993-single", name: "Old format (single line)", example: "BC 1234 AA" },
-    { id: "car-1993-double", name: "Old format (double line)", example: "BC 1234 / AA" },
   ],
 };
 

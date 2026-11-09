@@ -4,8 +4,24 @@
  *
  * Pure data + math only (no React, no fs) — safe to import anywhere.
  */
+import { AL_CAP_HEIGHT, AL_WIDTHS } from "./albaniaFontMetrics";
 
 export type Box = { x0: number; x1: number };
+
+/**
+ * Lettering per country. "fe" = FE-Schrift (default everywhere);
+ * "al" = Albanian plate glyphs traced from assets/fonts/albania-glyphs.png
+ * (scripts/build-albania-font.cjs). Only used on plates with real artwork.
+ */
+export type PlateFont = "fe" | "al";
+const COUNTRY_FONT: Record<string, PlateFont> = { albania: "al" };
+export function plateFont(country: string): PlateFont {
+  return COUNTRY_FONT[country.toLowerCase()] ?? "fe";
+}
+
+/** Albanian glyph spacing, in glyph-sheet pixels. */
+export const AL_SIDE_BEARING = 12;
+export const AL_SPACE = 70;
 
 /** One line of writing on the plate: its vertical extent and the slots text is centred in. */
 export type ArtRow = { y0: number; y1: number; boxes: Box[] };
@@ -113,6 +129,19 @@ export function textAdvanceEm(s: string) {
   return w;
 }
 
+/** Albanian glyphs: sheet px → em, scaled so capitals match FE-Schrift's cap height. */
+const AL_PX_TO_EM = (CAP_BOTTOM - CAP_TOP) / AL_CAP_HEIGHT;
+
+/** Rendered width of a text run in em, for the given lettering (condensing included). */
+export function textWidthEm(s: string, font: PlateFont) {
+  if (font === "al") {
+    let px = 0;
+    for (const ch of s) px += ch in AL_WIDTHS ? AL_WIDTHS[ch] + 2 * AL_SIDE_BEARING : AL_SPACE;
+    return px * AL_PX_TO_EM;
+  }
+  return textAdvanceEm(s) * CONDENSE;
+}
+
 /** Normalise stored plate text into how it is printed on the plate. */
 export function formatPlateText(country: string, raw: string) {
   const t = String(raw || "").toUpperCase().trim().replace(/\s+/g, " ");
@@ -156,6 +185,8 @@ export type PlateLayout = {
   height: number;
   printed: string;
   art: PlateArt | null;
+  /** Lettering used for the runs ("fe" on plain chips). */
+  font: PlateFont;
   runs: TextRun[];
   /** Neutral chip styling when there is no artwork. */
   chip: { border: number; radius: number } | null;
@@ -169,6 +200,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
   const capH = CAP_BOTTOM - CAP_TOP; // em
 
   if (art) {
+    const font = plateFont(key);
     const s = h / art.h;
     const width = Math.round(art.w * s);
     const slots = slotsOf(art);
@@ -188,7 +220,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
     // capped by each row's height and small enough for every piece to fit its slot.
     const fontSize = Math.min(
       ...parts.map((p) => ((p.row.y1 - p.row.y0) * s * 0.72) / capH), // capitals fill ~72% of the row
-      ...parts.map((p) => ((p.box.x1 - p.box.x0) * s) / (Math.max(textAdvanceEm(p.text), 0.6) * CONDENSE)),
+      ...parts.map((p) => ((p.box.x1 - p.box.x0) * s) / Math.max(textWidthEm(p.text, font), 0.5)),
     );
 
     return {
@@ -196,6 +228,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
       height: h,
       printed,
       art,
+      font,
       chip: null,
       runs: parts.map((p) => ({
         text: p.text,
@@ -218,6 +251,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
     height: h,
     printed,
     art: null,
+    font: "fe",
     chip: { border, radius: h * 0.14 },
     runs: [{ text: printed, x0: border + padX, x1: width - border - padX, fontSize, centerY: h / 2 }],
   };

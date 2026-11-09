@@ -3,8 +3,9 @@ import path from "node:path";
 import sharp from "sharp";
 import opentype from "opentype.js";
 import {
-  plateLayout, CAP_TOP, CAP_BOTTOM, CONDENSE, STROKE, UMLAUT_BASE,
+  plateLayout, CAP_TOP, CAP_BOTTOM, CONDENSE, STROKE, UMLAUT_BASE, AL_SIDE_BEARING, AL_SPACE,
 } from "@/app/lib/plateLayout";
+import albaniaFont from "@/app/lib/albaniaFont.json";
 
 /**
  * GET /api/plate?c=<country>&t=<plate text>&h=<height px>[&p=<plateType>]
@@ -76,6 +77,27 @@ function runSvg(font: opentype.Font, text: string, fontSize: number, x0: number,
     + `<path d="${out.toPathData(2)}"/>${dots.join("")}</g>`;
 }
 
+/** SVG for one run in the traced Albanian plate lettering (see scripts/build-albania-font.cjs). */
+function runSvgAlbanian(text: string, fontSize: number, x0: number, x1: number, centerY: number, color: string) {
+  const { capHeight, glyphs } = albaniaFont as {
+    capHeight: number;
+    glyphs: Record<string, { w: number; dx: number; dy: number; d: string }>;
+  };
+  const capPx = fontSize * (CAP_BOTTOM - CAP_TOP);   // same capital height as FE plates
+  const scale = capPx / capHeight;
+  const paths: string[] = [];
+  let x = 0;
+  for (const ch of text) {
+    const g = glyphs[ch];
+    if (!g) { x += AL_SPACE; continue; }
+    paths.push(`<path transform="translate(${x + AL_SIDE_BEARING + g.dx} ${g.dy})" d="${g.d}"/>`);
+    x += g.w + 2 * AL_SIDE_BEARING;
+  }
+  const startX = x0 + (x1 - x0 - x * scale) / 2;
+  const baseline = centerY + capPx / 2;
+  return `<g transform="translate(${startX.toFixed(2)} ${baseline.toFixed(2)}) scale(${scale.toFixed(5)})" fill="${color}" fill-rule="evenodd">${paths.join("")}</g>`;
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const country = (searchParams.get("c") ?? "").toLowerCase();
@@ -105,7 +127,9 @@ export async function GET(req: Request) {
   }
 
   const color = layout.art?.textColor ?? "#111";
-  const runs = layout.runs.map((r) => runSvg(font, r.text, r.fontSize, r.x0, r.x1, r.centerY, color)).join("");
+  const runs = layout.runs.map((r) => layout.font === "al"
+    ? runSvgAlbanian(r.text, r.fontSize, r.x0, r.x1, r.centerY, color)
+    : runSvg(font, r.text, r.fontSize, r.x0, r.x1, r.centerY, color)).join("");
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${h}" viewBox="0 0 ${width} ${h}">`
     + `<title>${esc(layout.printed)}</title>${background}${runs}</svg>`;
 

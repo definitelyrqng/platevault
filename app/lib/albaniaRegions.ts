@@ -58,5 +58,4 @@ export const ALBANIA_PLATE_TYPE_LABELS: Record<string, string> = {
   "trailer-2011-single": "Trailer single line (2011+)",
   "trailer-2011-double": "Trailer double line (2011+)",
   "car-1993-single":     "Old format single line (1993-2010)",
-  "car-1993-double":     "Old format double line (1993-2010)",
 };
