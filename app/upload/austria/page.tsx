@@ -21,7 +21,7 @@ const { useUploadThing } = generateReactHelpers<OurFileRouter>();
 
 /* ─── Plate types (one flat, visual list) ─── */
 
-type PlateTypeDef = { id: string; category: AustriaCategoryId; label: string; hint: string };
+type PlateTypeDef = { id: string; category: AustriaCategoryId; label: string; hint: string; adminOnly?: boolean };
 
 /** Stored as "at-<category>-<format>" (see austriaData.ts). */
 const PLATE_TYPES: PlateTypeDef[] = [
@@ -29,23 +29,21 @@ const PLATE_TYPES: PlateTypeDef[] = [
   { id: "at-regular-double-euroband",     category: "regular",         label: "Two-line",         hint: "District above digits" },
   { id: "at-regular-single-no-euroband",  category: "regular",         label: "No euroband",      hint: "Single line" },
   { id: "at-regular-double-no-euroband",  category: "regular",         label: "Two-line, no euro", hint: "Square plate" },
-  { id: "at-vanity-single-euroband",      category: "vanity",          label: "Vanity",           hint: "Wunschkennzeichen" },
+  { id: "at-vanity-single-euroband",      category: "vanity",          label: "Vanity",           hint: "Wunschkennzeichen, e.g. W-BMW3" },
   { id: "at-electric-single-euroband",    category: "electric",        label: "Electric",         hint: "Electric vehicles" },
-  { id: "at-electric-vanity-single-euroband", category: "electric-vanity", label: "Electric vanity", hint: "Electric, own letters" },
+  { id: "at-electric-vanity-single-euroband", category: "electric-vanity", label: "Electric vanity", hint: "Electric, e.g. W-AYA7" },
   { id: "at-regular-repeater",            category: "regular",         label: "Repeater",         hint: "Red repeater plate" },
   { id: "at-official-single-no-euroband", category: "official",        label: "Official",         hint: "Police, army, post…" },
-  { id: "at-diplomatic-single-euroband",  category: "diplomatic",      label: "Diplomatic",       hint: "Embassies" },
+  { id: "at-diplomatic-single-euroband",  category: "diplomatic",      label: "Diplomatic",       hint: "e.g. WD-56" },
   { id: "at-export-single-no-euroband",   category: "export",          label: "Export transit",   hint: "Green, single line" },
   { id: "at-export-double-no-euroband",   category: "export",          label: "Export two-line",  hint: "Green, two rows" },
   { id: "at-provisional-single-no-euroband", category: "provisional",  label: "Provisional",      hint: "Blue, red band" },
   { id: "at-provisional-double-no-euroband", category: "provisional",  label: "Provisional two-line", hint: "Blue, two rows" },
-  { id: "at-provisional-moped",           category: "provisional",     label: "Provisional small", hint: "Small square" },
-  { id: "at-dealer-single-no-euroband",   category: "dealer",          label: "Dealer",           hint: "Blue, single line" },
+  { id: "at-provisional-moped",           category: "provisional",     label: "Provisional small", hint: "Admins only", adminOnly: true },
+  { id: "at-dealer-single-no-euroband",   category: "dealer",          label: "Dealer",           hint: "W-1DSJ or vanity" },
   { id: "at-dealer-double-no-euroband",   category: "dealer",          label: "Dealer two-line",  hint: "Blue, two rows" },
   { id: "at-1947-single-no-euroband",     category: "1947",            label: "1947 system",      hint: "State letters" },
   { id: "at-dealer-1947-single-no-euroband", category: "dealer-1947",  label: "Dealer 1947",      hint: "1947 dealer" },
-  { id: "at-regular-moped",               category: "regular",         label: "Moped",            hint: "Moped plate" },
-  { id: "at-regular-moped-green",         category: "regular",         label: "Moped, green",     hint: "Green characters" },
 ];
 
 /** True when this type's artwork is a tall two-line plate (so it needs a bigger preview). */
@@ -129,6 +127,11 @@ export default function AustriaUploadPage() {
       warningRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }, [multiSpotWarning]);
+
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    fetch("/api/users/me/profile").then((r) => r.json()).then((d) => setIsAdmin(["SUPERADMIN", "ADMIN"].includes(d.user?.role))).catch(() => {});
+  }, []);
 
   const selectedType = PLATE_TYPES.find((p) => p.id === plateTypeId) ?? PLATE_TYPES[0];
 
@@ -319,16 +322,16 @@ export default function AustriaUploadPage() {
             <section className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-6">
               <StepTitle n={1} title="Which plate is it?" done />
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
-                {PLATE_TYPES.map((t) => {
+                {PLATE_TYPES.filter((t) => !t.adminOnly || isAdmin || plateTypeId === t.id).map((t) => {
                   const active = plateTypeId === t.id;
                   return (
                     <button key={t.id} type="button" onClick={() => setPlateTypeId(t.id)} aria-pressed={active}
                       className={`group flex flex-col items-center gap-2 rounded-xl border p-3 text-center transition-all ${
                         active ? "border-indigo-500 bg-indigo-600/10 ring-1 ring-indigo-500/50" : "border-zinc-800 bg-zinc-950/50 hover:border-zinc-600"
                       }`}>
-                      <span className="flex h-14 items-center justify-center">
+                      <span className="flex h-[92px] items-center justify-center">
                         {/* two-line plates are tall and narrow — show them bigger so they read */}
-                        <PlateBadge country="austria" text={austriaExample(t.category)} plateType={t.id} size={isSquarish(t.id) ? "lg" : "sm"} />
+                        <PlateBadge country="austria" text={austriaExample(t.category)} plateType={t.id} size={isSquarish(t.id) ? "xl" : "sm"} />
                       </span>
                       <span>
                         <span className={`block text-sm font-medium ${active ? "text-white" : "text-zinc-300"}`}>{t.label}</span>

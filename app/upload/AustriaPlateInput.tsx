@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  AUSTRIA_PRESELECT_1, AUSTRIA_PRESELECT_2, AUSTRIA_PRESELECT_3,
+  AUSTRIA_PRESELECT_1, AUSTRIA_PRESELECT_2, AUSTRIA_PRESELECT_3, AUSTRIA_DIPLOMATIC_PREFIXES,
   getAustriaPreselect1, getAustriaPreselect2, getAustriaPreselect3,
   type AustriaCategoryId,
 } from "@/app/lib/austriaData";
@@ -13,7 +13,7 @@ import {
  * The layout of the boxes depends on the plate category.
  */
 
-type Kind = "district" | "service" | "state" | "code" | "letters" | "digits" | "alnum";
+type Kind = "diplo" | "district" | "service" | "state" | "code" | "letters" | "digits" | "alnum";
 type Seg = { kind: Kind; len: number; placeholder: string };
 
 const DISTRICT: Seg = { kind: "district", len: 3, placeholder: "District" };
@@ -24,22 +24,22 @@ export const AUSTRIA_SEGMENTS: Record<AustriaCategoryId, Seg[]> = {
   regular: [DISTRICT, DIGITS5, LETTERS],
   electric: [DISTRICT, DIGITS5, LETTERS],
   export: [DISTRICT, DIGITS5, LETTERS],
-  vanity: [DISTRICT, { kind: "letters", len: 5, placeholder: "WUNSCH" }, { kind: "digits", len: 5, placeholder: "1" }],
-  "electric-vanity": [DISTRICT, { kind: "letters", len: 5, placeholder: "WUNSCH" }, { kind: "digits", len: 5, placeholder: "1" }],
+  vanity: [DISTRICT, { kind: "alnum", len: 7, placeholder: "BMW3" }],
+  "electric-vanity": [DISTRICT, { kind: "alnum", len: 7, placeholder: "AYA7" }],
   official: [{ kind: "service", len: 2, placeholder: "Service" }, DIGITS5, LETTERS],
   provisional: [DISTRICT, DIGITS5, LETTERS, { kind: "digits", len: 2, placeholder: "12" }],
   "1947": [{ kind: "state", len: 2, placeholder: "State" }, { kind: "alnum", len: 6, placeholder: "123456" }],
   "dealer-1947": [{ kind: "state", len: 2, placeholder: "State" }, { kind: "alnum", len: 6, placeholder: "123456" }],
-  dealer: [DISTRICT, { kind: "alnum", len: 7, placeholder: "AB123" }],
-  diplomatic: [{ kind: "code", len: 4, placeholder: "Code" }, { kind: "digits", len: 5, placeholder: "12345" }],
+  dealer: [DISTRICT, { kind: "alnum", len: 7, placeholder: "1DSJ" }],
+  diplomatic: [{ kind: "diplo", len: 2, placeholder: "Prefix" }, { kind: "digits", len: 3, placeholder: "56" }],
 };
 
-const EXAMPLE_PREFIX: Partial<Record<Kind, string>> = { district: "W", service: "BP", state: "ST", code: "A" };
+const EXAMPLE_PREFIX: Partial<Record<Kind, string>> = { district: "W", service: "BP", state: "ST", code: "A", diplo: "WD" };
 
 /** Example text per category, for previews before anything is typed. */
 export function austriaExample(category: AustriaCategoryId) {
   const segs = AUSTRIA_SEGMENTS[category] ?? AUSTRIA_SEGMENTS.regular;
-  return segs.map((s) => EXAMPLE_PREFIX[s.kind] ?? s.placeholder).join(" ");
+  return segs.map((s) => EXAMPLE_PREFIX[s.kind] ?? s.placeholder).join(category === "diplomatic" ? "-" : " ");
 }
 
 const clean = (seg: Seg, v: string) =>
@@ -51,7 +51,7 @@ const clean = (seg: Seg, v: string) =>
 const BOX = "h-12 rounded-xl border border-zinc-700 bg-zinc-950 text-center font-mono text-lg font-semibold uppercase tracking-[0.2em] text-zinc-100 outline-none transition-colors placeholder:text-zinc-700 focus:border-indigo-500 focus:bg-zinc-900";
 const SELECT = "h-12 w-40 shrink-0 rounded-xl border border-zinc-700 bg-zinc-950 px-3 text-sm text-zinc-100 outline-none focus:border-indigo-500";
 
-const isSelect = (k: Kind) => k === "district" || k === "service" || k === "state";
+const isSelect = (k: Kind) => k === "diplo" || k === "district" || k === "service" || k === "state";
 
 export default function AustriaPlateInput({
   category,
@@ -76,7 +76,7 @@ export default function AustriaPlateInput({
   }, [layoutKey]);
 
   useEffect(() => {
-    onChange(vals.filter(Boolean).join(" "), vals[0] ?? "");
+    onChange(vals.filter(Boolean).join(category === "diplomatic" ? "-" : " "), vals[0] ?? "");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vals]);
 
@@ -92,8 +92,8 @@ export default function AustriaPlateInput({
     : undefined;
 
   const options = (kind: Kind) =>
-    kind === "district" ? AUSTRIA_PRESELECT_1 : kind === "service" ? AUSTRIA_PRESELECT_2 : AUSTRIA_PRESELECT_3;
-  const placeholderFor = (kind: Kind) => (kind === "district" ? "District…" : kind === "service" ? "Service…" : "State…");
+    kind === "diplo" ? AUSTRIA_DIPLOMATIC_PREFIXES : kind === "district" ? AUSTRIA_PRESELECT_1 : kind === "service" ? AUSTRIA_PRESELECT_2 : AUSTRIA_PRESELECT_3;
+  const placeholderFor = (kind: Kind) => (kind === "diplo" ? "Prefix…" : kind === "district" ? "District…" : kind === "service" ? "Service…" : "State…");
 
   return (
     <div>
@@ -106,7 +106,7 @@ export default function AustriaPlateInput({
                 aria-label={placeholderFor(s.kind).replace("…", "")}
                 className={SELECT}>
                 <option value="">{placeholderFor(s.kind)}</option>
-                {options(s.kind).map((r) => <option key={r.code} value={r.code}>{r.code} — {r.name}</option>)}
+                {options(s.kind).map((r) => <option key={r.code} value={r.code}>{r.code}{s.kind === "diplo" ? "" : ` — ${r.name}`}</option>)}
               </select>
             );
           }

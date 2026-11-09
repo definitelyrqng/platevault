@@ -37,6 +37,8 @@ export type ArtRow = {
   seal?: boolean | "left" | "right";
   /** Gap beside the seal as a fraction of the row height (default SEAL_GAP) — smaller on narrow rows. */
   gap?: number;
+  /** Sized on its own (never shrinks the rest of the plate), e.g. the month in the red box. */
+  own?: boolean;
 };
 
 /**
@@ -48,7 +50,7 @@ export type ArtRow = {
  *  - "al-moto":    letters | digits                    ("AB 123" → AB | 123)
  *  - "al-trailer-two": letters | "R" + digits          ("AB R 456" → AB | R 456)
  */
-export type SplitRule = "at-two" | "at-seal" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
+export type SplitRule = "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
 
 export type PlateArt = {
   src: string;          // path under /public
@@ -164,13 +166,15 @@ export const PLATE_ART: Record<string, PlateArt> = {
   "austria:regular-single": { src: "/plates/austria/regular-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1015, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.78 },
   "austria:regular-single-noeuro": { src: "/plates/austria/regular-single-noeuro.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 40, x1: 1000, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.78 },
   "austria:repeater-single": { src: "/plates/austria/repeater-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1005, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.78, textColor: "#fff" },
-  "austria:provisional-single": { src: "/plates/austria/provisional-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 60, x1: 880, slots: 1 }], split: "whole", textColor: "#fff" },
-  "austria:provisional-single-small": { src: "/plates/austria/provisional-single-small.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 60, x1: 880, slots: 1 }], split: "whole", textColor: "#fff" },
+  "austria:provisional-single": { src: "/plates/austria/provisional-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 60, x1: 880, slots: 1 }, { y0: 26, y1: 194, x0: 908, x1: 1030, slots: 1, own: true }], split: "at-prov", textColor: "#fff" },
+  "austria:provisional-single-small": { src: "/plates/austria/provisional-single-small.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 60, x1: 880, slots: 1 }, { y0: 26, y1: 194, x0: 908, x1: 1030, slots: 1, own: true }], split: "at-prov", textColor: "#fff" },
   "austria:dealer-single": { src: "/plates/austria/dealer-single.png", w: 1040, h: 240, rows: [{ y0: 30, y1: 208, x0: 60, x1: 985, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.78, textColor: "#fff" },
   "austria:export-single": { src: "/plates/austria/export-single.png", w: 1040, h: 240, rows: [{ y0: 30, y1: 208, x0: 50, x1: 880, slots: 1 }], split: "whole", textColor: "#fff" },
+  // diplomatic: the euroband plate, single text run ("WD-56"), no coat of arms
+  "austria:diplomatic": { src: "/plates/austria/regular-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1015, slots: 1 }], split: "whole" },
   "austria:regular-two": { src: "/plates/austria/regular-two.png", w: 500, h: 400, rows: [{ y0: 24, y1: 195, x0: 120, x1: 480, slots: 1, seal: "right", gap: 0.2 }, { y0: 200, y1: 376, x0: 30, x1: 470, slots: 1 }], split: "at-two", stateSeals: true, sealH: 0.78 },
   "austria:regular-two-noeuro": { src: "/plates/austria/regular-two-noeuro.png", w: 540, h: 400, rows: [{ y0: 24, y1: 195, x0: 30, x1: 510, slots: 1, seal: "right", gap: 0.2 }, { y0: 200, y1: 376, x0: 30, x1: 510, slots: 1 }], split: "at-two", stateSeals: true, sealH: 0.78 },
-  "austria:provisional-two": { src: "/plates/austria/provisional-two.png", w: 540, h: 400, rows: [{ y0: 28, y1: 195, x0: 40, x1: 500, slots: 1 }, { y0: 202, y1: 376, x0: 40, x1: 395, slots: 1 }], split: "at-two", textColor: "#fff" },
+  "austria:provisional-two": { src: "/plates/austria/provisional-two.png", w: 540, h: 400, rows: [{ y0: 28, y1: 195, x0: 40, x1: 500, slots: 1 }, { y0: 202, y1: 376, x0: 40, x1: 395, slots: 1 }, { y0: 202, y1: 376, x0: 414, x1: 509, slots: 1, own: true }], split: "at-prov-two", textColor: "#fff" },
   "austria:dealer-two": { src: "/plates/austria/dealer-two.png", w: 540, h: 400, rows: [{ y0: 28, y1: 195, x0: 40, x1: 500, slots: 1, seal: "right", gap: 0.2 }, { y0: 202, y1: 376, x0: 40, x1: 500, slots: 1 }], split: "at-two", stateSeals: true, sealH: 0.78, textColor: "#fff" },
   "austria:export-two": { src: "/plates/austria/export-two.png", w: 540, h: 400, rows: [{ y0: 22, y1: 195, x0: 40, x1: 500, slots: 1 }, { y0: 200, y1: 376, x0: 40, x1: 365, slots: 1 }], split: "at-two", textColor: "#fff" },
 };
@@ -185,6 +189,7 @@ function austriaArtKey(plateType?: string | null): string | null {
   const [, cat, fmt] = m;
   if (fmt === "moped" || fmt === "moped-green") return cat === "provisional" ? "austria:provisional-single-small" : "austria:regular-two-noeuro";
   if (fmt === "repeater") return "austria:repeater-single";
+  if (cat === "diplomatic") return "austria:diplomatic";
   const two = fmt.startsWith("double");
   const euro = !fmt.includes("no-euroband");
   if (cat === "export") return two ? "austria:export-two" : "austria:export-single";
@@ -296,6 +301,13 @@ export function formatPlateText(country: string, raw: string) {
 
 /** Divide plate text into pieces, one per slot. Returns null if the text doesn't fit the rule. */
 function splitText(rule: SplitRule, text: string): string[] | null {
+  if (rule === "at-prov" || rule === "at-prov-two") {                                   // "W 12345 A 12" → W 12345 A | 12  (month in the red box)
+    const t = text.trim().split(" ");
+    if (t.length < 3 || !/^\d{1,2}$/.test(t[t.length - 1])) return null;
+    const month = t.pop()!;
+    if (rule === "at-prov") return [t.join(" "), month];
+    return t.length >= 2 ? [t[0], t.slice(1).join(" "), month] : null;
+  }
   if (rule === "at-two" || rule === "at-seal") {
     const m = text.trim().match(/^(\S+)\s+(.+)$/);                                      // "W 12345 A" → W | 12345 A
     return m ? [m[1], m[2]] : null;
@@ -394,18 +406,18 @@ export function plateLayout(country: string, rawText: string, height: number, pl
       const ems = texts.map((t) => textWidthEm(t, font));
       return { row, texts, rowH, mode, sealD, sealH, gap, gaps, ems, avail: (row.x1 - row.x0) * s };
     });
+    const fit = (l: (typeof lines)[number]) => Math.min((l.rowH * 0.72) / capH, (l.avail - l.sealD - l.gaps * l.gap) / Math.max(l.ems.reduce((x, y) => x + y, 0), 0.5));
 
     // One letter height for the whole plate: capped by every row's height and by
     // every row's width (text + seal must fit between the bands).
-    const fontSize = Math.min(
-      ...lines.map((l) => (l.rowH * 0.72) / capH),                 // capitals fill ~72% of the row
-      ...lines.map((l) => (l.avail - l.sealD - l.gaps * l.gap) / Math.max(l.ems.reduce((x, y) => x + y, 0), 0.5)),
-    );
+    const shared = lines.filter((l) => !l.row.own);
+    const fontSize = Math.min(...(shared.length ? shared : lines).map(fit));   // capitals fill ~72% of the row
 
     const runs: TextRun[] = [];
     const seals: { cx: number; cy: number; d: number; h?: number; src?: string }[] = [];
     for (const l of lines) {
-      const widths = l.ems.map((em) => em * fontSize);
+      const fs = l.row.own ? Math.min(fontSize, fit(l)) : fontSize;
+      const widths = l.ems.map((em) => em * fs);
       const total = widths.reduce((x, y) => x + y, 0) + l.sealD + l.gaps * l.gap;
       let x = l.row.x0 * s + (l.avail - total) / 2;               // centred → equal margins
       const centerY = ((l.row.y0 + l.row.y1) / 2) * s;
@@ -414,7 +426,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
         x += l.sealD + l.gap;
       }
       l.texts.forEach((text, i) => {
-        runs.push({ text, x0: x, x1: x + widths[i], align: "left", fontSize, centerY });
+        runs.push({ text, x0: x, x1: x + widths[i], align: "left", fontSize: fs, centerY });
         x += widths[i];
         if (l.mode === "right" && i === l.texts.length - 1) {                 // text then ●
           seals.push({ cx: x + l.gap + l.sealD / 2, cy: centerY, d: l.sealD, h: l.sealH || undefined, src: stateSrc ?? undefined });

@@ -140,6 +140,11 @@ export const AUSTRIA_PRESELECT_3: AustriaPreselect[] = [
   { code: "W",  name: "Wien" },
 ];
 
+// Diplomatic plates: prefix before the number (e.g. WD-56)
+export const AUSTRIA_DIPLOMATIC_PREFIXES: AustriaPreselect[] = [
+  "BD","GD","KD","ND","OD","SD","TD","VD","WD","BK","GK","KK","NK","OK","SK","TK","VK","WK",
+].map((code) => ({ code, name: "Diplomatic" }));
+
 // ─── Lookup helpers ────────────────────────────────────────────────────────────────────
 const BY1 = new Map(AUSTRIA_PRESELECT_1.map((r) => [r.code, r]));
 const BY2 = new Map(AUSTRIA_PRESELECT_2.map((r) => [r.code, r]));
