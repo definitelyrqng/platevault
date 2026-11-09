@@ -161,17 +161,17 @@ export const PLATE_ART: Record<string, PlateArt> = {
     split: "whole",
   },
   // ── Austria: backgrounds in public/plates/austria; one row per line of lettering ──
-  "austria:regular-single": { src: "/plates/austria/regular-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1015, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.7 },
-  "austria:regular-single-noeuro": { src: "/plates/austria/regular-single-noeuro.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 40, x1: 1000, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.7 },
-  "austria:repeater-single": { src: "/plates/austria/repeater-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1005, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.7, textColor: "#fff" },
+  "austria:regular-single": { src: "/plates/austria/regular-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1015, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.78 },
+  "austria:regular-single-noeuro": { src: "/plates/austria/regular-single-noeuro.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 40, x1: 1000, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.78 },
+  "austria:repeater-single": { src: "/plates/austria/repeater-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1005, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.78, textColor: "#fff" },
   "austria:provisional-single": { src: "/plates/austria/provisional-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 60, x1: 880, slots: 1 }], split: "whole", textColor: "#fff" },
   "austria:provisional-single-small": { src: "/plates/austria/provisional-single-small.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 60, x1: 880, slots: 1 }], split: "whole", textColor: "#fff" },
-  "austria:dealer-single": { src: "/plates/austria/dealer-single.png", w: 1040, h: 240, rows: [{ y0: 30, y1: 208, x0: 60, x1: 985, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.7, textColor: "#fff" },
+  "austria:dealer-single": { src: "/plates/austria/dealer-single.png", w: 1040, h: 240, rows: [{ y0: 30, y1: 208, x0: 60, x1: 985, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.78, textColor: "#fff" },
   "austria:export-single": { src: "/plates/austria/export-single.png", w: 1040, h: 240, rows: [{ y0: 30, y1: 208, x0: 50, x1: 880, slots: 1 }], split: "whole", textColor: "#fff" },
-  "austria:regular-two": { src: "/plates/austria/regular-two.png", w: 500, h: 400, rows: [{ y0: 24, y1: 195, x0: 120, x1: 480, slots: 1, seal: "right", gap: 0.2 }, { y0: 200, y1: 376, x0: 30, x1: 470, slots: 1 }], split: "at-two", stateSeals: true, sealH: 0.7 },
-  "austria:regular-two-noeuro": { src: "/plates/austria/regular-two-noeuro.png", w: 540, h: 400, rows: [{ y0: 24, y1: 195, x0: 30, x1: 510, slots: 1, seal: "right", gap: 0.2 }, { y0: 200, y1: 376, x0: 30, x1: 510, slots: 1 }], split: "at-two", stateSeals: true, sealH: 0.7 },
+  "austria:regular-two": { src: "/plates/austria/regular-two.png", w: 500, h: 400, rows: [{ y0: 24, y1: 195, x0: 120, x1: 480, slots: 1, seal: "right", gap: 0.2 }, { y0: 200, y1: 376, x0: 30, x1: 470, slots: 1 }], split: "at-two", stateSeals: true, sealH: 0.78 },
+  "austria:regular-two-noeuro": { src: "/plates/austria/regular-two-noeuro.png", w: 540, h: 400, rows: [{ y0: 24, y1: 195, x0: 30, x1: 510, slots: 1, seal: "right", gap: 0.2 }, { y0: 200, y1: 376, x0: 30, x1: 510, slots: 1 }], split: "at-two", stateSeals: true, sealH: 0.78 },
   "austria:provisional-two": { src: "/plates/austria/provisional-two.png", w: 540, h: 400, rows: [{ y0: 28, y1: 195, x0: 40, x1: 500, slots: 1 }, { y0: 202, y1: 376, x0: 40, x1: 395, slots: 1 }], split: "at-two", textColor: "#fff" },
-  "austria:dealer-two": { src: "/plates/austria/dealer-two.png", w: 540, h: 400, rows: [{ y0: 28, y1: 195, x0: 40, x1: 500, slots: 1, seal: "right", gap: 0.2 }, { y0: 202, y1: 376, x0: 40, x1: 500, slots: 1 }], split: "at-two", stateSeals: true, sealH: 0.7, textColor: "#fff" },
+  "austria:dealer-two": { src: "/plates/austria/dealer-two.png", w: 540, h: 400, rows: [{ y0: 28, y1: 195, x0: 40, x1: 500, slots: 1, seal: "right", gap: 0.2 }, { y0: 202, y1: 376, x0: 40, x1: 500, slots: 1 }], split: "at-two", stateSeals: true, sealH: 0.78, textColor: "#fff" },
   "austria:export-two": { src: "/plates/austria/export-two.png", w: 540, h: 400, rows: [{ y0: 22, y1: 195, x0: 40, x1: 500, slots: 1 }, { y0: 200, y1: 376, x0: 40, x1: 365, slots: 1 }], split: "at-two", textColor: "#fff" },
 };
 
@@ -194,11 +194,8 @@ function austriaArtKey(plateType?: string | null): string | null {
   return euro ? "austria:regular-single" : "austria:regular-single-noeuro";
 }
 
-/** Austrian coats of arms (public/plates/austria/seals), width ÷ height. */
-const SEAL_ASPECT: Record<string, number> = {
-  bund: 97 / 103, burgenland: 95 / 116, feuerwehr: 95 / 118, kaernten: 93 / 118, niederoesterreich: 71 / 119,
-  oberoesterreich: 65 / 118, salzburg: 65 / 118, steiermark: 73 / 118, tirol: 95 / 98, vorarlberg: 85 / 117, wien: 87 / 118,
-};
+/** Austrian coats of arms (public/plates/austria/seals): the full panel with the state name, as on the plate. */
+const AT_SEAL_ASPECT = 103 / 138;
 const DISTRICT_STATE: Record<string, string[]> = {
   vorarlberg: ["B", "BZ", "DO", "FK"],
   wien: ["W"],
@@ -223,7 +220,7 @@ function austriaSealFor(district: string, plateType?: string | null): string | n
   const state = /^at-(1947|dealer-1947)-/.test(plateType ?? "") ? STATE_1947[code] : SEAL_OF_DISTRICT.get(code);
   return state ? `/plates/austria/seals/${state}.png` : null;
 }
-const sealAspect = (src: string) => SEAL_ASPECT[src.replace(/^.*\/|\.png$/g, "")] ?? 0.8;
+const sealAspect = (_src: string) => AT_SEAL_ASPECT;
 
 /** Artwork for a plate: its exact type first, then the country default. */
 export function plateArtFor(country: string, plateType?: string | null): PlateArt | null {
