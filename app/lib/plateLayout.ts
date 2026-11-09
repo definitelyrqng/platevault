@@ -6,7 +6,8 @@
  */
 import { AL_CAP_HEIGHT, AL_WIDTHS } from "./albaniaFontMetrics";
 
-export type Box = { x0: number; x1: number };
+/** A slot text is placed in. `align` pins the text to one side (e.g. tight against the seal). */
+export type Box = { x0: number; x1: number; align?: "left" | "center" | "right" };
 
 /**
  * Lettering per country. "fe" = FE-Schrift (default everywhere);
@@ -21,7 +22,7 @@ export function plateFont(country: string): PlateFont {
 
 /** Albanian glyph spacing, in glyph-sheet pixels. */
 export const AL_SIDE_BEARING = 12;
-export const AL_SPACE = 70;
+export const AL_SPACE = 100;
 
 /** One line of writing on the plate: its vertical extent and the slots text is centred in. */
 export type ArtRow = { y0: number; y1: number; boxes: Box[] };
@@ -58,7 +59,7 @@ export const PLATE_ART: Record<string, PlateArt> = {
     src: "/plates/albania/cars_current_single.png",
     w: 1000,
     h: 221,
-    rows: [{ y0: 14, y1: 205, boxes: [{ x0: 120, x1: 355 }, { x0: 411, x1: 889 }] }],
+    rows: [{ y0: 14, y1: 205, boxes: [{ x0: 128, x1: 352, align: "right" }, { x0: 414, x1: 876, align: "left" }] }],
     split: "seal",
   },
 
@@ -70,7 +71,7 @@ export const PLATE_ART: Record<string, PlateArt> = {
     src: "/plates/albania/trailer_single.png",
     w: 1602,
     h: 358,
-    rows: [{ y0: 23, y1: 334, boxes: [{ x0: 193, x1: 575 }, { x0: 647, x1: 1410 }] }],
+    rows: [{ y0: 23, y1: 334, boxes: [{ x0: 205, x1: 564, align: "right" }, { x0: 658, x1: 1400, align: "left" }] }],
     split: "seal",
     textColor: "#fff",
   },
@@ -81,8 +82,8 @@ export const PLATE_ART: Record<string, PlateArt> = {
     w: 940,
     h: 474,
     rows: [
-      { y0: 23, y1: 241, boxes: [{ x0: 188, x1: 372 }, { x0: 472, x1: 752 }] },
-      { y0: 242, y1: 450, boxes: [{ x0: 60, x1: 880 }] },
+      { y0: 23, y1: 241, boxes: [{ x0: 196, x1: 369, align: "right" }, { x0: 476, x1: 744, align: "left" }] },
+      { y0: 242, y1: 450, boxes: [{ x0: 70, x1: 870 }] },
     ],
     split: "al-double",
   },
@@ -91,7 +92,7 @@ export const PLATE_ART: Record<string, PlateArt> = {
     src: "/plates/albania/cars_old.png",
     w: 1602,
     h: 358,
-    rows: [{ y0: 23, y1: 334, boxes: [{ x0: 191, x1: 1558 }] }],
+    rows: [{ y0: 23, y1: 334, boxes: [{ x0: 205, x1: 1545 }] }],
     split: "whole",
   },
 };
@@ -174,11 +175,19 @@ function slotsOf(art: PlateArt) {
 
 export type TextRun = {
   text: string;
-  x0: number;          // horizontal slot the run is centred in
+  x0: number;          // horizontal slot the run is placed in
   x1: number;
+  align: "left" | "center" | "right";
   fontSize: number;
   centerY: number;     // vertical centre of the capitals
 };
+
+/** Left edge of a run of the given width inside its slot. */
+export function runStartX(run: Pick<TextRun, "x0" | "x1" | "align">, width: number) {
+  if (run.align === "left") return run.x0;
+  if (run.align === "right") return run.x1 - width;
+  return run.x0 + (run.x1 - run.x0 - width) / 2;
+}
 
 export type PlateLayout = {
   width: number;
@@ -234,6 +243,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
         text: p.text,
         x0: p.box.x0 * s,
         x1: p.box.x1 * s,
+        align: p.box.align ?? "center",
         fontSize,
         centerY: ((p.row.y0 + p.row.y1) / 2) * s,
       })),
@@ -253,6 +263,6 @@ export function plateLayout(country: string, rawText: string, height: number, pl
     art: null,
     font: "fe",
     chip: { border, radius: h * 0.14 },
-    runs: [{ text: printed, x0: border + padX, x1: width - border - padX, fontSize, centerY: h / 2 }],
+    runs: [{ text: printed, x0: border + padX, x1: width - border - padX, align: "center", fontSize, centerY: h / 2 }],
   };
 }

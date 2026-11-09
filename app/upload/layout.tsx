@@ -22,7 +22,7 @@ export default async function UploadLayout({ children }: { children: React.React
   return (
     <>
       {maintenanceMode && !superAdmin && (
-        <div className="sticky top-0 z-40 bg-amber-950/95 border-b border-amber-700/50 backdrop-blur-sm">
+        <div className="sticky top-14 z-30 bg-amber-950/95 border-b border-amber-700/50 backdrop-blur-sm">
           <div className="mx-auto max-w-2xl flex items-center gap-3 px-4 py-3">
             <span className="text-lg shrink-0">🔧</span>
             <div>
@@ -33,7 +33,7 @@ export default async function UploadLayout({ children }: { children: React.React
         </div>
       )}
       {maintenanceMode && superAdmin && (
-        <div className="sticky top-0 z-40 bg-indigo-950/95 border-b border-indigo-700/50 backdrop-blur-sm">
+        <div className="sticky top-14 z-30 bg-indigo-950/95 border-b border-indigo-700/50 backdrop-blur-sm">
           <div className="mx-auto max-w-2xl flex items-center gap-3 px-4 py-3">
             <span className="text-lg shrink-0">🔧</span>
             <p className="text-sm text-indigo-300">

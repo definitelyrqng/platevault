@@ -3,7 +3,7 @@ import path from "node:path";
 import sharp from "sharp";
 import opentype from "opentype.js";
 import {
-  plateLayout, CAP_TOP, CAP_BOTTOM, CONDENSE, STROKE, UMLAUT_BASE, AL_SIDE_BEARING, AL_SPACE,
+  plateLayout, runStartX, CAP_TOP, CAP_BOTTOM, CONDENSE, STROKE, UMLAUT_BASE, AL_SIDE_BEARING, AL_SPACE, type TextRun,
 } from "@/app/lib/plateLayout";
 import albaniaFont from "@/app/lib/albaniaFont.json";
 
@@ -39,7 +39,8 @@ function getArtDataUri(src: string) {
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
 /** SVG for one run of text: glyph outlines, umlauts synthesised (font has none). */
-function runSvg(font: opentype.Font, text: string, fontSize: number, x0: number, x1: number, centerY: number, color = "#111") {
+function runSvg(font: opentype.Font, run: TextRun, color = "#111") {
+  const { text, fontSize, centerY } = run;
   const scale = fontSize / font.unitsPerEm;
   const out = new opentype.Path();
   const dots: string[] = [];
@@ -70,7 +71,7 @@ function runSvg(font: opentype.Font, text: string, fontSize: number, x0: number,
   }
 
   const width = x * CONDENSE;
-  const startX = x0 + (x1 - x0 - width) / 2;
+  const startX = runStartX(run, width);
   const baseline = centerY - ((CAP_TOP + CAP_BOTTOM) / 2) * fontSize;
   const sw = (STROKE * fontSize).toFixed(2);
   return `<g transform="translate(${startX.toFixed(2)} ${baseline.toFixed(2)}) scale(${CONDENSE} 1)" fill="${color}" stroke="${color}" stroke-width="${sw}" stroke-linejoin="round">`
@@ -78,7 +79,8 @@ function runSvg(font: opentype.Font, text: string, fontSize: number, x0: number,
 }
 
 /** SVG for one run in the traced Albanian plate lettering (see scripts/build-albania-font.cjs). */
-function runSvgAlbanian(text: string, fontSize: number, x0: number, x1: number, centerY: number, color: string) {
+function runSvgAlbanian(run: TextRun, color: string) {
+  const { text, fontSize, centerY } = run;
   const { capHeight, glyphs } = albaniaFont as {
     capHeight: number;
     glyphs: Record<string, { w: number; dx: number; dy: number; d: string }>;
@@ -93,7 +95,7 @@ function runSvgAlbanian(text: string, fontSize: number, x0: number, x1: number, 
     paths.push(`<path transform="translate(${x + AL_SIDE_BEARING + g.dx} ${g.dy})" d="${g.d}"/>`);
     x += g.w + 2 * AL_SIDE_BEARING;
   }
-  const startX = x0 + (x1 - x0 - x * scale) / 2;
+  const startX = runStartX(run, x * scale);
   const baseline = centerY + capPx / 2;
   return `<g transform="translate(${startX.toFixed(2)} ${baseline.toFixed(2)}) scale(${scale.toFixed(5)})" fill="${color}" fill-rule="evenodd">${paths.join("")}</g>`;
 }
@@ -128,8 +130,8 @@ export async function GET(req: Request) {
 
   const color = layout.art?.textColor ?? "#111";
   const runs = layout.runs.map((r) => layout.font === "al"
-    ? runSvgAlbanian(r.text, r.fontSize, r.x0, r.x1, r.centerY, color)
-    : runSvg(font, r.text, r.fontSize, r.x0, r.x1, r.centerY, color)).join("");
+    ? runSvgAlbanian(r, color)
+    : runSvg(font, r, color)).join("");
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${h}" viewBox="0 0 ${width} ${h}">`
     + `<title>${esc(layout.printed)}</title>${background}${runs}</svg>`;
 

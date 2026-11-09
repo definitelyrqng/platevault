@@ -9,40 +9,32 @@ import CompanyPicker from "@/app/components/CompanyPicker";
 import ZoomImage from "@/app/components/ZoomImage";
 import TagPicker from "@/app/components/TagPicker";
 import DescriptionInput from "@/app/components/DescriptionInput";
-import AlbaniaPlateInput from "@/app/upload/AlbaniaPlateInput";
+import AlbaniaPlateInput, { albaniaExample } from "@/app/upload/AlbaniaPlateInput";
 import MilestonePopup from "@/app/components/MilestonePopup";
 import OcrHint from "@/app/components/OcrHint";
+import PlateBadge from "@/app/components/PlateBadge";
+import { plateArtFor } from "@/app/lib/plateLayout";
+import Flag from "@/app/components/Flag";
 
 const { useUploadThing } = generateReactHelpers<OurFileRouter>();
 
-/* ─── Constants ─── */
+/* ─── Plate types (one flat, visual list) ─── */
 
-const VEHICLE_CATEGORIES = [
-  "Cars (2011–present)",
-  "Motorcycles (2011–present)",
-  "Trailers (2011–present)",
-  "Cars (1993–2010)",
+const PLATE_TYPES = [
+  { id: "car-2011-standard",   label: "2011 Series",      hint: "Most cars" },
+  { id: "car-2011-double",     label: "Two-line",         hint: "Square plate" },
+  { id: "car-2011-us",         label: "US-size",          hint: "Short single line" },
+  { id: "moto-2011",           label: "Motorcycle",       hint: "2011+" },
+  { id: "trailer-2011-single", label: "Trailer",          hint: "Teal, white text" },
+  { id: "trailer-2011-double", label: "Trailer two-line", hint: "Square trailer" },
+  { id: "car-1993-single",     label: "1993 Series",      hint: "Old red band" },
 ] as const;
 
-type VehicleCategory = (typeof VEHICLE_CATEGORIES)[number];
-
-const PLATE_TYPES_BY_CATEGORY: Record<VehicleCategory, { id: string; name: string; example: string }[]> = {
-  "Cars (2011–present)": [
-    { id: "car-2011-standard", name: "Standard (single line)", example: "AA 123 AB" },
-    { id: "car-2011-double", name: "Double line", example: "AA 123 / AB" },
-    { id: "car-2011-us", name: "US-size single line", example: "AA 123 AB" },
-  ],
-  "Motorcycles (2011–present)": [
-    { id: "moto-2011", name: "Motorcycle plate", example: "AA 1234" },
-  ],
-  "Trailers (2011–present)": [
-    { id: "trailer-2011-single", name: "Trailer (single line)", example: "TR R 1234" },
-    { id: "trailer-2011-double", name: "Trailer (double line)", example: "TR R / 1234" },
-  ],
-  "Cars (1993–2010)": [
-    { id: "car-1993-single", name: "Old format (single line)", example: "BC 1234 AA" },
-  ],
-};
+/** True when this type's artwork is a tall two-line plate (so it needs a bigger preview). */
+function isSquarish(plateType: string) {
+  const art = plateArtFor("albania", plateType);
+  return !!art && art.w / art.h < 3;
+}
 
 const MAX_SIZE_MB = 8;
 const ALLOWED_TYPES = ["image/jpeg", "image/png"];
@@ -59,13 +51,26 @@ function validateFile(f: File): string | null {
   return null;
 }
 
+function StepTitle({ n, title, done, children }: { n: number; title: string; done?: boolean; children?: React.ReactNode }) {
+  return (
+    <div className="mb-4 flex items-baseline justify-between gap-3">
+      <h2 className="flex items-center gap-2.5 text-base font-semibold text-zinc-100">
+        <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold ${
+          done ? "bg-emerald-500/20 text-emerald-300" : "bg-indigo-600/20 text-indigo-300"
+        }`}>{done ? "✓" : n}</span>
+        {title}
+      </h2>
+      {children}
+    </div>
+  );
+}
+
 /* ─── Component ─── */
 
 export default function AlbaniaUploadPage() {
   const router = useRouter();
 
-  const [category, setCategory] = useState<VehicleCategory>("Cars (2011–present)");
-  const [plateTypeId, setPlateTypeId] = useState("car-2011-standard");
+  const [plateTypeId, setPlateTypeId] = useState<string>("car-2011-standard");
   const [plateText, setPlateText] = useState("");
   const [location, setLocation] = useState("");
   const [plateRegion, setPlateRegion] = useState("");
@@ -85,6 +90,7 @@ export default function AlbaniaUploadPage() {
   const [preview, setPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [fileError, setFileError] = useState("");
+  const [moreOpen, setMoreOpen] = useState(false);
 
   const [status, setStatus] = useState<"idle" | "uploading" | "saving" | "done" | "error">("idle");
   useEffect(() => {
@@ -94,7 +100,6 @@ export default function AlbaniaUploadPage() {
   const [description, setDescription] = useState("");
   const [milestoneData, setMilestoneData] = useState<{ uploadCount: number; streak: { current: number; isNewDay: boolean } } | null>(null);
   const [newSpotId, setNewSpotId] = useState<number | null>(null);
-  const redirectCountry = "/c/albania";
 
   // Multi-spot warning
   type ExistingSpot = { numericId: number; plateText: string; username: string; userNumericId: number };
@@ -107,21 +112,25 @@ export default function AlbaniaUploadPage() {
     }
   }, [multiSpotWarning]);
 
-  const plateTypes = PLATE_TYPES_BY_CATEGORY[category];
-  const selectedType = plateTypes.find((p) => p.id === plateTypeId) ?? plateTypes[0];
+  const selectedType = PLATE_TYPES.find((p) => p.id === plateTypeId) ?? PLATE_TYPES[0];
+
+  // Live plate preview — debounced so typing doesn't request an image per keystroke
+  const [previewText, setPreviewText] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setPreviewText(plateText), 250);
+    return () => clearTimeout(t);
+  }, [plateText]);
+  const showingExample = !previewText.trim();
 
   const locationWarning = useMemo(() => {
     if (!location.trim()) return "";
     return locationTooExact(location) ? "Keep it broad — city or area only, no street + number." : "";
   }, [location]);
 
-  const canSubmit =
-    !!file &&
-    !fileError &&
-    plateText.trim().length >= 2 &&
-    location.trim().length >= 2 &&
-    !locationWarning &&
-    status === "idle";
+  const hasPhoto = !!file && !fileError;
+  const hasPlate = plateText.trim().length >= 2;
+  const hasLocation = location.trim().length >= 2 && !locationWarning;
+  const canSubmit = hasPhoto && hasPlate && hasLocation && status === "idle";
 
   /* ─── File input ─── */
 
@@ -223,46 +232,53 @@ export default function AlbaniaUploadPage() {
     await doUpload();
   }
 
-  function onCategoryChange(c: VehicleCategory) {
-    setCategory(c);
-    setPlateTypeId(PLATE_TYPES_BY_CATEGORY[c][0].id);
-  }
+  const onCarDetails = useCallback((d: { brand: string; model: string; generation: string; trim: string; color: string; badge: string }) => {
+    setBrand(d.brand); setModel(d.model); setGeneration(d.generation);
+    setTrim(d.trim); setColor(d.color); setBadge(d.badge);
+  }, []);
+
+  const missing = [!hasPhoto && "a photo", !hasPlate && "the plate number", !hasLocation && "a location"].filter(Boolean) as string[];
 
   /* ─── Render ─── */
 
   return (
     <>
     <MilestonePopup data={milestoneData} onDone={() => { setMilestoneData(null); router.push(`/spot/${newSpotId}`); }} />
-    <main className="min-h-screen bg-zinc-950 text-zinc-100 px-4 py-10">
-      <div className="mx-auto max-w-5xl">
+    <main className="px-4 pb-16 pt-8 text-zinc-100 sm:px-6">
+      <div className="mx-auto max-w-6xl">
 
         {/* Header */}
-        <div>
-          <div className="flex items-center gap-2 text-xs text-zinc-500">
-            <a href="/upload" className="hover:text-zinc-300 transition-colors">Upload</a>
-            <span>›</span>
-            <span className="text-zinc-300">Albania 🇦🇱</span>
+        <div className="flex flex-wrap items-end justify-between gap-3 border-b border-zinc-800/60 pb-5">
+          <div>
+            <nav className="mb-2 text-xs text-zinc-500">
+              <a href="/upload" className="transition-colors hover:text-zinc-300">Upload</a>
+              <span className="mx-1.5">/</span>
+              <span className="text-zinc-300">Albania</span>
+            </nav>
+            <h1 className="flex items-center gap-3 text-2xl font-bold tracking-tight sm:text-3xl">
+              <span className="leading-none shadow ring-1 ring-black/30"><Flag iso="al" size="lg" /></span>
+              Upload an Albanian plate
+            </h1>
           </div>
-          <h1 className="mt-2 text-2xl font-black">Upload — Albania</h1>
-          <p className="mt-1 text-sm text-zinc-400">All Albanian plate types — modern, motorcycle, trailer & legacy formats.</p>
+          <a href="/c/albania" className="text-sm text-zinc-400 transition-colors hover:text-white">Albania gallery →</a>
         </div>
 
         {status === "done" && (
-          <div className="mt-6 rounded-2xl border border-emerald-800 bg-emerald-950/40 px-5 py-4 text-sm text-emerald-300">
-            Uploaded! Redirecting to the Albania gallery…
+          <div className="mt-6 rounded-xl border border-emerald-800 bg-emerald-950/40 px-5 py-4 text-sm text-emerald-300">
+            Uploaded! Taking you to your spot…
           </div>
         )}
         {status === "error" && (
-          <div className="mt-6 rounded-2xl border border-red-800 bg-red-950/40 px-5 py-4 text-sm text-red-300">
+          <div className="mt-6 rounded-xl border border-red-800 bg-red-950/40 px-5 py-4 text-sm text-red-300">
             {errorMsg}
-            <button onClick={() => setStatus("idle")} className="ml-3 underline">Try again</button>
+            <button type="button" onClick={() => setStatus("idle")} className="ml-3 underline">Try again</button>
           </div>
         )}
 
         {multiSpotWarning && (
-          <div ref={warningRef} className="mt-6 rounded-2xl border border-amber-800 bg-amber-950/30 px-5 py-4 space-y-3">
+          <div ref={warningRef} className="mt-6 space-y-3 rounded-xl border border-amber-800 bg-amber-950/30 px-5 py-4">
             <div className="flex items-start gap-3">
-              <span className="text-xl shrink-0">📍</span>
+              <span className="shrink-0 text-xl">📍</span>
               <div>
                 <p className="text-sm font-semibold text-amber-300">This plate has already been spotted!</p>
                 <p className="mt-1 text-sm text-amber-200/70">
@@ -272,171 +288,171 @@ export default function AlbaniaUploadPage() {
               </div>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => setMultiSpotWarning(null)} className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 py-2 text-sm font-medium text-zinc-300 hover:bg-zinc-800 transition-colors">Cancel</button>
-              <button onClick={doUpload} className="flex-1 rounded-xl border border-amber-800 bg-amber-950/60 py-2 text-sm font-medium text-amber-300 hover:bg-amber-950 transition-colors">Yes, upload as Multi Spot</button>
+              <button type="button" onClick={() => setMultiSpotWarning(null)} className="flex-1 rounded-lg border border-zinc-700 bg-zinc-900 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-800">Cancel</button>
+              <button type="button" onClick={doUpload} className="flex-1 rounded-lg border border-amber-800 bg-amber-950/60 py-2 text-sm font-medium text-amber-300 transition-colors hover:bg-amber-950">Yes, upload as Multi Spot</button>
             </div>
           </div>
         )}
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="mt-6 grid gap-6 lg:grid-cols-[1fr_340px]">
+          <div className="min-w-0 space-y-6">
 
-            {/* ── Category & type picker card ── */}
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-4">
-              <span className="text-sm font-medium text-zinc-200">Vehicle category</span>
-              <div className="grid grid-cols-2 gap-2">
-                {VEHICLE_CATEGORIES.map((c) => (
-                  <button key={c} type="button" onClick={() => onCategoryChange(c)}
-                    className={`rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${
-                      category === c
-                        ? "border-indigo-600 bg-indigo-950/50 text-indigo-200"
-                        : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
-                    }`}>
-                    <span className="font-medium leading-snug">{c}</span>
-                  </button>
-                ))}
+            {/* ── 1. Plate type — visual picker ── */}
+            <section className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-6">
+              <StepTitle n={1} title="Which plate is it?" done />
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
+                {PLATE_TYPES.map((t) => {
+                  const active = plateTypeId === t.id;
+                  return (
+                    <button key={t.id} type="button" onClick={() => setPlateTypeId(t.id)} aria-pressed={active}
+                      className={`group flex flex-col items-center gap-2 rounded-xl border p-3 text-center transition-all ${
+                        active ? "border-indigo-500 bg-indigo-600/10 ring-1 ring-indigo-500/50" : "border-zinc-800 bg-zinc-950/50 hover:border-zinc-600"
+                      }`}>
+                      <span className="flex h-14 items-center justify-center">
+                        {/* two-line plates are tall and narrow — show them bigger so they read */}
+                        <PlateBadge country="albania" text={albaniaExample(t.id)} plateType={t.id} size={isSquarish(t.id) ? "lg" : "sm"} />
+                      </span>
+                      <span>
+                        <span className={`block text-sm font-medium ${active ? "text-white" : "text-zinc-300"}`}>{t.label}</span>
+                        <span className="block text-[11px] text-zinc-500">{t.hint}</span>
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
-              {plateTypes.length > 1 && (
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-2">Plate format</p>
-                  <div className="grid grid-cols-1 gap-2">
-                    {plateTypes.map((p) => (
-                      <button key={p.id} type="button" onClick={() => setPlateTypeId(p.id)}
-                        className={`flex items-center justify-between rounded-xl border px-3 py-2 text-sm transition-all ${
-                          plateTypeId === p.id
-                            ? "border-indigo-600 bg-indigo-950/50 text-indigo-200"
-                            : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600"
-                        }`}>
-                        <span className="font-medium">{p.name}</span>
-                        <span className="font-mono text-xs opacity-60">{p.example}</span>
-                      </button>
-                    ))}
-                  </div>
+            </section>
+
+            {/* ── 2. Plate number + live preview ── */}
+            <section className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-6">
+              <StepTitle n={2} title="Plate number" done={hasPlate} />
+              <div className="mb-5 flex min-h-[110px] items-center justify-center rounded-xl bg-zinc-950/70 px-3 py-5">
+                <div className={`max-w-full transition-opacity ${showingExample ? "opacity-40" : "opacity-100"}`}>
+                  <PlateBadge
+                    country="albania"
+                    text={showingExample ? albaniaExample(plateTypeId) : previewText}
+                    plateType={plateTypeId}
+                    size={isSquarish(plateTypeId) ? "xl" : "lg"}
+                  />
                 </div>
-              )}
-            </div>
-
-            {/* ── Description ── */}
-            <div className="rounded-xl border border-zinc-800/60 bg-zinc-900/20 px-4 py-3 text-sm text-zinc-400 leading-relaxed">
-              <strong className="text-zinc-200">{selectedType.name}:</strong>{" "}
-              Example: <span className="font-mono text-zinc-300">{selectedType.example}</span>
-            </div>
-
-            {/* ── Main fields card ── */}
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-5">
-
-              {/* Photo */}
-              <div>
-                <span className="block text-sm text-zinc-300 mb-2">Photo <span className="text-zinc-600 text-xs">(JPG or PNG, max 8 MB)</span></span>
-                <label
-                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                  onDragLeave={() => setIsDragging(false)}
-                  onDrop={onDrop}
-                  className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden ${
-                    isDragging ? "border-zinc-400 bg-zinc-800/60" : fileError ? "border-red-800 bg-red-950/20" : "border-zinc-700 bg-zinc-950/40 hover:border-zinc-500"
-                  }`}
-                  style={{ minHeight: preview ? "auto" : "150px" }}
-                >
-                  {preview ? (
-                    <div className="relative w-full group">
-                      <ZoomImage src={preview} alt="Preview" className="rounded-xl" />
-                      <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/0 group-hover:bg-zinc-950/50 transition-colors rounded-xl pointer-events-none">
-                        <span className="opacity-0 group-hover:opacity-100 text-xs text-zinc-200 transition-opacity">Click to change</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="py-8 text-center px-4">
-                      <div className="text-2xl mb-2">📷</div>
-                      <div className="text-sm text-zinc-400">Drag &amp; drop or <span className="text-zinc-200 underline">browse</span></div>
-                    </div>
-                  )}
-                  <input type="file" accept="image/jpeg,image/png" className="sr-only" onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)} />
-                </label>
-                {fileError && <p className="mt-1.5 text-xs text-red-400">{fileError}</p>}
-                <OcrHint file={file} onSuggest={setPlateText} />
               </div>
+              <AlbaniaPlateInput plateType={plateTypeId} onChange={onPlateChange} />
+              <p className="mt-2 text-xs text-zinc-500">Tip: paste the whole plate (e.g. AB123CD) into the first box.</p>
+            </section>
 
-              {/* Plate input */}
-              <div className="grid gap-1.5">
-                <span className="text-sm text-zinc-300">Plate text</span>
-                <AlbaniaPlateInput category={category} onChange={onPlateChange} />
-              </div>
+            {/* ── 3. Photo ── */}
+            <section className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-6">
+              <StepTitle n={3} title="Photo" done={hasPhoto}>
+                <span className="text-xs text-zinc-500">JPG or PNG, max {MAX_SIZE_MB} MB</span>
+              </StepTitle>
+              <label
+                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={onDrop}
+                className={`relative flex cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-colors ${
+                  isDragging ? "border-indigo-400 bg-indigo-950/30" : fileError ? "border-red-800 bg-red-950/20" : "border-zinc-700 bg-zinc-950/40 hover:border-zinc-500"
+                }`}
+                style={{ minHeight: preview ? "auto" : "170px" }}
+              >
+                {preview ? (
+                  <div className="group relative w-full">
+                    <ZoomImage src={preview} alt="Preview" className="rounded-lg" />
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg bg-zinc-950/0 transition-colors group-hover:bg-zinc-950/50">
+                      <span className="text-xs text-zinc-200 opacity-0 transition-opacity group-hover:opacity-100">Click to change</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="px-4 py-8 text-center">
+                    <div className="mb-2 text-3xl">📷</div>
+                    <div className="text-sm text-zinc-300">Drop your photo here, or <span className="text-indigo-300 underline">browse</span></div>
+                    <div className="mt-1 text-xs text-zinc-500">Make sure the plate is readable</div>
+                  </div>
+                )}
+                <input type="file" accept="image/jpeg,image/png" className="sr-only" onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)} />
+              </label>
+              {fileError && <p className="mt-1.5 text-xs text-red-400">{fileError}</p>}
+              <OcrHint file={file} onSuggest={setPlateText} />
+            </section>
 
-              {/* Location */}
+            {/* ── 4. Where & what ── */}
+            <section className="space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-6">
+              <StepTitle n={4} title="Where & what" done={hasLocation} />
               <label className="grid gap-1.5">
-                <span className="text-sm text-zinc-300">Location <span className="text-zinc-600 text-xs">(city required)</span></span>
+                <span className="text-sm text-zinc-300">Location <span className="text-xs text-zinc-600">(required)</span></span>
                 <input value={location} onChange={(e) => setLocation(e.target.value)}
                   placeholder="e.g. Tirana, Albania"
-                  className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600" />
+                  className="h-11 rounded-xl border border-zinc-700 bg-zinc-950 px-3 text-sm outline-none transition-colors focus:border-indigo-500" />
                 {locationWarning
                   ? <span className="text-xs text-amber-400">{locationWarning}</span>
-                  : <span className="text-xs text-zinc-600">City only, no street or house number.</span>}
+                  : <span className="text-xs text-zinc-600">City or area only — no street or house number.</span>}
               </label>
 
-              {/* Car details */}
-              <div className="pt-2 border-t border-zinc-800">
-                <CarDetailsFields onChange={useCallback((d) => {
-                  setBrand(d.brand); setModel(d.model); setGeneration(d.generation);
-                  setTrim(d.trim); setColor(d.color); setBadge(d.badge);
-                }, [])} />
+              <div className="border-t border-zinc-800 pt-4">
+                <CarDetailsFields onChange={onCarDetails} />
               </div>
 
-              {/* Tags */}
-              <div className="pt-2 border-t border-zinc-800 space-y-2">
-                <div className="text-sm text-zinc-300">Tags <span className="text-zinc-600 text-xs">(optional, up to 6)</span></div>
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-zinc-500 mb-1.5">Transport company</p>
-                  <CompanyPicker value={companyId} onChange={(id) => setCompanyId(id)} />
-                </div>
-                <DescriptionInput value={description} onChange={setDescription} />
-                <TagPicker selected={tags} onChange={setTags} max={6} />
-              </div>
-
-              <div className="flex items-center gap-3 pt-1">
-                <button type="submit" disabled={!canSubmit}
-                  className="group relative overflow-hidden rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 shadow-lg shadow-indigo-950/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-                  <span className="relative z-10">{status === "uploading" ? "Uploading image…" : status === "saving" ? "Saving…" : "Upload spot"}</span>
-                  {status === "idle" && canSubmit && <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700" />}
+              {/* More details (optional) */}
+              <div className="border-t border-zinc-800 pt-4">
+                <button type="button" onClick={() => setMoreOpen((v) => !v)}
+                  className="flex w-full items-center justify-between text-sm font-medium text-zinc-300 hover:text-white" aria-expanded={moreOpen}>
+                  <span>More details <span className="text-xs font-normal text-zinc-600">— tags, company, notes (optional)</span></span>
+                  <span className={`transition-transform ${moreOpen ? "rotate-180" : ""}`}>▾</span>
                 </button>
-                {status === "idle" && (
-                  <span className="text-xs text-zinc-500">
-                    {!file ? "Add a photo" : plateText.trim().length < 2 ? "Enter plate text" : location.trim().length < 2 ? "Enter a location" : "Ready"}
-                  </span>
-                )}
-              </div>
-            </div>
-          </form>
-
-          {/* ── Sidebar ── */}
-          <aside className="space-y-4">
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5">
-              <div className="text-xs uppercase tracking-wider text-zinc-500 mb-3">Live preview</div>
-              <div className="rounded-xl bg-zinc-950 border border-zinc-800 px-4 py-5 text-center">
-                <div className="font-mono text-xl font-bold tracking-widest text-zinc-100">
-                  {plateText.trim() || selectedType.example}
+                <div className={moreOpen ? "mt-4 space-y-4" : "hidden"}>
+                  <div>
+                    <p className="mb-1.5 text-xs font-medium uppercase tracking-wider text-zinc-500">Transport company</p>
+                    <CompanyPicker value={companyId} onChange={(id) => setCompanyId(id)} />
+                  </div>
+                  <DescriptionInput value={description} onChange={setDescription} />
+                  <TagPicker selected={tags} onChange={setTags} max={6} />
                 </div>
-                <div className="mt-2 text-xs text-zinc-500">Albania 🇦🇱</div>
               </div>
-            </div>
+            </section>
+          </div>
 
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/20 p-5">
-              <div className="text-sm font-medium text-zinc-200 mb-1">📋 Stored as</div>
-              <p className="text-xs text-indigo-400 font-mono">{selectedType.id}</p>
-              <p className="mt-1 text-xs text-zinc-500">{selectedType.name}</p>
-            </div>
-
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/20 p-5">
-              <div className="text-sm font-medium text-zinc-200 mb-2">📖 Format guide</div>
-              <div className="text-xs text-zinc-400 space-y-1.5">
-                <p><span className="font-mono text-zinc-200">AA 123 AB</span> — modern car (2011+)</p>
-                <p><span className="font-mono text-zinc-200">AA 1234</span> — motorcycle (2011+)</p>
-                <p><span className="font-mono text-zinc-200">T AA 001</span> — transit/dealer</p>
-                <p><span className="font-mono text-zinc-200">DIP 001 AA</span> — diplomatic</p>
-                <p className="text-zinc-600">Region code · digits · letters</p>
+          {/* ── Summary (sticky on desktop) ── */}
+          <aside className="lg:sticky lg:top-20 lg:self-start">
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+              <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Your spot</div>
+              <div className="overflow-hidden rounded-xl bg-zinc-950 ring-1 ring-zinc-800">
+                {preview
+                  ? <img src={preview} alt="" className="aspect-[4/3] w-full object-cover" />
+                  : <div className="grid aspect-[4/3] place-items-center text-xs text-zinc-600">No photo yet</div>}
               </div>
+              <div className={`mt-3 flex justify-center ${showingExample ? "opacity-40" : ""}`}>
+                <PlateBadge country="albania" text={showingExample ? albaniaExample(plateTypeId) : previewText} plateType={plateTypeId} size="sm" />
+              </div>
+              <div className="mt-2 text-center text-sm text-zinc-300">
+                {[brand, model].filter(Boolean).join(" ") || <span className="text-zinc-600">Vehicle (optional)</span>}
+              </div>
+              <div className="mt-0.5 text-center text-xs text-zinc-500">{selectedType.label}{location.trim() && ` · ${location.trim()}`}</div>
+
+              <ul className="mt-4 space-y-1.5 border-t border-zinc-800 pt-4 text-sm">
+                {[
+                  { ok: hasPhoto, label: "Photo" },
+                  { ok: hasPlate, label: "Plate number" },
+                  { ok: hasLocation, label: "Location" },
+                ].map((c) => (
+                  <li key={c.label} className={`flex items-center gap-2 ${c.ok ? "text-zinc-300" : "text-zinc-500"}`}>
+                    <span className={`grid h-4 w-4 place-items-center rounded-full text-[10px] ${c.ok ? "bg-emerald-500/20 text-emerald-300" : "bg-zinc-800 text-zinc-600"}`}>
+                      {c.ok ? "✓" : ""}
+                    </span>
+                    {c.label}
+                  </li>
+                ))}
+              </ul>
+
+              <button type="submit" disabled={!canSubmit}
+                className="mt-4 w-full rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40">
+                {status === "uploading" ? "Uploading image…" : status === "saving" ? "Saving…" : "Upload spot"}
+              </button>
+              {status === "idle" && missing.length > 0 && (
+                <p className="mt-2 text-center text-xs text-zinc-500">
+                  Add {missing.length > 1 ? `${missing.slice(0, -1).join(", ")} and ${missing[missing.length - 1]}` : missing[0]} to upload.
+                </p>
+              )}
             </div>
           </aside>
-        </div>
+        </form>
       </div>
     </main>
     </>
