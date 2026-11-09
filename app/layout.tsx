@@ -5,6 +5,7 @@ import SidebarGate from "./components/SidebarGate";
 import ThemeProvider from "./components/ThemeProvider";
 import AnnouncementBanner from "./components/AnnouncementBanner";
 import MaintenanceBanner from "./components/MaintenanceBanner";
+import NavProgress from "./components/NavProgress";
 import { statusInfo } from "./status-config";
 import { getMaintenanceSettings } from "@/app/lib/maintenance";
 
@@ -59,6 +60,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <ThemeProvider>
           <MaintenanceBanner />
           <AnnouncementBanner />
+          <NavProgress />
           <SidebarGate />
           <div className="min-h-[70vh]">{children}</div>
           <footer className="mb-20 border-t border-zinc-800/60 md:mb-0">

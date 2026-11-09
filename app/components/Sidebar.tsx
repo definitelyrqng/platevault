@@ -280,7 +280,7 @@ export default function Sidebar() {
                     {USER_ITEMS.map((i) => (
                       <MenuLink key={i.href} href={i.href} icon={i.icon}>{i.label}</MenuLink>
                     ))}
-                    {me.role === "SUPERADMIN" && (
+                    {(me.role === "SUPERADMIN" || me.role === "ADMIN") && (
                       <MenuLink href="/admin" icon="shield" tone="amber">Admin panel</MenuLink>
                     )}
                     <div className="my-1 border-t border-zinc-800" />

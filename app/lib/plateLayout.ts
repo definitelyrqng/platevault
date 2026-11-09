@@ -6,9 +6,6 @@
  */
 import { AL_CAP_HEIGHT, AL_WIDTHS } from "./albaniaFontMetrics";
 
-/** A slot text is placed in. `align` pins the text to one side (e.g. tight against the seal). */
-export type Box = { x0: number; x1: number; align?: "left" | "center" | "right" };
-
 /**
  * Lettering per country. "fe" = FE-Schrift (default everywhere);
  * "al" = Albanian plate glyphs traced from assets/fonts/albania-glyphs.png
@@ -22,14 +19,19 @@ export function plateFont(country: string): PlateFont {
 
 /** Albanian glyph spacing, in glyph-sheet pixels. */
 export const AL_SIDE_BEARING = 12;
-export const AL_SPACE = 100;
-
-/** One line of writing on the plate: its vertical extent and the slots text is centred in. */
-export type ArtRow = { y0: number; y1: number; boxes: Box[] };
+export const AL_SPACE = 70;
 
 /**
- * How plate text is divided over the slots (all slots of all rows, in order):
- *  - "whole":     everything in one slot (rows' slots merged)
+ * One line of writing on the plate (artwork pixels): its writable area and how
+ * many text pieces it holds. With `seal`, the line is laid out as
+ * "<piece 1> ● <piece 2>" — the seal is drawn by the renderer, not baked into
+ * the artwork, so every plate comes out centred with equal margins.
+ */
+export type ArtRow = { y0: number; y1: number; x0: number; x1: number; slots: number; seal?: boolean };
+
+/**
+ * How plate text is divided over the pieces (all rows, in order):
+ *  - "whole":     everything as one piece
  *  - "seal":      first letter group | rest            ("AB 195 IF" → AB | 195 IF)
  *  - "al-double": letters | digits | final letters     ("AB 123 CD" → AB | 123 | CD)
  */
@@ -41,58 +43,63 @@ export type PlateArt = {
   h: number;            // image height (px)
   rows: ArtRow[];
   split: SplitRule;
+  /** Seal image drawn between the first two pieces of a `seal` row. */
+  seal?: string;
   /** Lettering colour (default near-black). */
   textColor?: string;
 };
+
+/** Seal size and the gap either side of it, as fractions of the row height. */
+export const SEAL_DIAMETER = 0.194;
+export const SEAL_GAP = 0.075;
 
 /**
  * Real plate artwork. Keys are "<country>" (the default for that country) or
  * "<country>:<plateType>" for a specific plate type, e.g. "albania:trailer-2011-single".
  *
- * To add one: drop the PNG into /public/plates/<country>/, measure its writable
- * area (and seal, if any) in image pixels, and add an entry here. Keep the black
- * rounded border consistent with the other plates of that country.
+ * Artwork must NOT contain the seal (it is placed per plate). Prepare new
+ * backgrounds with scripts/plate-art.cjs so borders match, then add an entry
+ * with the writable area (x0–x1 already padded away from the bands).
  */
 export const PLATE_ART: Record<string, PlateArt> = {
-  // cars_current_single.png (1000×221): white area x108–899, y14–205, seal x365–401.
+  // cars_current_single.png (1000×221): white area x108–899, y14–205.
   albania: {
     src: "/plates/albania/cars_current_single.png",
     w: 1000,
     h: 221,
-    rows: [{ y0: 14, y1: 205, boxes: [{ x0: 128, x1: 352, align: "right" }, { x0: 414, x1: 876, align: "left" }] }],
+    rows: [{ y0: 14, y1: 205, x0: 124, x1: 883, slots: 2, seal: true }],
     split: "seal",
+    seal: "/plates/albania/seal.png",
   },
-
-  // Plates below were prepared with scripts/plate-art.cjs (border 14px / radius 27px,
-  // content offset +31,+23) so they all match the car plate's border.
-
-  // trailer_single.png (1602×358): teal area x179–1422, y23–334, seal x585–637. White lettering.
+  // trailer_single.png (1602×358, border 14 / radius 27): teal area x179–1422, y23–334. White lettering.
   "albania:trailer-2011-single": {
     src: "/plates/albania/trailer_single.png",
     w: 1602,
     h: 358,
-    rows: [{ y0: 23, y1: 334, boxes: [{ x0: 205, x1: 564, align: "right" }, { x0: 658, x1: 1400, align: "left" }] }],
+    rows: [{ y0: 23, y1: 334, x0: 205, x1: 1396, slots: 2, seal: true }],
     split: "seal",
+    seal: "/plates/albania/seal.png",
     textColor: "#fff",
   },
-  // cars_double.png (940×474): top row between the bands x178–761, y23–241 with the seal
-  // at x391–454; bottom row full width y242–450.  "AB 123 CD" → AB · 123 / CD
+  // cars_double.png (940×474): top row between the bands x178–761, y23–241;
+  // bottom row full width y242–450.  "AB 123 CD" → AB ● 123 / CD
   "albania:car-2011-double": {
     src: "/plates/albania/cars_double.png",
     w: 940,
     h: 474,
     rows: [
-      { y0: 23, y1: 241, boxes: [{ x0: 196, x1: 369, align: "right" }, { x0: 476, x1: 744, align: "left" }] },
-      { y0: 242, y1: 450, boxes: [{ x0: 70, x1: 870 }] },
+      { y0: 23, y1: 241, x0: 192, x1: 747, slots: 2, seal: true },
+      { y0: 242, y1: 450, x0: 60, x1: 880, slots: 1 },
     ],
     split: "al-double",
+    seal: "/plates/albania/seal.png",
   },
   // cars_old.png (1602×358): pre-2011 plate, red band; white area x179–1570, y23–334. No seal.
   "albania:car-1993-single": {
     src: "/plates/albania/cars_old.png",
     w: 1602,
     h: 358,
-    rows: [{ y0: 23, y1: 334, boxes: [{ x0: 205, x1: 1545 }] }],
+    rows: [{ y0: 23, y1: 334, x0: 205, x1: 1545, slots: 1 }],
     split: "whole",
   },
 };
@@ -168,11 +175,6 @@ function splitText(rule: SplitRule, text: string): string[] | null {
   return null;
 }
 
-/** Slots in reading order, each with the row it sits in. */
-function slotsOf(art: PlateArt) {
-  return art.rows.flatMap((row) => row.boxes.map((box) => ({ row, box })));
-}
-
 export type TextRun = {
   text: string;
   x0: number;          // horizontal slot the run is placed in
@@ -197,6 +199,8 @@ export type PlateLayout = {
   /** Lettering used for the runs ("fe" on plain chips). */
   font: PlateFont;
   runs: TextRun[];
+  /** Seals to draw (centre + diameter, in output pixels). */
+  seals: { cx: number; cy: number; d: number }[];
   /** Neutral chip styling when there is no artwork. */
   chip: { border: number; radius: number } | null;
 };
@@ -212,42 +216,54 @@ export function plateLayout(country: string, rawText: string, height: number, pl
     const font = plateFont(key);
     const s = h / art.h;
     const width = Math.round(art.w * s);
-    const slots = slotsOf(art);
 
-    // Pieces per slot; text that doesn't match the plate's pattern goes in the
-    // tallest row, with that row's slots merged into one.
+    // Pieces per row. Text that doesn't match the plate's pattern goes, whole,
+    // into the tallest row (no seal).
     const pieces = splitText(art.split, printed);
-    let parts: { text: string; row: ArtRow; box: Box }[];
-    if (pieces && pieces.length === slots.length) {
-      parts = slots.map((slot, i) => ({ text: pieces[i], ...slot }));
+    const totalSlots = art.rows.reduce((n, r) => n + r.slots, 0);
+    let rows: { row: ArtRow; texts: string[] }[];
+    if (pieces && pieces.length === totalSlots) {
+      let i = 0;
+      rows = art.rows.map((row) => { const texts = pieces.slice(i, i + row.slots); i += row.slots; return { row, texts }; });
     } else {
-      const row = art.rows.reduce((a, b) => (b.y1 - b.y0 > a.y1 - a.y0 ? b : a));
-      parts = [{ text: printed, row, box: { x0: row.boxes[0].x0, x1: row.boxes[row.boxes.length - 1].x1 } }];
+      const row = art.rows.reduce((p, q) => (q.y1 - q.y0 > p.y1 - p.y0 ? q : p));
+      rows = [{ row, texts: [printed] }];
     }
 
-    // One font size for the whole plate (real plates use a single letter height),
-    // capped by each row's height and small enough for every piece to fit its slot.
+    const lines = rows.map(({ row, texts }) => {
+      const rowH = (row.y1 - row.y0) * s;
+      const withSeal = !!(row.seal && art.seal && texts.length === 2);
+      const sealD = withSeal ? rowH * SEAL_DIAMETER : 0;
+      const gap = withSeal ? rowH * SEAL_GAP : 0;
+      const ems = texts.map((t) => textWidthEm(t, font));
+      return { row, texts, rowH, withSeal, sealD, gap, ems, avail: (row.x1 - row.x0) * s };
+    });
+
+    // One letter height for the whole plate: capped by every row's height and by
+    // every row's width (text + seal must fit between the bands).
     const fontSize = Math.min(
-      ...parts.map((p) => ((p.row.y1 - p.row.y0) * s * 0.72) / capH), // capitals fill ~72% of the row
-      ...parts.map((p) => ((p.box.x1 - p.box.x0) * s) / Math.max(textWidthEm(p.text, font), 0.5)),
+      ...lines.map((l) => (l.rowH * 0.72) / capH),                 // capitals fill ~72% of the row
+      ...lines.map((l) => (l.avail - l.sealD - 2 * l.gap) / Math.max(l.ems.reduce((x, y) => x + y, 0), 0.5)),
     );
 
-    return {
-      width,
-      height: h,
-      printed,
-      art,
-      font,
-      chip: null,
-      runs: parts.map((p) => ({
-        text: p.text,
-        x0: p.box.x0 * s,
-        x1: p.box.x1 * s,
-        align: p.box.align ?? "center",
-        fontSize,
-        centerY: ((p.row.y0 + p.row.y1) / 2) * s,
-      })),
-    };
+    const runs: TextRun[] = [];
+    const seals: { cx: number; cy: number; d: number }[] = [];
+    for (const l of lines) {
+      const widths = l.ems.map((em) => em * fontSize);
+      const total = widths.reduce((x, y) => x + y, 0) + l.sealD + 2 * l.gap;
+      let x = l.row.x0 * s + (l.avail - total) / 2;               // centred → equal margins
+      const centerY = ((l.row.y0 + l.row.y1) / 2) * s;
+      l.texts.forEach((text, i) => {
+        runs.push({ text, x0: x, x1: x + widths[i], align: "left", fontSize, centerY });
+        x += widths[i];
+        if (l.withSeal && i === 0) {
+          seals.push({ cx: x + l.gap + l.sealD / 2, cy: centerY, d: l.sealD });
+          x += l.sealD + 2 * l.gap;
+        }
+      });
+    }
+
+    return { width, height: h, printed, art, font, chip: null, runs, seals };
   }
 
   // Neutral chip: white plate, dark border, text only
@@ -262,6 +278,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
     printed,
     art: null,
     font: "fe",
+    seals: [],
     chip: { border, radius: h * 0.14 },
     runs: [{ text: printed, x0: border + padX, x1: width - border - padX, align: "center", fontSize, centerY: h / 2 }],
   };

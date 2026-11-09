@@ -10,6 +10,8 @@ type Props = {
   isBanned: boolean;
   banExpiresAt: string | null;
   actorRole: string;
+  /** Start expanded (used inside the admin hub, where it sits in its own row). */
+  defaultOpen?: boolean;
 };
 
 const ROLE_OPTIONS = [
@@ -25,9 +27,10 @@ export default function UserAdminPanel({
   isBanned,
   banExpiresAt,
   actorRole,
+  defaultOpen = false,
 }: Props) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
 
   // Ban state
   const [banMode, setBanMode] = useState<"tban" | "pban" | null>(null);

@@ -128,12 +128,20 @@ export async function GET(req: Request) {
     background = `<rect x="${b / 2}" y="${b / 2}" width="${width - b}" height="${h - b}" rx="${radius}" fill="#fbfbf8" stroke="#161616" stroke-width="${b}"/>`;
   }
 
+  // Seal(s): drawn per plate, between the text pieces, so margins stay equal on both sides
+  let seals = "";
+  if (layout.art?.seal && layout.seals.length) {
+    const uri = await getArtDataUri(layout.art.seal);
+    seals = layout.seals.map((k) =>
+      `<image href="${uri}" x="${(k.cx - k.d / 2).toFixed(2)}" y="${(k.cy - k.d / 2).toFixed(2)}" width="${k.d.toFixed(2)}" height="${k.d.toFixed(2)}"/>`).join("");
+  }
+
   const color = layout.art?.textColor ?? "#111";
   const runs = layout.runs.map((r) => layout.font === "al"
     ? runSvgAlbanian(r, color)
     : runSvg(font, r, color)).join("");
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${h}" viewBox="0 0 ${width} ${h}">`
-    + `<title>${esc(layout.printed)}</title>${background}${runs}</svg>`;
+    + `<title>${esc(layout.printed)}</title>${background}${seals}${runs}</svg>`;
 
   const png = await sharp(Buffer.from(svg)).png({ compressionLevel: 9 }).toBuffer();
   // ASCII-only filename (HTTP headers can't carry Ä/Ö/Ü)

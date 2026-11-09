@@ -174,3 +174,8 @@ html {
 
 /* ─── Plate font ──────────────────────────────────────────────────────────── */
 .font-plate { font-family: 'FE-Schrift', 'Courier New', monospace; }
+
+/* Top navigation progress bar (components/NavProgress) */
+@keyframes nav-progress { from { width: 0; } to { width: 88%; } }
+.nav-progress-run  { width: 0; animation: nav-progress 9s cubic-bezier(0.08, 0.6, 0.2, 1) forwards; }
+.nav-progress-done { width: 100%; opacity: 0; transition: width 0.15s ease-out, opacity 0.3s ease 0.15s; }

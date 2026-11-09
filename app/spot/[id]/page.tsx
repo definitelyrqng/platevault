@@ -3,12 +3,12 @@ import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import SpotActions from "./SpotActions";
 import CommentSection from "./CommentSection";
-import AdminPanel from "./AdminPanel";
+import SpotModPanel from "./SpotModPanel";
 import ReportButton from "./ReportButton";
 import RareButton from "@/app/components/RareButton";
 import SaveToCollection from "@/app/components/SaveToCollection";
 import ShareCardButton from "@/app/components/ShareCardButton";
-import TagEditor from "./TagEditor";
+import TimeAgo from "@/app/components/TimeAgo";
 import EditSpotDetails from "./EditSpotDetails";
 import { DescriptionText } from "@/app/components/DescriptionInput";
 import PinButton from "@/app/components/PinButton";
@@ -200,8 +200,11 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
     );
   }
 
+  // Everything below is independent — fetch it all at once instead of one query after another
+  const isOwnerEarly = currentUser?.id === upload.userId;
+  const [otherSightings, moreFromCountry, moreFromModel, ownerPinned] = await Promise.all([
   // Other sightings of the same plate
-  const otherSightings = await prisma.upload.findMany({
+  prisma.upload.findMany({
     where: { plateText: upload.plateText, country: upload.country, deletedAt: null, NOT: { id: upload.id } },
     orderBy: { createdAt: "asc" },
     take: 12,
@@ -212,36 +215,10 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
       user: { select: { username: true, numericId: true, avatarUrl: true } },
       _count: { select: { likes: true } },
     },
-  });
-
-  // ─── Rarity score ─────────────────────────────────────────────────────────
-  const [sightingsCount, countryTotalSpots, rareVotesCount] = await Promise.all([
-    // How many times has THIS plate text been spotted (including this spot)?
-    prisma.upload.count({ where: { plateText: upload.plateText, country: upload.country, deletedAt: null } }),
-    // How many spots total from this country?
-    prisma.upload.count({ where: { country: upload.country, deletedAt: null, hidden: false } }),
-    // Rare votes on this spot
-    (prisma as any).rareVote.count({ where: { uploadId: upload.id } }),
-  ]);
-
-  // Compute rarity score 0-100
-  // Fewer sightings = rarer. Each extra sighting -15 pts (capped at 0)
-  const sightingPenalty = Math.min(75, (sightingsCount - 1) * 15);
-  // Common country = less rare. Scale 0-20 based on country total (capped at 200 spots)
-  const countryPenalty = Math.min(20, Math.floor((countryTotalSpots / 200) * 20));
-  // Rare votes boost (up to +20)
-  const rareBoost = Math.min(20, rareVotesCount * 2);
-
-  const rarityScore = Math.max(0, Math.min(100, 80 - sightingPenalty - countryPenalty + rareBoost));
-
-  const rarityLabel =
-    rarityScore >= 80 ? { text: "Ultra Rare", color: "text-amber-300", bg: "bg-amber-950/30 border-amber-800/50", dot: "bg-amber-400" } :
-    rarityScore >= 55 ? { text: "Rare",       color: "text-purple-300", bg: "bg-purple-950/30 border-purple-800/50", dot: "bg-purple-400" } :
-    rarityScore >= 30 ? { text: "Uncommon",   color: "text-indigo-300", bg: "bg-indigo-950/30 border-indigo-800/50", dot: "bg-indigo-400" } :
-                        { text: "Common",     color: "text-zinc-400",   bg: "bg-zinc-900/30 border-zinc-700/50",     dot: "bg-zinc-500" };
+  }),
 
   // More from this country
-  const moreFromCountry = await prisma.upload.findMany({
+  prisma.upload.findMany({
     where: { country: upload.country, deletedAt: null, hidden: false, NOT: { id: upload.id } },
     orderBy: { createdAt: "desc" },
     take: 4,
@@ -250,11 +227,11 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
       user: { select: { username: true } },
       _count: { select: { likes: true } },
     },
-  });
+  }),
 
   // More from same car model (if brand+model known)
-  const moreFromModel = (upload.brand && upload.model)
-    ? await prisma.upload.findMany({
+  (upload.brand && upload.model)
+    ? prisma.upload.findMany({
         where: {
           brand: upload.brand,
           model: upload.model,
@@ -270,7 +247,13 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
           _count: { select: { likes: true } },
         },
       })
-    : [];
+    : Promise.resolve([]),
+
+  // The owner's pinned spots (only needed on their own spot)
+  isOwnerEarly
+    ? prisma.user.findUnique({ where: { id: currentUser!.id }, select: { pinnedSpotIds: true } })
+    : Promise.resolve(null),
+  ]);
 
   const meta = getCountryMeta(upload.country);
 
@@ -296,9 +279,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
 
   const isOwner = currentUser?.id === upload.userId;
   const hasLiked = upload.likes.some((l) => l.userId === currentUser?.id);
-  const ownerPinnedIds = isOwner
-    ? ((await prisma.user.findUnique({ where: { id: currentUser!.id }, select: { pinnedSpotIds: true } }))?.pinnedSpotIds ?? [])
-    : [];
+  const ownerPinnedIds = ownerPinned?.pinnedSpotIds ?? [];
   const isCurrentlyPinned = ownerPinnedIds.includes(upload.id);
   const isAdmin = currentUser?.role === "SUPERADMIN" || currentUser?.role === "ADMIN";
   const isMod = isAdmin || currentUser?.role === "MOD";
@@ -405,9 +386,9 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                     </div>
                   </div>
 
-                  <div className="mt-4 text-sm text-zinc-400">
-                    {upload.location ? `${upload.location}, ` : ""}{fmt(upload.createdAt)}
-                  </div>
+                  {upload.location && (
+                    <div className="mt-4 text-sm text-zinc-400">{upload.location}</div>
+                  )}
 
                   {upload.tags.length > 0 && (
                     <div className="mt-4 flex flex-wrap justify-center gap-1.5">
@@ -453,7 +434,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
             {/* Spotter card */}
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
               <div className="flex items-center gap-3 mb-4">
-                <a href={`/u/${upload.user.numericId}`} className="flex items-center gap-3 group">
+                <a href={`/u/${upload.user.numericId}`} className="group shrink-0" aria-label={`@${upload.user.username}`}>
                   {upload.user.avatarUrl ? (
                     <img src={upload.user.avatarUrl} alt={upload.user.username} className="h-9 w-9 rounded-xl object-cover ring-2 ring-zinc-700 group-hover:ring-indigo-700/60 transition-all" />
                   ) : (
@@ -461,11 +442,12 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                       {upload.user.username.slice(0, 2).toUpperCase()}
                     </div>
                   )}
-                  <div>
-                    <div className="text-sm font-medium text-zinc-200 group-hover:text-indigo-300 transition-colors">@{upload.user.username}</div>
-                    <div className="text-xs text-zinc-500">{relativeDays(upload.createdAt)}</div>
-                  </div>
                 </a>
+                <div className="min-w-0">
+                  <a href={`/u/${upload.user.numericId}`} className="block text-sm font-medium text-zinc-200 hover:text-indigo-300 transition-colors">@{upload.user.username}</a>
+                  {/* hover shows the exact upload time (DD:MM:YYYY HH:MM:SS, viewer's timezone) */}
+                  <TimeAgo iso={upload.createdAt.toISOString()} label={relativeDays(upload.createdAt)} className="text-xs text-zinc-500" />
+                </div>
               </div>
 
               {/* Main action row */}
@@ -570,9 +552,6 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 </div>
               )}
               {upload.generation && <Detail label="Generation" value={upload.generation} />}
-              <div className="border-t border-zinc-800 pt-3">
-                <Detail label="Date" value={fmt(upload.createdAt)} />
-              </div>
               {isOwner && (
                 <div className="border-t border-zinc-800 pt-3">
                   <EditSpotDetails
@@ -591,56 +570,28 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
               )}
             </div>
 
-            {/* Rarity score */}
-            <div className={`rounded-2xl border p-4 ${rarityLabel.bg}`}>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span className={`h-2 w-2 rounded-full ${rarityLabel.dot}`} />
-                  <span className={`text-sm font-semibold ${rarityLabel.color}`}>{rarityLabel.text}</span>
-                </div>
-                <span className={`text-lg font-bold tabular-nums ${rarityLabel.color}`}>{rarityScore}</span>
-              </div>
-              <div className="h-1.5 w-full rounded-full bg-zinc-800 overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all ${
-                    rarityScore >= 80 ? "bg-amber-400" :
-                    rarityScore >= 55 ? "bg-purple-400" :
-                    rarityScore >= 30 ? "bg-indigo-400" : "bg-zinc-500"
-                  }`}
-                  style={{ width: `${rarityScore}%` }}
-                />
-              </div>
-              <div className="mt-2 text-[10px] text-zinc-600 space-y-0.5">
-                <div>{sightingsCount} sighting{sightingsCount !== 1 ? "s" : ""} · {rareVotesCount} rare vote{rareVotesCount !== 1 ? "s" : ""}</div>
-              </div>
-            </div>
-
-            {/* Tag editor - mod+ */}
+            {/* One moderation panel per spot (mods: hide + tags; admins: everything) */}
             {isMod && (
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
-                <div className="text-xs uppercase tracking-wider text-zinc-500 mb-1">Tags</div>
-                <TagEditor uploadId={upload.id} initialTags={upload.tags} />
-              </div>
-            )}
-
-            {/* Admin panel */}
-            {isAdmin && (
-              <AdminPanel
+              <SpotModPanel
                 uploadId={upload.id}
-                initialBrand={upload.brand ?? ""}
-                initialModel={upload.model ?? ""}
-                initialGeneration={upload.generation ?? ""}
-                initialTrim={upload.trim ?? ""}
-                initialColor={upload.color ?? ""}
-                initialBadge={upload.badge ?? ""}
-                initialCompanyId={upload.companyId}
+                role={currentUser!.role as "SUPERADMIN" | "ADMIN" | "MOD"}
                 initialHidden={upload.hidden}
-                initialPlateText={upload.plateText}
-                initialPlateType={upload.plateType ?? ""}
-                initialPlateRegion={upload.plateRegion ?? ""}
-                initialCountry={upload.country}
-                initialLocation={upload.location ?? ""}
-                initialDescription={upload.description ?? ""}
+                initial={{
+                  plateText: upload.plateText,
+                  plateType: upload.plateType ?? "",
+                  plateRegion: upload.plateRegion ?? "",
+                  country: upload.country,
+                  location: upload.location ?? "",
+                  description: upload.description ?? "",
+                  brand: upload.brand ?? "",
+                  model: upload.model ?? "",
+                  generation: upload.generation ?? "",
+                  trim: upload.trim ?? "",
+                  color: upload.color ?? "",
+                  badge: upload.badge ?? "",
+                  companyId: upload.companyId,
+                  tags: upload.tags,
+                }}
               />
             )}
 
