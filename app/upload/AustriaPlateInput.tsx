@@ -1,167 +1,135 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AUSTRIA_PRESELECT_1, AUSTRIA_PRESELECT_2, AUSTRIA_PRESELECT_3,
-  AUSTRIA_FORMATS_FOR, AT_FORMAT_LABELS,
+  getAustriaPreselect1, getAustriaPreselect2, getAustriaPreselect3,
   type AustriaCategoryId,
 } from "@/app/lib/austriaData";
 
-interface Props {
-  category: AustriaCategoryId;
-  onChange: (plateText: string, plateRegion: string, format: string) => void;
+/**
+ * Segmented plate-number input for Austrian plates. Same behaviour as the Albanian one:
+ * boxes jump forward when full and Backspace in an empty box goes back.
+ * The layout of the boxes depends on the plate category.
+ */
+
+type Kind = "district" | "service" | "state" | "code" | "letters" | "digits" | "alnum";
+type Seg = { kind: Kind; len: number; placeholder: string };
+
+const DISTRICT: Seg = { kind: "district", len: 3, placeholder: "District" };
+const DIGITS5: Seg = { kind: "digits", len: 5, placeholder: "12345" };
+const LETTERS: Seg = { kind: "letters", len: 5, placeholder: "AB" };
+
+export const AUSTRIA_SEGMENTS: Record<AustriaCategoryId, Seg[]> = {
+  regular: [DISTRICT, DIGITS5, LETTERS],
+  electric: [DISTRICT, DIGITS5, LETTERS],
+  export: [DISTRICT, DIGITS5, LETTERS],
+  vanity: [DISTRICT, { kind: "letters", len: 5, placeholder: "WUNSCH" }, { kind: "digits", len: 5, placeholder: "1" }],
+  "electric-vanity": [DISTRICT, { kind: "letters", len: 5, placeholder: "WUNSCH" }, { kind: "digits", len: 5, placeholder: "1" }],
+  official: [{ kind: "service", len: 2, placeholder: "Service" }, DIGITS5, LETTERS],
+  provisional: [DISTRICT, DIGITS5, LETTERS, { kind: "digits", len: 2, placeholder: "12" }],
+  "1947": [{ kind: "state", len: 2, placeholder: "State" }, { kind: "alnum", len: 6, placeholder: "123456" }],
+  "dealer-1947": [{ kind: "state", len: 2, placeholder: "State" }, { kind: "alnum", len: 6, placeholder: "123456" }],
+  dealer: [DISTRICT, { kind: "alnum", len: 7, placeholder: "AB123" }],
+  diplomatic: [{ kind: "code", len: 4, placeholder: "Code" }, { kind: "digits", len: 5, placeholder: "12345" }],
+};
+
+const EXAMPLE_PREFIX: Partial<Record<Kind, string>> = { district: "W", service: "BP", state: "ST", code: "A" };
+
+/** Example text per category, for previews before anything is typed. */
+export function austriaExample(category: AustriaCategoryId) {
+  const segs = AUSTRIA_SEGMENTS[category] ?? AUSTRIA_SEGMENTS.regular;
+  return segs.map((s) => EXAMPLE_PREFIX[s.kind] ?? s.placeholder).join(" ");
 }
 
-const IN = "rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono tracking-widest text-zinc-100 text-center uppercase outline-none focus:border-zinc-600 placeholder:text-zinc-700 placeholder:tracking-normal placeholder:font-sans placeholder:normal-case";
-const SEL = "rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-600";
+const clean = (seg: Seg, v: string) =>
+  seg.kind === "digits" ? v.replace(/\D/g, "").slice(0, seg.len)
+  : seg.kind === "letters" ? v.replace(/[^A-Za-z]/g, "").toUpperCase().slice(0, seg.len)
+  : seg.kind === "alnum" || seg.kind === "code" ? v.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, seg.len)
+  : v;
 
-export default function AustriaPlateInput({ category, onChange }: Props) {
-  const [preselect, setPreselect] = useState("");
-  const [seg1, setSeg1] = useState("");
-  const [seg2, setSeg2] = useState("");
-  const [seg3, setSeg3] = useState("");
-  const [format, setFormat] = useState("");
+const BOX = "h-12 rounded-xl border border-zinc-700 bg-zinc-950 text-center font-mono text-lg font-semibold uppercase tracking-[0.2em] text-zinc-100 outline-none transition-colors placeholder:text-zinc-700 focus:border-indigo-500 focus:bg-zinc-900";
+const SELECT = "h-12 w-40 shrink-0 rounded-xl border border-zinc-700 bg-zinc-950 px-3 text-sm text-zinc-100 outline-none focus:border-indigo-500";
 
-  const formats = AUSTRIA_FORMATS_FOR[category];
+const isSelect = (k: Kind) => k === "district" || k === "service" || k === "state";
 
+export default function AustriaPlateInput({
+  category,
+  onChange,
+}: {
+  category: AustriaCategoryId;
+  onChange: (plateText: string, plateRegion: string) => void;
+}) {
+  const segs = AUSTRIA_SEGMENTS[category] ?? AUSTRIA_SEGMENTS.regular;
+  const layoutKey = segs.map((s) => s.kind + s.len).join("|") + (category === "1947" || category === "dealer-1947" ? "|s3" : "");
+  const [vals, setVals] = useState<string[]>(() => segs.map(() => ""));
+  const refs = useRef<(HTMLInputElement | HTMLSelectElement | null)[]>([]);
+
+  // Keep what was typed when switching between categories with the same boxes
+  const lastLayout = useRef(layoutKey);
   useEffect(() => {
-    setPreselect(""); setSeg1(""); setSeg2(""); setSeg3("");
-    setFormat(formats[0] ?? "");
-  }, [category]);
-
-  useEffect(() => {
-    if (!formats.includes(format as never)) setFormat(formats[0] ?? "");
-  }, [formats, format]);
-
-  const emit = useCallback((p: string, s1: string, s2: string, s3: string, fmt: string) => {
-    let plateText = "";
-    if (category === "regular" || category === "electric" || category === "export" || category === "official") {
-      plateText = [p, s1, s2].filter(Boolean).join(" ");
-    } else if (category === "vanity" || category === "electric-vanity") {
-      plateText = [p, s1, s2].filter(Boolean).join(" ");
-    } else if (category === "provisional") {
-      plateText = [p, s1, s2, s3].filter(Boolean).join(" ");
-    } else if (category === "1947" || category === "dealer-1947" || category === "dealer") {
-      plateText = [p, s1].filter(Boolean).join(" ");
-    } else if (category === "diplomatic") {
-      plateText = [p, s1].filter(Boolean).join(" ");
+    if (lastLayout.current !== layoutKey) {
+      lastLayout.current = layoutKey;
+      setVals(segs.map(() => ""));
     }
-    onChange(plateText, p, fmt);
-  }, [category, onChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [layoutKey]);
 
-  function onPreselect(v: string) { setPreselect(v); emit(v, seg1, seg2, seg3, format); }
-  function onFormat(v: string)    { setFormat(v);    emit(preselect, seg1, seg2, seg3, v); }
-  function onNums1(v: string)    { const s = v.replace(/[^0-9]/g, "").slice(0, 5);  setSeg1(s); emit(preselect, s, seg2, seg3, format); }
-  function onLetters1(v: string) { const s = v.replace(/[^A-Za-z]/g, "").toUpperCase().slice(0, 5); setSeg1(s); emit(preselect, s, seg2, seg3, format); }
-  function onLetters2(v: string) { const s = v.replace(/[^A-Za-z]/g, "").toUpperCase().slice(0, 5); setSeg2(s); emit(preselect, seg1, s, seg3, format); }
-  function onNums2(v: string)    { const s = v.replace(/[^0-9]/g, "").slice(0, 5);  setSeg2(s); emit(preselect, seg1, s, seg3, format); }
-  function onExtra(v: string)    { const s = v.replace(/[^0-9]/g, "").slice(0, 2);  setSeg3(s); emit(preselect, seg1, seg2, s, format); }
-  function onAlpha6(v: string)   { const s = v.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 6); setSeg1(s); emit(preselect, s, seg2, seg3, format); }
-  function onAlpha7(v: string)   { const s = v.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 7); setSeg1(s); emit(preselect, s, seg2, seg3, format); }
-  function onDiploCode(v: string){ const s = v.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 4); setPreselect(s); emit(s, seg1, seg2, seg3, format); }
+  useEffect(() => {
+    onChange(vals.filter(Boolean).join(" "), vals[0] ?? "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vals]);
 
-  function Preselect1() {
-    return (
-      <select value={preselect} onChange={(e) => onPreselect(e.target.value)} className={SEL + " w-40"}>
-        <option value="">District</option>
-        {AUSTRIA_PRESELECT_1.map((r) => <option key={r.code} value={r.code}>{r.code} - {r.name}</option>)}
-      </select>
-    );
-  }
-  function Preselect2() {
-    return (
-      <select value={preselect} onChange={(e) => onPreselect(e.target.value)} className={SEL + " w-48"}>
-        <option value="">Service</option>
-        {AUSTRIA_PRESELECT_2.map((r) => <option key={r.code} value={r.code}>{r.code} - {r.name}</option>)}
-      </select>
-    );
-  }
-  function Preselect3() {
-    return (
-      <select value={preselect} onChange={(e) => onPreselect(e.target.value)} className={SEL + " w-44"}>
-        <option value="">Federal state</option>
-        {AUSTRIA_PRESELECT_3.map((r) => <option key={r.code} value={r.code}>{r.code} - {r.name}</option>)}
-      </select>
-    );
-  }
-  function FormatSelect() {
-    return (
-      <select value={format} onChange={(e) => onFormat(e.target.value)} className={SEL + " w-full"}>
-        {formats.map((f) => <option key={f} value={f}>{AT_FORMAT_LABELS[f]}</option>)}
-      </select>
-    );
-  }
+  const focusNext = (i: number) => refs.current[i + 1]?.focus();
+  const focusPrev = (i: number) => refs.current[i - 1]?.focus();
+  const setAt = (i: number, v: string) => setVals((cur) => cur.map((c, k) => (k === i ? v : c)));
+
+  const first = segs[0];
+  const regionName = !vals[0] ? undefined
+    : first.kind === "district" ? getAustriaPreselect1(vals[0])?.name
+    : first.kind === "service" ? getAustriaPreselect2(vals[0])?.name
+    : first.kind === "state" ? getAustriaPreselect3(vals[0])?.name
+    : undefined;
+
+  const options = (kind: Kind) =>
+    kind === "district" ? AUSTRIA_PRESELECT_1 : kind === "service" ? AUSTRIA_PRESELECT_2 : AUSTRIA_PRESELECT_3;
+  const placeholderFor = (kind: Kind) => (kind === "district" ? "District…" : kind === "service" ? "Service…" : "State…");
 
   return (
-    <div className="space-y-3">
-      <div>
-        <p className="text-xs text-zinc-500 mb-1.5">Plate format</p>
-        <FormatSelect />
+    <div>
+      <div className="flex items-center gap-2">
+        {segs.map((s, i) => {
+          if (isSelect(s.kind)) {
+            return (
+              <select key={i} ref={(el) => { refs.current[i] = el; }} value={vals[i]}
+                onChange={(e) => { setAt(i, e.target.value); if (e.target.value) focusNext(i); }}
+                aria-label={placeholderFor(s.kind).replace("…", "")}
+                className={SELECT}>
+                <option value="">{placeholderFor(s.kind)}</option>
+                {options(s.kind).map((r) => <option key={r.code} value={r.code}>{r.code} — {r.name}</option>)}
+              </select>
+            );
+          }
+          return (
+            <input key={i} ref={(el) => { refs.current[i] = el; }}
+              value={vals[i]}
+              onChange={(e) => {
+                const v = clean(s, e.target.value);
+                setAt(i, v);
+                if (v.length === s.len) focusNext(i);
+              }}
+              onKeyDown={(e) => { if (e.key === "Backspace" && !vals[i]) focusPrev(i); }}
+              placeholder={s.placeholder}
+              inputMode={s.kind === "digits" ? "numeric" : "text"}
+              autoCapitalize="characters"
+              autoComplete="off"
+              aria-label={s.kind === "digits" ? "Numbers" : s.kind === "letters" ? "Letters" : s.kind === "code" ? "Diplomatic code" : "Characters"}
+              className={`${BOX} min-w-0 ${s.kind === "digits" || s.kind === "alnum" ? "flex-[1.4]" : "flex-1"}`}
+            />
+          );
+        })}
       </div>
-      <div>
-        <p className="text-xs text-zinc-500 mb-1.5">Plate text</p>
-
-        {/* regular / electric / export */}
-        {(category === "regular" || category === "electric" || category === "export") && (
-          <div className="flex items-center gap-2">
-            <Preselect1 />
-            <input value={seg1} onChange={(e) => onNums1(e.target.value)} placeholder="12345" maxLength={5} inputMode="numeric" className={IN + " w-24"} />
-            <input value={seg2} onChange={(e) => onLetters2(e.target.value)} placeholder="ABCDE" maxLength={5} className={IN + " w-24"} />
-          </div>
-        )}
-
-        {/* vanity / electric-vanity */}
-        {(category === "vanity" || category === "electric-vanity") && (
-          <div className="flex items-center gap-2">
-            <Preselect1 />
-            <input value={seg1} onChange={(e) => onLetters1(e.target.value)} placeholder="AAAAA" maxLength={5} className={IN + " w-24"} />
-            <input value={seg2} onChange={(e) => onNums2(e.target.value)} placeholder="12345" maxLength={5} inputMode="numeric" className={IN + " w-24"} />
-          </div>
-        )}
-
-        {/* official */}
-        {category === "official" && (
-          <div className="flex items-center gap-2">
-            <Preselect2 />
-            <input value={seg1} onChange={(e) => onNums1(e.target.value)} placeholder="12345" maxLength={5} inputMode="numeric" className={IN + " w-24"} />
-            <input value={seg2} onChange={(e) => onLetters2(e.target.value)} placeholder="ABCDE" maxLength={5} className={IN + " w-24"} />
-          </div>
-        )}
-
-        {/* provisional */}
-        {category === "provisional" && (
-          <div className="flex items-center gap-2">
-            <Preselect1 />
-            <input value={seg1} onChange={(e) => onNums1(e.target.value)} placeholder="12345" maxLength={5} inputMode="numeric" className={IN + " w-20"} />
-            <input value={seg2} onChange={(e) => onLetters2(e.target.value)} placeholder="ABCDE" maxLength={5} className={IN + " w-20"} />
-            <input value={seg3} onChange={(e) => onExtra(e.target.value)} placeholder="12" maxLength={2} inputMode="numeric" className={IN + " w-14"} />
-          </div>
-        )}
-
-        {/* 1947 / dealer-1947 */}
-        {(category === "1947" || category === "dealer-1947") && (
-          <div className="flex items-center gap-2">
-            <Preselect3 />
-            <input value={seg1} onChange={(e) => onAlpha6(e.target.value)} placeholder="XXXXXX" maxLength={6} className={IN + " flex-1"} />
-          </div>
-        )}
-
-        {/* dealer */}
-        {category === "dealer" && (
-          <div className="flex items-center gap-2">
-            <Preselect1 />
-            <input value={seg1} onChange={(e) => onAlpha7(e.target.value)} placeholder="XXXXXXX" maxLength={7} className={IN + " flex-1"} />
-          </div>
-        )}
-
-        {/* diplomatic */}
-        {category === "diplomatic" && (
-          <div className="flex items-center gap-2">
-            <input value={preselect} onChange={(e) => onDiploCode(e.target.value)} placeholder="Code" maxLength={4} className={IN + " w-20"} />
-            <input value={seg1} onChange={(e) => onNums1(e.target.value)} placeholder="12345" maxLength={5} inputMode="numeric" className={IN + " flex-1"} />
-          </div>
-        )}
-      </div>
+      {regionName && <p className="mt-1.5 pl-1 text-xs text-indigo-300">{regionName}, Austria</p>}
     </div>
   );
 }
