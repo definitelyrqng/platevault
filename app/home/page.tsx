@@ -30,7 +30,7 @@ const spotSelect = {
 
 async function getHomeData() {
   const visible = { deletedAt: null, hidden: false };
-  const [totalUploads, totalUsers, countryGroups, covers, recent, hotSpots, rareSpots] = await Promise.all([
+  const [totalUploads, totalUsers, countryGroups, covers, recent, hotSpots] = await Promise.all([
     prisma.upload.count({ where: visible }),
     prisma.user.count(),
     prisma.upload.groupBy({
@@ -59,23 +59,6 @@ async function getHomeData() {
       take: 4,
       select: spotSelect,
     }),
-    // Rare: most rare-votes
-    (prisma as any).rareVote.groupBy({
-      by: ["uploadId"],
-      _count: { id: true },
-      orderBy: { _count: { id: "desc" } },
-      take: 8,
-    }).then(async (groups: { uploadId: string; _count: { id: number } }[]) => {
-      if (!groups.length) return [];
-      const uploads = await prisma.upload.findMany({
-        where: { id: { in: groups.map((g) => g.uploadId) }, ...visible },
-        select: spotSelect,
-      });
-      const votes = Object.fromEntries(groups.map((g) => [g.uploadId, g._count.id]));
-      return uploads
-        .map((u) => ({ ...u, rareVotes: (votes[u.id] as number) ?? 0 }))
-        .sort((a, b) => b.rareVotes - a.rareVotes);
-    }) as Promise<Array<{ id: string; rareVotes: number } & Parameters<typeof SpotCard>[0]["spot"]>>,
   ]);
 
   const coverMap = Object.fromEntries(covers.map((c) => [c.country, c.imageUrl]));
@@ -86,7 +69,6 @@ async function getHomeData() {
     coverMap,
     recent,
     hotSpots: hotSpots.filter((s) => s._count.likes > 0),
-    rareSpots,
   };
 }
 
@@ -108,7 +90,7 @@ function SectionHeader({ title, sub, href, linkLabel }: { title: string; sub?: s
 
 export default async function HomePage() {
   const [data, cookieStore] = await Promise.all([getHomeData(), cookies()]);
-  const { totalUploads, totalUsers, countryGroups, coverMap, recent, hotSpots, rareSpots } = data;
+  const { totalUploads, totalUsers, countryGroups, coverMap, recent, hotSpots } = data;
   const isGuest = !cookieStore.get("pv_session")?.value;
   const examplePlate = recent[0] ? formatPlateText(recent[0].country, recent[0].plateText) : null;
 
@@ -242,18 +224,6 @@ export default async function HomePage() {
             <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
               {recent.slice(0, 12).map((s) => (
                 <SpotCard key={s.id} spot={s} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* ─── Rare plates ─── */}
-        {rareSpots.length > 0 && (
-          <section>
-            <SectionHeader title="Rare plates" sub="Voted rare by the community" />
-            <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
-              {rareSpots.map((s) => (
-                <SpotCard key={s.id} spot={s} badge={<PhotoPill tone="rare">✦ {s.rareVotes} rare</PhotoPill>} />
               ))}
             </div>
           </section>

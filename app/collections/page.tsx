@@ -3,6 +3,7 @@
 // Note: metadata for client pages is set via layout template
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@/app/components/AuthProvider";
 import Flag from "@/app/components/Flag";
 import { getCountryMeta } from "@/app/lib/countries";
 
@@ -31,19 +32,12 @@ export default function CollectionsPage() {
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
-  const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
+  const loggedIn = !!useAuth().user;
   const [expanded, setExpanded] = useState<number | null>(null);
 
   useEffect(() => {
     (async () => {
-      const meRes = await fetch("/api/auth/me");
-      const me = await meRes.json();
-      if (!me.user) {
-        setLoggedIn(false);
-        setLoading(false);
-        return;
-      }
-      setLoggedIn(true);
+      if (!loggedIn) { setLoading(false); return; }
       const res = await fetch("/api/collections");
       if (res.ok) {
         const data = await res.json();

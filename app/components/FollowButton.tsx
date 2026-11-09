@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "./AuthProvider";
 
 export default function FollowButton({ targetNumericId }: { targetNumericId: number }) {
   const [state, setState] = useState<{
@@ -10,24 +11,20 @@ export default function FollowButton({ targetNumericId }: { targetNumericId: num
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
+  const loggedIn = !!useAuth().user;
 
   useEffect(() => {
     (async () => {
-      const [meRes, followRes] = await Promise.all([
-        fetch("/api/auth/me"),
-        fetch(`/api/follow/${targetNumericId}`),
-      ]);
-      const me = await meRes.json();
-      setLoggedIn(!!me.user);
+      if (!loggedIn) { setLoading(false); return; }
+      const followRes = await fetch(`/api/follow/${targetNumericId}`);
       if (followRes.ok) {
         setState(await followRes.json());
       }
       setLoading(false);
     })();
-  }, [targetNumericId]);
+  }, [targetNumericId, loggedIn]);
 
-  if (loading || loggedIn === false) return null;
+  if (loading || !loggedIn) return null;
 
   async function toggle() {
     if (!state || busy) return;

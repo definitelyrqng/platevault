@@ -4,10 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
+import { useAuth } from "./AuthProvider";
 import Flag from "./Flag";
 import { COUNTRY_META } from "@/app/lib/countries";
 
-type Me = { id: string; numericId: number; username: string; role?: string } | null;
 type Menu = "countries" | "more" | "user" | null;
 
 const PRIMARY = [
@@ -88,28 +88,10 @@ function MenuLink({ href, icon, children, onClick, tone }: {
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [me, setMe] = useState<Me>(null);
-  const [unread, setUnread] = useState(0);
+  const { user: me, unread } = useAuth(); // resolved on the server — no flash of "Log in"
   const [open, setOpen] = useState<Menu>(null);
   const [q, setQ] = useState("");
   const headerRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const r = await fetch("/api/auth/me", { cache: "no-store" });
-        const data = await r.json();
-        if (data.user) {
-          setMe({ ...data.user, role: data.user.role });
-          const nr = await fetch("/api/notifications?unread=true");
-          if (nr.ok) {
-            const nd = await nr.json();
-            setUnread((nd.notifications ?? []).length);
-          }
-        }
-      } catch { /* ignore */ }
-    })();
-  }, []);
 
   // Close menus on outside click / route change / Escape
   useEffect(() => {

@@ -5,7 +5,6 @@ import SpotActions from "./SpotActions";
 import CommentSection from "./CommentSection";
 import SpotModPanel from "./SpotModPanel";
 import ReportButton from "./ReportButton";
-import RareButton from "@/app/components/RareButton";
 import SaveToCollection from "@/app/components/SaveToCollection";
 import ShareCardButton from "@/app/components/ShareCardButton";
 import TimeAgo from "@/app/components/TimeAgo";
@@ -461,7 +460,6 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                     isLoggedIn={!!currentUser}
                   />
                 </div>
-                <RareButton spotNumericId={upload.numericId} />
                 <SaveToCollection spotNumericId={upload.numericId} />
               </div>
               {/* Owner actions row */}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "./AuthProvider";
 
 type Collection = {
   numericId: number;
@@ -12,16 +13,12 @@ export default function SaveToCollection({ spotNumericId }: { spotNumericId: num
   const [open, setOpen] = useState(false);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(false);
-  const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
+  const loggedIn = !!useAuth().user;
   const [busy, setBusy] = useState<number | null>(null);
   const [saved, setSaved] = useState<Set<number>>(new Set());
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    fetch("/api/auth/me").then(r => r.json()).then(d => setLoggedIn(!!d.user));
-  }, []);
 
   useEffect(() => {
     function onClick(e: MouseEvent) {

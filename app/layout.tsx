@@ -8,6 +8,8 @@ import MaintenanceBanner from "./components/MaintenanceBanner";
 import NavProgress from "./components/NavProgress";
 import { statusInfo } from "./status-config";
 import { getMaintenanceSettings } from "@/app/lib/maintenance";
+import { getSessionUser, getUnreadCount } from "@/app/lib/session";
+import { AuthProvider } from "./components/AuthProvider";
 
 const inter = Inter({
   subsets: ["latin", "latin-ext"],
@@ -45,7 +47,8 @@ const FOOTER_LINKS = [
 ];
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const { maintenanceMode } = await getMaintenanceSettings();
+  const [{ maintenanceMode }, me] = await Promise.all([getMaintenanceSettings(), getSessionUser()]);
+  const unread = me ? await getUnreadCount(me.id) : 0;
   const info = statusInfo[maintenanceMode ? "maintenance" : "online"];
   return (
     <html lang="en" suppressHydrationWarning data-theme="dark" className={inter.variable}>
@@ -58,6 +61,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       </head>
       <body className="min-h-screen bg-zinc-950 font-sans text-zinc-100 transition-colors duration-200">
         <ThemeProvider>
+          <AuthProvider user={me} unread={unread}>
           <MaintenanceBanner />
           <AnnouncementBanner />
           <NavProgress />
@@ -85,6 +89,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
               </a>
             </div>
           </footer>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
