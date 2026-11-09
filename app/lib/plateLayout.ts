@@ -5,14 +5,15 @@
  * Pure data + math only (no React, no fs) — safe to import anywhere.
  */
 import { AL_CAP_HEIGHT, AL_WIDTHS } from "./albaniaFontMetrics";
+import { AT_CAP_HEIGHT, AT_WIDTHS } from "./austriaFontMetrics";
 
 /**
  * Lettering per country. "fe" = FE-Schrift (default everywhere);
  * "al" = Albanian plate glyphs traced from assets/fonts/albania-glyphs.png
  * (scripts/build-albania-font.cjs). Only used on plates with real artwork.
  */
-export type PlateFont = "fe" | "al";
-const COUNTRY_FONT: Record<string, PlateFont> = { albania: "al" };
+export type PlateFont = "fe" | "al" | "at";
+const COUNTRY_FONT: Record<string, PlateFont> = { albania: "al", austria: "at" };
 export function plateFont(country: string): PlateFont {
   return COUNTRY_FONT[country.toLowerCase()] ?? "fe";
 }
@@ -20,6 +21,9 @@ export function plateFont(country: string): PlateFont {
 /** Albanian glyph spacing, in glyph-sheet pixels. */
 export const AL_SIDE_BEARING = 12;
 export const AL_SPACE = 70;
+/** Austrian glyph spacing (assets/fonts/austria-glyphs.png), in glyph-sheet pixels. */
+export const AT_SIDE_BEARING = 12;
+export const AT_SPACE = 80;
 
 /**
  * One line of writing on the plate (artwork pixels): its writable area and how
@@ -44,7 +48,7 @@ export type ArtRow = {
  *  - "al-moto":    letters | digits                    ("AB 123" → AB | 123)
  *  - "al-trailer-two": letters | "R" + digits          ("AB R 456" → AB | R 456)
  */
-export type SplitRule = "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
+export type SplitRule = "at-two" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
 
 export type PlateArt = {
   src: string;          // path under /public
@@ -152,11 +156,47 @@ export const PLATE_ART: Record<string, PlateArt> = {
     rows: [{ y0: 23, y1: 334, x0: 205, x1: 1545, slots: 1 }],
     split: "whole",
   },
+  // ── Austria: backgrounds in public/plates/austria; one row per line of lettering ──
+  "austria:regular-single": { src: "/plates/austria/regular-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1015, slots: 1 }], split: "whole" },
+  "austria:regular-single-noeuro": { src: "/plates/austria/regular-single-noeuro.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 40, x1: 1000, slots: 1 }], split: "whole" },
+  "austria:repeater-single": { src: "/plates/austria/repeater-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1005, slots: 1 }], split: "whole", textColor: "#fff" },
+  "austria:provisional-single": { src: "/plates/austria/provisional-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 60, x1: 880, slots: 1 }], split: "whole", textColor: "#fff" },
+  "austria:provisional-single-small": { src: "/plates/austria/provisional-single-small.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 60, x1: 880, slots: 1 }], split: "whole", textColor: "#fff" },
+  "austria:dealer-single": { src: "/plates/austria/dealer-single.png", w: 1040, h: 240, rows: [{ y0: 30, y1: 208, x0: 60, x1: 985, slots: 1 }], split: "whole", textColor: "#fff" },
+  "austria:export-single": { src: "/plates/austria/export-single.png", w: 1040, h: 240, rows: [{ y0: 30, y1: 208, x0: 50, x1: 880, slots: 1 }], split: "whole", textColor: "#fff" },
+  "austria:regular-two": { src: "/plates/austria/regular-two.png", w: 500, h: 400, rows: [{ y0: 24, y1: 195, x0: 120, x1: 480, slots: 1 }, { y0: 200, y1: 376, x0: 30, x1: 470, slots: 1 }], split: "at-two" },
+  "austria:regular-two-noeuro": { src: "/plates/austria/regular-two-noeuro.png", w: 540, h: 400, rows: [{ y0: 24, y1: 195, x0: 30, x1: 510, slots: 1 }, { y0: 200, y1: 376, x0: 30, x1: 510, slots: 1 }], split: "at-two" },
+  "austria:provisional-two": { src: "/plates/austria/provisional-two.png", w: 540, h: 400, rows: [{ y0: 28, y1: 195, x0: 40, x1: 500, slots: 1 }, { y0: 202, y1: 376, x0: 40, x1: 395, slots: 1 }], split: "at-two", textColor: "#fff" },
+  "austria:dealer-two": { src: "/plates/austria/dealer-two.png", w: 540, h: 400, rows: [{ y0: 28, y1: 195, x0: 40, x1: 500, slots: 1 }, { y0: 202, y1: 376, x0: 40, x1: 500, slots: 1 }], split: "at-two", textColor: "#fff" },
+  "austria:export-two": { src: "/plates/austria/export-two.png", w: 540, h: 400, rows: [{ y0: 22, y1: 195, x0: 40, x1: 500, slots: 1 }, { y0: 200, y1: 376, x0: 40, x1: 365, slots: 1 }], split: "at-two", textColor: "#fff" },
 };
+
+/**
+ * Austrian plate types are "at-<category>-<format>" (see austriaData.ts); they share a
+ * handful of backgrounds. Returns the PLATE_ART key, or null (mopeds → neutral chip).
+ */
+function austriaArtKey(plateType?: string | null): string | null {
+  const m = (plateType ?? "").match(/^at-(.+?)-(single-euroband|double-euroband|single-no-euroband|double-no-euroband|repeater|moped|moped-green)$/);
+  if (!m) return "austria:regular-single";
+  const [, cat, fmt] = m;
+  if (fmt === "moped" || fmt === "moped-green") return cat === "provisional" ? "austria:provisional-single-small" : null;
+  if (fmt === "repeater") return "austria:repeater-single";
+  const two = fmt.startsWith("double");
+  const euro = !fmt.includes("no-euroband");
+  if (cat === "export") return two ? "austria:export-two" : "austria:export-single";
+  if (cat === "provisional") return two ? "austria:provisional-two" : "austria:provisional-single";
+  if (cat === "dealer" || cat === "dealer-1947") return two ? "austria:dealer-two" : "austria:dealer-single";
+  if (two) return euro ? "austria:regular-two" : "austria:regular-two-noeuro";
+  return euro ? "austria:regular-single" : "austria:regular-single-noeuro";
+}
 
 /** Artwork for a plate: its exact type first, then the country default. */
 export function plateArtFor(country: string, plateType?: string | null): PlateArt | null {
   const key = country.toLowerCase();
+  if (key === "austria") {
+    const k = austriaArtKey(plateType);
+    return k ? PLATE_ART[k] ?? null : null;
+  }
   return (plateType && PLATE_ART[`${key}:${plateType}`]) || PLATE_ART[key] || null;
 }
 
@@ -190,8 +230,15 @@ export function textAdvanceEm(s: string) {
 /** Albanian glyphs: sheet px → em, scaled so capitals match FE-Schrift's cap height. */
 const AL_PX_TO_EM = (CAP_BOTTOM - CAP_TOP) / AL_CAP_HEIGHT;
 
+const AT_PX_TO_EM = (CAP_BOTTOM - CAP_TOP) / AT_CAP_HEIGHT;
+
 /** Rendered width of a text run in em, for the given lettering (condensing included). */
 export function textWidthEm(s: string, font: PlateFont) {
+  if (font === "at") {
+    let px = 0;
+    for (const ch of s) px += ch in AT_WIDTHS ? AT_WIDTHS[ch] + 2 * AT_SIDE_BEARING : AT_SPACE;
+    return px * AT_PX_TO_EM;
+  }
   if (font === "al") {
     let px = 0;
     for (const ch of s) px += ch in AL_WIDTHS ? AL_WIDTHS[ch] + 2 * AL_SIDE_BEARING : AL_SPACE;
@@ -214,6 +261,10 @@ export function formatPlateText(country: string, raw: string) {
 
 /** Divide plate text into pieces, one per slot. Returns null if the text doesn't fit the rule. */
 function splitText(rule: SplitRule, text: string): string[] | null {
+  if (rule === "at-two") {
+    const m = text.trim().match(/^(\S+)\s+(.+)$/);                                      // "W 12345 A" → W | 12345 A
+    return m ? [m[1], m[2]] : null;
+  }
   if (rule === "seal") {
     const m = text.match(/^([A-Z]{1,3})\s?(.+)$/);          // "AB 195 IF" → AB | 195 IF
     return m ? [m[1], m[2].trim()] : null;
