@@ -39,7 +39,6 @@ const PLATE_TYPES: PlateTypeDef[] = [
   { id: "at-export-double-no-euroband",   category: "export",          label: "Export two-line",  hint: "Green, two rows" },
   { id: "at-provisional-single-no-euroband", category: "provisional",  label: "Provisional",      hint: "Blue, red band" },
   { id: "at-provisional-double-no-euroband", category: "provisional",  label: "Provisional two-line", hint: "Blue, two rows" },
-  { id: "at-provisional-moped",           category: "provisional",     label: "Provisional small", hint: "Admins only", adminOnly: true },
   { id: "at-dealer-single-no-euroband",   category: "dealer",          label: "Dealer",           hint: "W-1DSJ or vanity" },
   { id: "at-dealer-double-no-euroband",   category: "dealer",          label: "Dealer two-line",  hint: "Blue, two rows" },
   { id: "at-1947-single-no-euroband",     category: "1947",            label: "1947 system",      hint: "Single line, e.g. K 146.804" },
@@ -51,6 +50,13 @@ const PLATE_TYPES: PlateTypeDef[] = [
 function isSquarish(plateType: string) {
   const art = plateArtFor("austria", plateType);
   return !!art && art.w / art.h < 3;
+}
+
+/** Tile preview size by plate shape: tall plates bigger, long ones smaller. */
+function tileSize(plateType: string): "sm" | "md" | "xl" {
+  const art = plateArtFor("austria", plateType);
+  const r = art ? art.w / art.h : 5;
+  return r < 2 ? "xl" : r < 3 ? "md" : "sm";
 }
 
 const MAX_SIZE_MB = 8;
@@ -332,7 +338,7 @@ export default function AustriaUploadPage() {
                       }`}>
                       <span className="flex h-[92px] items-center justify-center">
                         {/* two-line plates are tall and narrow — show them bigger so they read */}
-                        <PlateBadge country="austria" text={austriaExample(t.category)} plateType={t.id} size={isSquarish(t.id) ? "xl" : "sm"} />
+                        <PlateBadge country="austria" text={austriaExample(t.category)} plateType={t.id} size={tileSize(t.id)} />
                       </span>
                       <span>
                         <span className={`block text-sm font-medium ${active ? "text-white" : "text-zinc-300"}`}>{t.label}</span>
