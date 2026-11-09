@@ -16,7 +16,7 @@ import AddToRoadTripButton from "./AddToRoadTripButton";
 import { tagById } from "@/app/lib/tags";
 import { getAlbaniaRegion, ALBANIA_PLATE_TYPE_LABELS } from "@/app/lib/albaniaRegions";
 import Flag from "@/app/components/Flag";
-import PlateBadge from "@/app/components/PlateBadge";
+import PlateBadge, { formatPlateText } from "@/app/components/PlateBadge";
 import SpotCard from "@/app/components/SpotCard";
 import { getCountryMeta } from "@/app/lib/countries";
 import { AUSTRIA_PLATE_TYPE_LABELS } from "@/app/lib/austriaData";
@@ -305,118 +305,133 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
 
   const carLabel = [upload.brand, upload.model].filter(Boolean).join(" ");
   const fullCarLabel = [upload.brand, upload.model, upload.generation].filter(Boolean).join(" ");
+  const plateTypeLabel = upload.plateType
+    ? ALBANIA_PLATE_TYPE_LABELS[upload.plateType] ?? AUSTRIA_PLATE_TYPE_LABELS[upload.plateType]
+      ?? upload.plateType.replace(/^(de|at|al|be|ba|bg|hr|cz)-/i, "").replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+    : null;
 
   return (
     <main className="text-zinc-100">
       <div className="mx-auto max-w-6xl px-4 pb-16 pt-6 sm:px-6">
 
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-1.5 text-xs text-zinc-500 mb-6">
-          <a href="/home" className="hover:text-indigo-300 transition-colors">Home</a>
-          <span>›</span>
-          <a href={`/c/${upload.country}`} className="hover:text-indigo-300 transition-colors inline-flex items-center gap-1"><Flag iso={meta.iso} />{meta.name}</a>
-          {albaniaRegion && (
-            <>
-              <span>›</span>
-              <span className="text-zinc-400">{albaniaRegion.city}</span>
-            </>
-          )}
-          {germanyDistrict && (
-            <>
-              <span>›</span>
-              <span className="text-zinc-400">{germanyDistrict}</span>
-            </>
-          )}
-          {germanyFederal && (
-            <>
-              <span>›</span>
-              <span className="text-zinc-400">{germanyFederal}</span>
-            </>
-          )}
-          {czechRegion && (
-            <>
-              <span>›</span>
-              <span className="text-zinc-400">{czechRegion}</span>
-            </>
-          )}
-          <span>›</span>
-          <span className="font-mono text-zinc-300">{upload.plateText}</span>
-          {otherSightings.length > 0 && (
-            <span className="ml-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 px-2 py-0.5 text-[10px] text-indigo-400 font-medium">
-              📍 {otherSightings.length + 1} sightings
-            </span>
-          )}
+        {/* ─── Title bar: plate number + quick links (PlatesMania style) ─── */}
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-3 border-b border-zinc-800/60 pb-4">
+          <h1 className="font-plate text-3xl tracking-wide text-white sm:text-4xl">
+            {formatPlateText(upload.country, upload.plateText)}
+          </h1>
+          <nav className="flex items-center gap-2 text-sm text-zinc-500">
+            <a href={`/c/${upload.country}`} className="transition-colors hover:text-white">{meta.name} gallery</a>
+            <span className="text-zinc-700">/</span>
+            <a href="/search" className="transition-colors hover:text-white">Search</a>
+            <span className="text-zinc-700">/</span>
+            <a href="/upload" className="transition-colors hover:text-white">Upload</a>
+          </nav>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_310px]">
-          {/* ─── Left: image + comments ─── */}
-          <div className="space-y-5">
+          {/* ─── Left: spot + comments ─── */}
+          <div className="space-y-6">
 
-            {/* Hero image */}
-            <div className="overflow-hidden rounded-2xl bg-black ring-1 ring-zinc-800/80">
-              <img
-                src={upload.imageUrl}
-                alt={`${upload.plateText} — ${meta.name}`}
-                className="mx-auto max-h-[72vh] w-full object-contain"
-              />
-            </div>
+            <article className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/40">
+              {/* Country / region header */}
+              <header className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800 bg-zinc-900/70 px-4 py-2.5 sm:px-5">
+                <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+                  <a href={`/c/${upload.country}`} className="inline-flex items-center gap-2 font-semibold text-zinc-100 transition-colors hover:text-indigo-300">
+                    <Flag iso={meta.iso} /> {meta.name}
+                  </a>
+                  {[albaniaRegion?.city, germanyDistrict, germanyFederal, czechRegion].filter(Boolean).map((r) => (
+                    <span key={r as string} className="text-zinc-500">· {r}</span>
+                  ))}
+                </div>
+                {otherSightings.length > 0 && (
+                  <a href="#multispots" className="rounded-full border border-indigo-500/30 bg-indigo-500/15 px-2.5 py-0.5 text-xs font-medium text-indigo-300 hover:bg-indigo-500/25">
+                    Spotted {otherSightings.length + 1}×
+                  </a>
+                )}
+              </header>
 
-            {/* Title: plate + vehicle */}
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0 space-y-2">
-                <PlateBadge country={upload.country} text={upload.plateText} size="lg" />
-                <h1 className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-xl font-semibold tracking-tight text-zinc-100 sm:text-2xl">
-                  {fullCarLabel ? (
-                    <>
-                      {upload.brand && (
-                        <a href={"/catalog/" + toSlug(upload.brand)} className="transition-colors hover:text-indigo-400">
-                          {upload.brand}
+              <div className="px-3 pb-7 pt-3 sm:px-5 sm:pt-5">
+                {/* Photo */}
+                <div className="overflow-hidden rounded-xl bg-black">
+                  <img
+                    src={upload.imageUrl}
+                    alt={`${upload.plateText} — ${meta.name}`}
+                    className="mx-auto max-h-[70vh] w-full object-contain"
+                  />
+                </div>
+
+                {/* Vehicle, plate, place & date — centred */}
+                <div className="mt-6 flex flex-col items-center text-center">
+                  <h2 className="flex flex-wrap items-baseline justify-center gap-x-2 gap-y-1 text-2xl font-semibold tracking-tight text-zinc-100">
+                    {fullCarLabel ? (
+                      <>
+                        {upload.brand && (
+                          <a href={"/catalog/" + toSlug(upload.brand)} className="transition-colors hover:text-indigo-400">
+                            {upload.brand}
+                          </a>
+                        )}
+                        {upload.model && (
+                          <a href={"/catalog/" + toSlug(upload.brand ?? "") + "/" + toSlug(upload.model)} className="transition-colors hover:text-indigo-400">
+                            {upload.model}
+                          </a>
+                        )}
+                        {upload.badge && (
+                          <span className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-0.5 font-mono text-sm text-zinc-300">
+                            {upload.badge}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-zinc-500">Unknown vehicle</span>
+                    )}
+                  </h2>
+                  {(upload.generation || upload.trim) && (
+                    <div className="mt-1 text-sm text-zinc-400">
+                      {upload.generation && upload.brand && upload.model ? (
+                        <a href={"/catalog/" + toSlug(upload.brand) + "/" + toSlug(upload.model)}
+                          className="underline decoration-zinc-600 underline-offset-4 transition-colors hover:text-indigo-300 hover:decoration-indigo-400">
+                          {upload.generation}
                         </a>
-                      )}
-                      {upload.model && (
-                        <a href={"/catalog/" + toSlug(upload.brand ?? "") + "/" + toSlug(upload.model)} className="transition-colors hover:text-indigo-400">
-                          {upload.model}
-                        </a>
-                      )}
-                      {upload.generation && (
-                        <span className="text-base font-normal text-zinc-400">{upload.generation}</span>
-                      )}
-                      {upload.badge && (
-                        <span className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-0.5 font-mono text-sm text-zinc-300">
-                          {upload.badge}
-                        </span>
-                      )}
-                    </>
-                  ) : (
-                    <span className="text-zinc-400">Unknown vehicle</span>
+                      ) : upload.generation}
+                      {upload.generation && upload.trim && " · "}
+                      {upload.trim}
+                    </div>
                   )}
-                </h1>
-                {upload.trim && <div className="text-sm text-zinc-400">{upload.trim}</div>}
-              </div>
-              <a href={`/c/${upload.country}`}
-                className="inline-flex w-fit shrink-0 items-center gap-2 rounded-lg border border-zinc-800 px-3 py-2 text-sm text-zinc-300 transition-colors hover:border-zinc-600 hover:text-white">
-                <Flag iso={meta.iso} /> {meta.name}
-              </a>
-            </div>
 
-            {/* Tags */}
-            {upload.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {upload.tags.map((tag) => {
-                  const def = tagById(tag);
-                  if (!def) return null;
-                  return (
-                    <a
-                      key={tag}
-                      href={"/tags/" + tag}
-                      className="rounded-full px-2.5 py-0.5 text-xs font-medium border border-indigo-900/50 bg-indigo-950/20 text-indigo-300 hover:border-indigo-700/60 hover:bg-indigo-950/40 hover:text-indigo-200 transition-colors"
-                    >
-                      #{def.label}
-                    </a>
-                  );
-                })}
+                  {/* The plate — big and centred */}
+                  <div className="mt-6 max-w-full">
+                    <div className="hidden sm:block">
+                      <PlateBadge country={upload.country} text={upload.plateText} size="xl" />
+                    </div>
+                    <div className="sm:hidden">
+                      <PlateBadge country={upload.country} text={upload.plateText} size="lg" />
+                    </div>
+                  </div>
+
+                  <div className="mt-4 text-sm text-zinc-400">
+                    {upload.location ? `${upload.location}, ` : ""}{fmt(upload.createdAt)}
+                  </div>
+
+                  {upload.tags.length > 0 && (
+                    <div className="mt-4 flex flex-wrap justify-center gap-1.5">
+                      {upload.tags.map((tag) => {
+                        const def = tagById(tag);
+                        if (!def) return null;
+                        return (
+                          <a
+                            key={tag}
+                            href={"/tags/" + tag}
+                            className="rounded-full border border-indigo-900/50 bg-indigo-950/20 px-2.5 py-0.5 text-xs font-medium text-indigo-300 transition-colors hover:border-indigo-700/60 hover:bg-indigo-950/40 hover:text-indigo-200"
+                          >
+                            #{def.label}
+                          </a>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
+            </article>
 
             {/* Comments */}
             <CommentSection
@@ -494,6 +509,29 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                   )}
                 </div>
               </div>
+
+              {/* Quick links */}
+              <ul className="mt-4 space-y-1.5 border-t border-zinc-800 pt-4 text-sm">
+                <li>
+                  <a href={`/c/${upload.country}`} className="flex items-center gap-2 text-zinc-300 transition-colors hover:text-white">
+                    <Flag iso={meta.iso} size="sm" /> {meta.name} gallery
+                  </a>
+                </li>
+                {upload.plateType && plateTypeLabel && (
+                  <li>
+                    <a href={`/c/${upload.country}?type=${encodeURIComponent(upload.plateType)}`} className="flex items-center gap-2 text-zinc-300 transition-colors hover:text-white">
+                      <span className="w-4 text-center text-zinc-500">▤</span> {plateTypeLabel} plates
+                    </a>
+                  </li>
+                )}
+                {upload.brand && upload.model && (
+                  <li>
+                    <a href={"/catalog/" + toSlug(upload.brand) + "/" + toSlug(upload.model)} className="flex items-center gap-2 text-zinc-300 transition-colors hover:text-white">
+                      <span className="w-4 text-center text-zinc-500">◈</span> All {carLabel}
+                    </a>
+                  </li>
+                )}
+              </ul>
             </div>
 
             {/* Details */}
@@ -619,7 +657,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
 
         {/* ─── Multi Spot section ─── */}
         {otherSightings.length > 0 && (
-          <section className="mt-12">
+          <section id="multispots" className="mt-12 scroll-mt-20">
             <div className="flex items-center gap-3 mb-4">
               <h2 className="text-lg font-semibold text-zinc-100">Multi Spots</h2>
               <span className="rounded-full bg-indigo-500/20 border border-indigo-500/30 px-2.5 py-0.5 text-xs text-indigo-400 font-medium">

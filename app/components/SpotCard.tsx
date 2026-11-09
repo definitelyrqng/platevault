@@ -65,28 +65,31 @@ export default function SpotCard({
         )}
       </div>
 
-      <div className="mt-2.5 flex items-center justify-between gap-2">
-        <PlateBadge country={spot.country} text={spot.plateText} size="sm" className="min-w-0" />
+      {/* Plate — centred under the photo */}
+      <div className="mt-3 flex justify-center">
+        <PlateBadge country={spot.country} text={spot.plateText} size="sm" />
+      </div>
+
+      <div className="mt-2 truncate text-center text-sm font-medium text-zinc-200 group-hover:text-white">
+        {car || <span className="text-zinc-500">Unknown vehicle</span>}
+      </div>
+      <div className="mt-0.5 flex items-center justify-center gap-2 text-xs text-zinc-500">
+        {(spot.user || spot.createdAt) && (
+          <span className="truncate">
+            {spot.user && <>@{spot.user.username}</>}
+            {spot.user && spot.createdAt && " · "}
+            {spot.createdAt && timeAgo(spot.createdAt)}
+          </span>
+        )}
         {action ?? (
           (likes > 0 || comments > 0) && (
-            <span className="flex shrink-0 items-center gap-2 text-xs tabular-nums text-zinc-500">
+            <span className="flex shrink-0 items-center gap-2 tabular-nums">
               {likes > 0 && <span>♥ {likes}</span>}
               {comments > 0 && <span>💬 {comments}</span>}
             </span>
           )
         )}
       </div>
-
-      <div className="mt-1.5 truncate text-sm font-medium text-zinc-200 group-hover:text-white">
-        {car || <span className="text-zinc-500">Unknown vehicle</span>}
-      </div>
-      {(spot.user || spot.createdAt) && (
-        <div className="mt-0.5 truncate text-xs text-zinc-500">
-          {spot.user && <>@{spot.user.username}</>}
-          {spot.user && spot.createdAt && " · "}
-          {spot.createdAt && timeAgo(spot.createdAt)}
-        </div>
-      )}
     </a>
   );
 }
