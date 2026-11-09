@@ -1,7 +1,10 @@
 import { prisma } from "@/app/lib/prisma";
 import { plateTypeLabel } from "@/app/lib/plateTypes";
-import { cookies } from "next/headers";
+import { getSessionUser } from "@/app/lib/session";
 import { notFound } from "next/navigation";
+import SpotCard, { PhotoPill } from "@/app/components/SpotCard";
+import GenerationLabel, { CodeChip } from "@/app/components/GenerationLabel";
+import { codeSlug, codesOf, formatYears, hasCode, parseGeneration, toSlug, yearSpan } from "@/app/lib/chassis";
 import { AddGenerationButton, DeleteGenerationButton, RenameGenerationButton } from "../../CatalogAdminControls";
 
 export const dynamic = "force-dynamic";
@@ -19,62 +22,33 @@ export async function generateMetadata({ params }: { params: Promise<{ brand: st
   };
 }
 
-
-function toSlug(s: string) {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-}
-function relativeDays(d: Date) {
-  const ms = Date.now() - d.getTime();
-  const days = Math.max(0, Math.floor(ms / 86_400_000));
-  if (days === 0) return "today";
-  if (days === 1) return "1 day ago";
-  if (days < 30) return `${days} days ago`;
-  const months = Math.floor(days / 30);
-  return months === 1 ? "1 month ago" : `${months} months ago`;
-}
-
-async function getSessionUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("pv_session")?.value;
-  if (!token) return null;
-  const session = await prisma.session.findUnique({
-    where: { token },
-    select: { expiresAt: true, user: { select: { id: true, role: true } } },
-  });
-  if (!session || session.expiresAt < new Date()) return null;
-  return session.user;
-}
-
 type GenRow = { id: number; name: string };
 type ModelRow = { id: number; name: string; generations: GenRow[] };
 type BrandRow = { id: number; name: string; models: ModelRow[] };
 
-export default async function ModelPage({
-  params,
-}: {
+export default async function ModelPage({ params, searchParams }: {
   params: Promise<{ brand: string; model: string }>;
+  searchParams: Promise<{ platform?: string }>;
 }) {
-  const { brand: brandSlug, model: modelSlug } = await params;
+  const [{ brand: brandSlug, model: modelSlug }, sp] = await Promise.all([params, searchParams]);
+  const platform = sp.platform ? codeSlug(sp.platform) : null;
 
   const [currentUser, allBrands] = await Promise.all([
     getSessionUser(),
     (prisma as any).carBrand.findMany({
-      include: {
-        models: {
-          include: { generations: { orderBy: { name: "asc" } } },
-        },
-      },
+      include: { models: { include: { generations: { orderBy: { name: "asc" } } } } },
     }) as Promise<BrandRow[]>,
   ]);
 
   const brandData = allBrands.find((b) => toSlug(b.name) === brandSlug);
   if (!brandData) return notFound();
-
   const modelData = brandData.models.find((m) => toSlug(m.name) === modelSlug);
   if (!modelData) return notFound();
 
   const isSuperAdmin = currentUser?.role === "SUPERADMIN";
-  const gens = modelData.generations;
+  const allGens = modelData.generations;
+  // Platform filter: ONLY this model's generations that carry the code (e.g. A7 Sportback → its C8s)
+  const gens = platform ? allGens.filter((g) => hasCode(g.name, platform)) : allGens;
 
   const spots = await prisma.upload.findMany({
     where: { brand: brandData.name, model: modelData.name, deletedAt: null, hidden: false },
@@ -82,174 +56,149 @@ export default async function ModelPage({
     take: 200,
     select: {
       id: true, numericId: true, plateText: true, plateType: true, country: true,
-      generation: true, badge: true, color: true,
-      imageUrl: true, createdAt: true,
-      user: { select: { username: true, numericId: true } },
+      generation: true, brand: true, model: true, imageUrl: true, createdAt: true,
+      user: { select: { username: true } },
       _count: { select: { likes: true, comments: true } },
     },
   });
 
   const byGen: Record<string, typeof spots> = {};
-  for (const g of gens) byGen[g.name] = [];
+  for (const g of allGens) byGen[g.name] = [];
+  const ungrouped: typeof spots = [];
   for (const s of spots) {
-    const g = s.generation ?? "__other__";
-    if (byGen[g]) byGen[g].push(s);
-    else { byGen["__other__"] = byGen["__other__"] ?? []; byGen["__other__"].push(s); }
+    if (s.generation && byGen[s.generation]) byGen[s.generation].push(s);
+    else ungrouped.push(s);
   }
-  const ungrouped = byGen["__other__"] ?? [];
+  // Spots whose generation text isn't in the catalog: show them only when no filter, or if they carry the code
+  const shownUngrouped = platform ? ungrouped.filter((s) => hasCode(s.generation, platform)) : ungrouped;
+
+  const platformCodes = codesOf(allGens.map((g) => g.name));
+  const activeCode =
+    platform ? platformCodes.find((c) => codeSlug(c) === platform) ?? platform.toUpperCase() : null;
+  const shownSpotCount = gens.reduce((n, g) => n + byGen[g.name].length, 0) + shownUngrouped.length;
+  const span = yearSpan(gens.map((g) => g.name));
+  const base = `/catalog/${brandSlug}/${modelSlug}`;
+
+  const card = (s: (typeof spots)[number]) => {
+    const type = plateTypeLabel(s.country, s.plateType);
+    return <SpotCard key={s.id} spot={s} badge={type && type !== "Standard" ? <PhotoPill>{type}</PhotoPill> : undefined} />;
+  };
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-12">
-      <div className="mb-1 text-xs text-zinc-500">
-        <a href="/catalog" className="hover:text-indigo-400 transition-colors">Catalog</a>
-        <span className="mx-1.5 text-zinc-700">&#8250;</span>
-        <a href={"/catalog/" + brandSlug} className="hover:text-indigo-400 transition-colors">{brandData.name}</a>
-        <span className="mx-1.5 text-zinc-700">&#8250;</span>
-        <span className="text-zinc-400">{modelData.name}</span>
-      </div>
+    <main className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6">
+      <nav className="mb-5 text-xs text-zinc-500">
+        <a href="/catalog" className="transition-colors hover:text-zinc-300">Catalog</a>
+        <span className="mx-1.5 text-zinc-700">/</span>
+        <a href={`/catalog/${brandSlug}`} className="transition-colors hover:text-zinc-300">{brandData.name}</a>
+        <span className="mx-1.5 text-zinc-700">/</span>
+        <span className="text-zinc-300">{modelData.name}</span>
+      </nav>
 
-      <div className="mt-4 mb-10 flex items-end justify-between gap-4 flex-wrap">
-        <div className="flex items-start gap-3">
-          <div className="hidden" />
-          <div>
-            <h1 className="text-3xl font-black">{brandData.name} {modelData.name}</h1>
-            <p className="mt-1.5 text-sm text-zinc-500">
-              {spots.length === 0
-                ? "No spots yet"
-                : spots.length + " spot" + (spots.length !== 1 ? "s" : "") + " across " + gens.length + " generation" + (gens.length !== 1 ? "s" : "")}
+      {/* Header */}
+      <header className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 sm:p-8">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-400">{brandData.name}</p>
+            <h1 className="mt-1 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              {modelData.name}
+              {activeCode && <span className="ml-3 rounded-lg border border-indigo-400/50 bg-indigo-500/15 px-2.5 py-1 align-middle font-mono text-lg font-semibold text-indigo-200 sm:text-xl">{activeCode}</span>}
+            </h1>
+            <p className="mt-2 text-sm tabular-nums text-zinc-400">
+              {shownSpotCount === 0 ? "No spots yet" : `${shownSpotCount} spot${shownSpotCount === 1 ? "" : "s"}`}
+              {" · "}{gens.length} generation{gens.length === 1 ? "" : "s"}
+              {span && <> · {span}</>}
             </p>
           </div>
+          <a href="/upload" className="shrink-0 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-500">
+            ↑ Upload a spot
+          </a>
         </div>
-        <a href="/upload" className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 shrink-0 shadow-lg shadow-indigo-950/50 transition-colors">
-          Upload a spot
-        </a>
-      </div>
 
+        {platformCodes.length > 0 && (
+          <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-zinc-800 pt-4 text-xs text-zinc-500">
+            Filter by platform
+            {platformCodes.map((c) => {
+              const active = codeSlug(c) === platform;
+              return <CodeChip key={c} brandSlug={brandSlug} modelSlug={modelSlug} raw={c} code={c} active={active} href={active ? base : undefined} />;
+            })}
+            {platform && <a href={base} className="ml-1 text-zinc-400 underline underline-offset-4 transition-colors hover:text-white">Show all {modelData.name}</a>}
+          </div>
+        )}
+      </header>
+
+      {/* Jump chips */}
       {gens.length > 1 && (
-        <div className="flex flex-wrap gap-2 mb-10">
+        <nav className="no-scrollbar -mx-4 mt-6 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" aria-label="Generations">
           {gens.map((g) => {
-            const count = byGen[g.name]?.length ?? 0;
+            const p = parseGeneration(g.name);
+            const n = byGen[g.name].length;
             return (
-              <a
-                key={g.id}
-                href={"#" + toSlug(g.name)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-900/60 px-3 py-1 text-xs text-zinc-300 hover:border-indigo-800/60 hover:bg-indigo-950/20 hover:text-indigo-300 transition-colors"
-              >
-                {g.name}
-                {count > 0 && <span className="text-zinc-500">{count}</span>}
+              <a key={g.id} href={"#" + toSlug(g.name)}
+                className={`shrink-0 rounded-full border px-3 py-1.5 text-xs transition-colors hover:border-indigo-500/60 hover:text-white ${
+                  n > 0 ? "border-zinc-700 text-zinc-200" : "border-zinc-800 text-zinc-500"}`}>
+                {p.label}{p.years ? <span className="ml-1.5 text-zinc-500">{formatYears(p.years)}</span> : null}
+                {n > 0 && <span className="ml-1.5 rounded-full bg-indigo-500/20 px-1.5 text-[10px] font-semibold tabular-nums text-indigo-300">{n}</span>}
               </a>
             );
           })}
-        </div>
+        </nav>
       )}
 
-      <div className="space-y-14">
+      <div className="mt-10 space-y-14">
+        {platform && gens.length === 0 && (
+          <div className="rounded-xl border border-dashed border-zinc-800 px-6 py-10 text-center">
+            <p className="text-sm text-zinc-400">No {modelData.name} generation is on the {platform.toUpperCase()} platform.</p>
+            <a href={base} className="mt-2 inline-block text-sm text-indigo-300 hover:underline">Show all {modelData.name} →</a>
+          </div>
+        )}
+
         {gens.map((gen) => {
-          const gSpots = byGen[gen.name] ?? [];
+          const gSpots = byGen[gen.name];
           return (
-            <section key={gen.id} id={toSlug(gen.name)}>
-              <div className="flex items-center gap-3 mb-5">
-                <div className="flex items-center gap-3">
-                  <h2 className="text-xl font-semibold">{gen.name}</h2>
-                  <p className="text-xs text-zinc-500">{gSpots.length} spot{gSpots.length !== 1 ? "s" : ""}</p>
-                  {isSuperAdmin && <><RenameGenerationButton genId={gen.id} current={gen.name} /><DeleteGenerationButton genId={gen.id} /></>}
-                </div>
-                <div className="flex-1 border-t border-zinc-800 ml-2" />
+            <section key={gen.id} id={toSlug(gen.name)} className="scroll-mt-20">
+              <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-zinc-800/70 pb-3">
+                <h2 className="text-lg font-semibold text-zinc-100 sm:text-xl">
+                  <GenerationLabel name={gen.name} brandSlug={brandSlug} modelSlug={modelSlug} />
+                </h2>
+                <span className="text-xs tabular-nums text-zinc-500">{gSpots.length} spot{gSpots.length === 1 ? "" : "s"}</span>
+                {isSuperAdmin && (
+                  <span className="ml-auto flex items-center gap-2">
+                    <RenameGenerationButton genId={gen.id} current={gen.name} />
+                    <DeleteGenerationButton genId={gen.id} />
+                  </span>
+                )}
               </div>
 
               {gSpots.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-zinc-800 py-10 text-center">
-                  <p className="text-sm text-zinc-600">No spots for this generation yet.</p>
-                  <a href="/upload" className="mt-1 inline-block text-xs text-zinc-500 hover:text-indigo-400 transition-colors">
-                    Upload one &#8250;
-                  </a>
+                <div className="rounded-xl border border-dashed border-zinc-800 px-6 py-8 text-center">
+                  <p className="text-sm text-zinc-500">No spots for this generation yet.</p>
+                  <a href="/upload" className="mt-1 inline-block text-xs text-zinc-400 transition-colors hover:text-indigo-300">Upload one →</a>
                 </div>
               ) : (
-                <>
-                  <div className="flex gap-2 overflow-x-auto pb-2 mb-5 scrollbar-none">
-                    {gSpots.slice(0, 10).map((s) => (
-                      <a
-                        key={s.id + "-thumb"}
-                        href={"/spot/" + s.numericId}
-                        className="group shrink-0 w-32 rounded-xl overflow-hidden border border-zinc-800 hover:border-indigo-800/60 transition-all"
-                      >
-                        <div className="aspect-video bg-zinc-900 overflow-hidden">
-                          <img
-                            src={s.imageUrl}
-                            alt={s.plateText}
-                            className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-                            loading="lazy"
-                          />
-                        </div>
-                        <div className="px-2 py-1">
-                          <p className="font-mono text-[10px] font-bold tracking-widest text-zinc-300 truncate">{s.plateText}</p>
-                        </div>
-                      </a>
-                    ))}
-                  </div>
-
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {gSpots.map((u) => (
-                      <a key={u.id} href={"/spot/" + u.numericId}
-                        className="group rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-indigo-600/60 hover:shadow-xl hover:shadow-indigo-950/40 hover:-translate-y-0.5 transition-all block bg-zinc-900/50">
-                        <div className="relative overflow-hidden" style={{ aspectRatio: "16/9" }}>
-                          <img src={u.imageUrl} alt={u.plateText}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" loading="lazy" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                          {u.plateType && (
-                            <div className="absolute top-2 left-2">
-                              <span className="rounded-md bg-black/70 px-2 py-0.5 text-[11px] font-medium text-white/90 backdrop-blur-sm">
-                                {plateTypeLabel(u.country, u.plateType)}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="px-3 py-2.5">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="font-mono text-sm font-bold tracking-widest text-zinc-100 group-hover:text-indigo-200 transition-colors truncate">{u.plateText}</span>
-                            {u._count.likes > 0 && <span className="text-xs text-rose-400 font-semibold shrink-0">♥ {u._count.likes}</span>}
-                          </div>
-                          {(u.badge || u.color) && <div className="text-xs text-zinc-500 mt-0.5 truncate">{[u.badge, u.color].filter(Boolean).join(" · ")}</div>}
-                          <div className="mt-2 text-xs text-zinc-600">@{u.user.username}</div>
-                        </div>
-                      </a>
-                    ))}
-                  </div>
-                </>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
+                  {gSpots.map(card)}
+                </div>
               )}
             </section>
           );
         })}
 
-        {isSuperAdmin && (
-          <div className="pt-2">
-            <AddGenerationButton modelId={modelData.id} />
-          </div>
-        )}
+        {isSuperAdmin && !platform && <div><AddGenerationButton modelId={modelData.id} /></div>}
 
-        {ungrouped.length > 0 && (
+        {shownUngrouped.length > 0 && (
           <section>
-            <div className="flex items-center gap-3 mb-5">
-              <h2 className="text-xl font-semibold text-zinc-500">Untagged</h2>
-              <div className="flex-1 border-t border-zinc-800 ml-2" />
+            <div className="mb-5 flex items-center gap-3 border-b border-zinc-800/70 pb-3">
+              <h2 className="text-lg font-semibold text-zinc-400">{platform ? `Other ${activeCode} spots` : "Generation not set"}</h2>
+              <span className="text-xs tabular-nums text-zinc-600">{shownUngrouped.length}</span>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {ungrouped.map((u) => (
-                <a key={u.id} href={"/spot/" + u.numericId}
-                  className="group rounded-2xl overflow-hidden border border-zinc-800/60 hover:border-indigo-600/60 hover:shadow-xl hover:shadow-indigo-950/40 hover:-translate-y-0.5 transition-all block bg-zinc-900/50">
-                  <div className="relative overflow-hidden" style={{ aspectRatio: "16/9" }}>
-                    <img src={u.imageUrl} alt={u.plateText}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" loading="lazy" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  </div>
-                  <div className="px-3 py-2.5">
-                    <span className="font-mono text-sm font-bold tracking-widest text-zinc-100 group-hover:text-indigo-200 transition-colors">{u.plateText}</span>
-                    <div className="mt-1.5 text-xs text-zinc-600">@{u.user.username}</div>
-                  </div>
-                </a>
-              ))}
+            <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
+              {shownUngrouped.map(card)}
             </div>
           </section>
+        )}
+
+        {!platform && gens.length === 0 && (
+          <p className="text-sm text-zinc-500">No generations have been added for this model yet.</p>
         )}
       </div>
     </main>

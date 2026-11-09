@@ -1,6 +1,8 @@
 import { prisma } from "@/app/lib/prisma";
-import { cookies } from "next/headers";
+import { getSessionUser } from "@/app/lib/session";
 import { notFound } from "next/navigation";
+import { CodeChip } from "@/app/components/GenerationLabel";
+import { codesOf, toSlug, yearSpan } from "@/app/lib/chassis";
 import { AddModelButton, DeleteBrandButton, DeleteModelButton, RenameBrandButton, RenameModelButton } from "../CatalogAdminControls";
 
 export const dynamic = "force-dynamic";
@@ -15,23 +17,6 @@ export async function generateMetadata({ params }: { params: Promise<{ brand: st
   };
 }
 
-
-function toSlug(s: string) {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-}
-
-async function getSessionUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("pv_session")?.value;
-  if (!token) return null;
-  const session = await prisma.session.findUnique({
-    where: { token },
-    select: { expiresAt: true, user: { select: { id: true, role: true } } },
-  });
-  if (!session || session.expiresAt < new Date()) return null;
-  return session.user;
-}
-
 type GenRow = { id: number; name: string };
 type ModelRow = { id: number; name: string; generations: GenRow[] };
 type BrandRow = { id: number; name: string; models: ModelRow[] };
@@ -43,148 +28,106 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
     getSessionUser(),
     (prisma as any).carBrand.findMany({
       orderBy: { name: "asc" },
-      include: {
-        models: {
-          orderBy: { name: "asc" },
-          include: { generations: { orderBy: { name: "asc" }, select: { id: true, name: true } } },
-        },
-      },
+      include: { models: { orderBy: { name: "asc" }, include: { generations: { orderBy: { name: "asc" }, select: { id: true, name: true } } } } },
     }) as Promise<BrandRow[]>,
   ]);
-
   const brand = allBrands.find((b) => toSlug(b.name) === brandSlug);
   if (!brand) return notFound();
-
   const isSuperAdmin = currentUser?.role === "SUPERADMIN";
 
-  const spots = await prisma.upload.findMany({
-    where: { brand: brand.name, deletedAt: null, hidden: false },
-    orderBy: { createdAt: "desc" },
-    take: 300,
-    select: { id: true, numericId: true, imageUrl: true, model: true, plateText: true },
-  });
+  const visible = { brand: brand.name, deletedAt: null, hidden: false };
+  const [modelCounts, covers] = await Promise.all([
+    prisma.upload.groupBy({ by: ["model"], where: { ...visible, model: { not: null } }, _count: { id: true } }),
+    prisma.upload.findMany({
+      where: { ...visible, model: { not: null } },
+      orderBy: { createdAt: "desc" },
+      distinct: ["model"],
+      select: { model: true, imageUrl: true },
+    }),
+  ]);
+  const countByModel = new Map(modelCounts.map((r) => [r.model ?? "", r._count.id]));
+  const coverByModel = new Map(covers.map((r) => [r.model ?? "", r.imageUrl]));
+  const totalSpots = [...countByModel.values()].reduce((a, b) => a + b, 0);
+  const totalGens = brand.models.reduce((n, m) => n + m.generations.length, 0);
 
-  const byModel: Record<string, typeof spots> = {};
-  for (const m of brand.models) byModel[m.name] = [];
-  for (const s of spots) {
-    const m = s.model ?? "";
-    if (byModel[m]) byModel[m].push(s);
-  }
-
-  const totalSpots = spots.length;
+  // Models with spots first, then the rest A–Z
+  const models = [...brand.models].sort(
+    (a, b) => (countByModel.get(b.name) ?? 0) - (countByModel.get(a.name) ?? 0) || a.name.localeCompare(b.name),
+  );
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12">
-      <div className="mb-1 text-xs text-zinc-500">
-        <a href="/catalog" className="hover:text-indigo-400 transition-colors">Catalog</a>
-        <span className="mx-1.5 text-zinc-700">&#8250;</span>
-        <span className="text-zinc-400">{brand.name}</span>
-      </div>
+    <main className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6">
+      <nav className="mb-5 text-xs text-zinc-500">
+        <a href="/catalog" className="transition-colors hover:text-zinc-300">Catalog</a>
+        <span className="mx-1.5 text-zinc-700">/</span>
+        <span className="text-zinc-300">{brand.name}</span>
+      </nav>
 
-      <div className="mt-4 mb-8 flex items-end justify-between gap-4 flex-wrap">
-        <div className="flex items-start gap-3">
-          <div className="hidden" />
+      <header className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 sm:p-8">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-black">{brand.name}</h1>
-            <p className="mt-1.5 text-sm text-zinc-500">
-              {totalSpots} spot{totalSpots !== 1 ? "s" : ""} across {brand.models.length} model{brand.models.length !== 1 ? "s" : ""}
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-400">Make</p>
+            <h1 className="mt-1 text-3xl font-bold tracking-tight text-white sm:text-4xl">{brand.name}</h1>
+            <p className="mt-2 text-sm tabular-nums text-zinc-400">
+              {totalSpots} spot{totalSpots === 1 ? "" : "s"} · {brand.models.length} model{brand.models.length === 1 ? "" : "s"} · {totalGens} generation{totalGens === 1 ? "" : "s"}
             </p>
           </div>
+          <div className="flex items-center gap-3">
+            {isSuperAdmin && <><RenameBrandButton brandId={brand.id} current={brand.name} /><DeleteBrandButton brandId={brand.id} /></>}
+            <a href="/upload" className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-500">↑ Upload a spot</a>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          {isSuperAdmin && <><RenameBrandButton brandId={brand.id} current={brand.name} /><DeleteBrandButton brandId={brand.id} /></>}
-          <a href="/upload" className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 shrink-0 shadow-lg shadow-indigo-950/50 transition-colors">
-            Upload a spot
-          </a>
-        </div>
-      </div>
 
-      <div className="flex flex-wrap gap-2 mb-10">
-        {brand.models.map((m) => {
-          const count = byModel[m.name]?.length ?? 0;
-          return (
-            <a
-              key={m.id}
-              href={"#" + toSlug(m.name)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-900/60 px-3 py-1 text-xs text-zinc-300 hover:border-indigo-800/60 hover:bg-indigo-950/20 hover:text-indigo-300 transition-colors"
-            >
-              {m.name}
-              {count > 0 && <span className="text-zinc-500">{count}</span>}
-            </a>
-          );
-        })}
-      </div>
+      </header>
 
-      <div className="space-y-10">
-        {brand.models.map((m) => {
-          const mSpots = byModel[m.name] ?? [];
-          return (
-            <section key={m.id} id={toSlug(m.name)}>
-              <div className="flex items-baseline justify-between gap-3 mb-4">
-                <div className="flex items-baseline gap-3">
-                  <h2 className="text-xl font-semibold">{m.name}</h2>
-                  <span className="text-sm text-zinc-500">{mSpots.length} spot{mSpots.length !== 1 ? "s" : ""}</span>
-                  {isSuperAdmin && <><RenameModelButton modelId={m.id} current={m.name} /><DeleteModelButton modelId={m.id} /></>}
-                </div>
-                <a
-                  href={"/catalog/" + brandSlug + "/" + toSlug(m.name)}
-                  className="text-xs text-zinc-500 hover:text-indigo-400 transition-colors"
-                >
-                  View all &#8250;
-                </a>
-              </div>
+      {/* Models */}
+      <section className="mt-8">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {models.map((m) => {
+            const n = countByModel.get(m.name) ?? 0;
+            const cover = coverByModel.get(m.name);
+            const names = m.generations.map((g) => g.name);
+            const span = yearSpan(names);
+            const codes = codesOf(names).slice(0, 4);
+            return (
+              <div key={m.id}
+                className={`group relative flex aspect-[4/3] flex-col justify-end overflow-hidden rounded-xl bg-zinc-900 ring-1 ring-zinc-800/80 transition hover:ring-indigo-500/60 ${n === 0 ? "opacity-70 hover:opacity-100" : ""}`}>
+                <a href={`/catalog/${brandSlug}/${toSlug(m.name)}`} className="absolute inset-0 z-10" aria-label={`${brand.name} ${m.name}`} />
+                {cover ? (
+                  <img src={cover} alt="" loading="lazy"
+                    className="absolute inset-0 h-full w-full object-cover opacity-80 transition duration-700 group-hover:scale-105 group-hover:opacity-100" />
+                ) : (
+                  <div className="absolute inset-0 grid place-items-center bg-gradient-to-br from-zinc-800/60 to-zinc-900 font-plate text-5xl text-white/[0.06]" aria-hidden="true">
+                    {m.name.slice(0, 3).toUpperCase()}
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
 
-              <p className="text-xs text-zinc-600 mb-3">
-                {m.generations.map((g) => g.name).join(" · ")}
-              </p>
+                {isSuperAdmin && (
+                  <div className="absolute right-2 top-2 z-20 flex gap-1.5">
+                    <RenameModelButton modelId={m.id} current={m.name} />
+                    <DeleteModelButton modelId={m.id} />
+                  </div>
+                )}
 
-              {mSpots.length === 0 ? (
-                <div className="flex items-center gap-3 rounded-2xl border border-dashed border-zinc-800 px-5 py-6">
-                  <span className="text-sm text-zinc-600">No spots yet.</span>
-                  <a href="/upload" className="text-xs text-zinc-500 hover:text-indigo-400 transition-colors">Be the first &#8250;</a>
-                </div>
-              ) : (
-                <div className="grid grid-cols-5 gap-2">
-                  {mSpots.slice(0, 4).map((s) => (
-                    <a
-                      key={s.id}
-                      href={"/spot/" + s.numericId}
-                      className="group rounded-xl overflow-hidden border border-zinc-800/60 bg-zinc-900/50 hover:border-indigo-600/60 hover:shadow-lg hover:shadow-indigo-950/40 transition-all"
-                    >
-                      <div className="aspect-video bg-zinc-900 overflow-hidden">
-                        <img
-                          src={s.imageUrl}
-                          alt={s.plateText}
-                          className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
-                          loading="lazy"
-                        />
-                      </div>
-                      <div className="px-2 py-1.5">
-                        <p className="font-mono text-[11px] font-bold tracking-widest text-zinc-200 truncate">{s.plateText}</p>
-                      </div>
-                    </a>
-                  ))}
-                  {mSpots.length > 4 && (
-                    <a
-                      href={"/catalog/" + brandSlug + "/" + toSlug(m.name)}
-                      className="rounded-xl border border-dashed border-zinc-800 flex flex-col items-center justify-center gap-1 text-zinc-500 hover:text-zinc-300 hover:border-zinc-600 transition-colors aspect-video"
-                    >
-                      <span className="text-xl font-bold">+{mSpots.length - 4}</span>
-                      <span className="text-[11px]">View all</span>
-                    </a>
+                <div className="relative p-3.5">
+                  <div className="truncate text-base font-semibold text-white">{m.name}</div>
+                  <div className="mt-0.5 text-xs tabular-nums text-white/70">
+                    {n > 0 ? `${n} spot${n === 1 ? "" : "s"}` : "no spots yet"} · {m.generations.length} gen{m.generations.length === 1 ? "" : "s"}
+                    {span && <> · {span}</>}
+                  </div>
+                  {codes.length > 0 && (
+                    <div className="relative z-20 mt-2 flex flex-wrap gap-1">
+                      {codes.map((c) => <CodeChip key={c} brandSlug={brandSlug} modelSlug={toSlug(m.name)} raw={c} code={c} className="bg-black/40 backdrop-blur" />)}
+                    </div>
                   )}
                 </div>
-              )}
-            </section>
-          );
-        })}
-
-        {isSuperAdmin && (
-          <div className="pt-4">
-            <AddModelButton brandId={brand.id} />
-          </div>
-        )}
-      </div>
+              </div>
+            );
+          })}
+        </div>
+        {isSuperAdmin && <div className="pt-6"><AddModelButton brandId={brand.id} /></div>}
+      </section>
     </main>
   );
 }
