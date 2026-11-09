@@ -73,7 +73,9 @@ export default async function ModelPage({ params, searchParams }: {
     const activeCode = codesOf(genNames).find((c) => codeSlug(c) === platform) ?? platform.toUpperCase();
     const where = { brand: brandData.name, model: modelData.name, deletedAt: null, hidden: false, generation: { in: genNames } };
 
-    const total = genNames.length ? await prisma.upload.count({ where }) : 0;
+    const perGen = genNames.length ? await prisma.upload.groupBy({ by: ["generation"], where, _count: { id: true } }) : [];
+    const countByGen = new Map(perGen.map((r) => [r.generation ?? "", r._count.id]));
+    const total = [...countByGen.values()].reduce((a, b) => a + b, 0);
     const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
     const page = Math.min(requestedPage, pages);                 // a page number past the end lands on the last page
     const spots = total
@@ -111,25 +113,48 @@ export default async function ModelPage({ params, searchParams }: {
           <span className="text-zinc-300">{activeCode}</span>
         </nav>
 
-        <h1 className="text-2xl text-zinc-300 sm:text-3xl">
-          License plates found <strong className="font-bold tabular-nums text-white">{total.toLocaleString()}</strong>
-        </h1>
+        <header className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 sm:p-8" aria-label="Your search">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-400">{fullName} · {activeCode}</p>
+              <h1 className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-2 text-2xl font-bold tracking-tight text-white sm:text-4xl">
+                License plates found
+                <span className="rounded-xl bg-indigo-500/15 px-3 py-0.5 tabular-nums text-indigo-200 ring-1 ring-indigo-500/30">{total.toLocaleString()}</span>
+              </h1>
+              <p className="mt-2 text-sm tabular-nums text-zinc-400">
+                {genNames.length} generation{genNames.length === 1 ? "" : "s"}
+                {span && <> · {span}</>}
+              </p>
+            </div>
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0">
+              <a href={base} className="flex-1 rounded-lg border border-zinc-700 px-4 py-2.5 text-center text-sm font-medium sm:flex-none text-zinc-200 transition-colors hover:border-zinc-500 hover:bg-zinc-800 hover:text-white">
+                Show all {modelData.name}
+              </a>
+              <a href="/upload" className="flex-1 rounded-lg bg-indigo-600 px-4 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-indigo-500 sm:flex-none">↑ Upload a spot</a>
+            </div>
+          </div>
 
-        <section className="mt-5 rounded-lg border-l-4 border-indigo-500 bg-zinc-900/60 px-5 py-4 shadow-lg shadow-black/20" aria-label="Your search">
-          <p className="text-lg text-zinc-200">You have searched:</p>
-          <p className="mt-2 flex items-start gap-2 text-sm text-zinc-200">
-            <span className="text-indigo-400" aria-hidden="true">✓</span>
-            <span>{fullName} ({activeCode}{span ? `, ${span}` : ""})</span>
-          </p>
-          {genNames.length > 0 && (
-            <ul className="ml-6 mt-1.5 space-y-0.5 text-xs text-zinc-500">
-              {genNames.map((n) => <li key={n}>{n}</li>)}
-            </ul>
-          )}
-          <p className="mt-3 text-right text-sm">
-            <a href={base} className="text-indigo-300 underline-offset-4 hover:underline">Show all {modelData.name}</a>
-          </p>
-        </section>
+          <div className="mt-6 border-t border-zinc-800 pt-5">
+            <p className="mb-3 text-xs font-medium uppercase tracking-wide text-zinc-500">You have searched</p>
+            <p className="mb-3 inline-flex items-center gap-2 rounded-lg bg-indigo-500/15 px-3 py-1.5 text-sm font-medium text-indigo-100">
+              <span className="text-indigo-400" aria-hidden="true">✓</span>
+              {fullName} ({activeCode}{span ? `, ${span}` : ""})
+            </p>
+            {genNames.length > 0 && (
+              <ul className="divide-y divide-zinc-800/70 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/40">
+                {genNames.map((n) => {
+                  const c = countByGen.get(n) ?? 0;
+                  return (
+                    <li key={n} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
+                      <span className="min-w-0 text-zinc-300">{n}</span>
+                      <span className={`shrink-0 text-xs tabular-nums ${c > 0 ? "text-zinc-400" : "text-zinc-600"}`}>{c} spot{c === 1 ? "" : "s"}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        </header>
 
         {total === 0 ? (
           <div className="mt-8 rounded-xl border border-dashed border-zinc-800 px-6 py-12 text-center">
