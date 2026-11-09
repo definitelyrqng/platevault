@@ -203,8 +203,9 @@ export default async function UserProfilePage({
             <div className="absolute inset-x-0 top-0 h-44 sm:h-56 bg-gradient-to-b from-transparent to-zinc-900/40 pointer-events-none" />
           </div>
         ) : (
-          <div className="h-40 sm:h-48" style={{ background: "linear-gradient(135deg, oklch(0.13 0.04 275) 0%, oklch(0.10 0.02 260) 50%, oklch(0.12 0.03 290) 100%)" }}>
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_20%_50%,rgba(99,102,241,0.15),transparent)]" />
+          <div className="relative h-40 sm:h-48" style={{ background: "linear-gradient(135deg, oklch(0.13 0.04 275) 0%, oklch(0.10 0.02 260) 50%, oklch(0.12 0.03 290) 100%)" }}>
+            {/* Decorative glow — must stay inside the banner and never catch clicks */}
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_20%_50%,rgba(99,102,241,0.15),transparent)]" />
           </div>
         )}
 
