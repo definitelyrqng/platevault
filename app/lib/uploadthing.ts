@@ -1,5 +1,10 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
+import { UploadThingError } from "uploadthing/server";
 import { prisma } from "@/app/lib/prisma";
+
+// Only UploadThingError messages reach the browser — a plain Error becomes the
+// generic "Failed to run middleware", so users never learn *why* it failed.
+const NOT_LOGGED_IN = "Your session has expired — please log in again to upload.";
 
 const f = createUploadthing();
 
@@ -46,7 +51,7 @@ async function getSessionUser(req: Request) {
       ? ` until ${u.banExpiresAt.toLocaleDateString("en-GB")}`
       : " permanently";
     const reason = u.banReason ? ` Reason: ${u.banReason}` : "";
-    throw new Error(`Your account is restricted${until}.${reason}`);
+    throw new UploadThingError(`Your account is restricted${until}.${reason}`);
   }
 
   console.log("[UT] session valid, user:", u.username);
@@ -61,7 +66,7 @@ export const ourFileRouter = {
   })
     .middleware(async ({ req }) => {
       const user = await getSessionUser(req);
-      if (!user) throw new Error("Unauthorized");
+      if (!user) throw new UploadThingError(NOT_LOGGED_IN);
       return { userId: user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
@@ -77,7 +82,7 @@ export const ourFileRouter = {
   })
     .middleware(async ({ req }) => {
       const user = await getSessionUser(req);
-      if (!user) throw new Error("Unauthorized");
+      if (!user) throw new UploadThingError(NOT_LOGGED_IN);
       console.log("[UT] avatarUploader middleware ok, userId:", user.id);
       return { userId: user.id };
     })
@@ -98,7 +103,7 @@ export const ourFileRouter = {
   })
     .middleware(async ({ req }) => {
       const user = await getSessionUser(req);
-      if (!user) throw new Error("Unauthorized");
+      if (!user) throw new UploadThingError(NOT_LOGGED_IN);
       console.log("[UT] bannerUploader middleware ok, userId:", user.id);
       return { userId: user.id };
     })
