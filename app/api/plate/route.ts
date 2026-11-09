@@ -38,7 +38,7 @@ function getArtDataUri(src: string) {
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
 /** SVG for one run of text: glyph outlines, umlauts synthesised (font has none). */
-function runSvg(font: opentype.Font, text: string, fontSize: number, x0: number, x1: number, centerY: number) {
+function runSvg(font: opentype.Font, text: string, fontSize: number, x0: number, x1: number, centerY: number, color = "#111") {
   const scale = fontSize / font.unitsPerEm;
   const out = new opentype.Path();
   const dots: string[] = [];
@@ -72,7 +72,7 @@ function runSvg(font: opentype.Font, text: string, fontSize: number, x0: number,
   const startX = x0 + (x1 - x0 - width) / 2;
   const baseline = centerY - ((CAP_TOP + CAP_BOTTOM) / 2) * fontSize;
   const sw = (STROKE * fontSize).toFixed(2);
-  return `<g transform="translate(${startX.toFixed(2)} ${baseline.toFixed(2)}) scale(${CONDENSE} 1)" fill="#111" stroke="#111" stroke-width="${sw}" stroke-linejoin="round">`
+  return `<g transform="translate(${startX.toFixed(2)} ${baseline.toFixed(2)}) scale(${CONDENSE} 1)" fill="${color}" stroke="${color}" stroke-width="${sw}" stroke-linejoin="round">`
     + `<path d="${out.toPathData(2)}"/>${dots.join("")}</g>`;
 }
 
@@ -104,7 +104,8 @@ export async function GET(req: Request) {
     background = `<rect x="${b / 2}" y="${b / 2}" width="${width - b}" height="${h - b}" rx="${radius}" fill="#fbfbf8" stroke="#161616" stroke-width="${b}"/>`;
   }
 
-  const runs = layout.runs.map((r) => runSvg(font, r.text, r.fontSize, r.x0, r.x1, r.centerY)).join("");
+  const color = layout.art?.textColor ?? "#111";
+  const runs = layout.runs.map((r) => runSvg(font, r.text, r.fontSize, r.x0, r.x1, r.centerY, color)).join("");
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${h}" viewBox="0 0 ${width} ${h}">`
     + `<title>${esc(layout.printed)}</title>${background}${runs}</svg>`;
 

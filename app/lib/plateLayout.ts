@@ -24,6 +24,8 @@ export type PlateArt = {
   h: number;            // image height (px)
   rows: ArtRow[];
   split: SplitRule;
+  /** Lettering colour (default near-black). */
+  textColor?: string;
 };
 
 /**
@@ -43,13 +45,38 @@ export const PLATE_ART: Record<string, PlateArt> = {
     rows: [{ y0: 14, y1: 205, boxes: [{ x0: 120, x1: 355 }, { x0: 411, x1: 889 }] }],
     split: "seal",
   },
-  // trailer_single.png (1598×354): teal area x177–1420, y21–332, seal x583–635.
+
+  // Plates below were prepared with scripts/plate-art.cjs (border 14px / radius 27px,
+  // content offset +31,+23) so they all match the car plate's border.
+
+  // trailer_single.png (1602×358): teal area x179–1422, y23–334, seal x585–637. White lettering.
   "albania:trailer-2011-single": {
     src: "/plates/albania/trailer_single.png",
-    w: 1598,
-    h: 354,
-    rows: [{ y0: 21, y1: 332, boxes: [{ x0: 191, x1: 573 }, { x0: 645, x1: 1408 }] }],
+    w: 1602,
+    h: 358,
+    rows: [{ y0: 23, y1: 334, boxes: [{ x0: 193, x1: 575 }, { x0: 647, x1: 1410 }] }],
     split: "seal",
+    textColor: "#fff",
+  },
+  // cars_double.png (940×474): top row between the bands x178–761, y23–241 with the seal
+  // at x391–454; bottom row full width y242–450.  "AB 123 CD" → AB · 123 / CD
+  "albania:car-2011-double": {
+    src: "/plates/albania/cars_double.png",
+    w: 940,
+    h: 474,
+    rows: [
+      { y0: 23, y1: 241, boxes: [{ x0: 188, x1: 372 }, { x0: 472, x1: 752 }] },
+      { y0: 242, y1: 450, boxes: [{ x0: 60, x1: 880 }] },
+    ],
+    split: "al-double",
+  },
+  // cars_old.png (1602×358): pre-2011 plate, red band; white area x179–1570, y23–334. No seal.
+  "albania:car-1993-single": {
+    src: "/plates/albania/cars_old.png",
+    w: 1602,
+    h: 358,
+    rows: [{ y0: 23, y1: 334, boxes: [{ x0: 191, x1: 1558 }] }],
+    split: "whole",
   },
 };
 
