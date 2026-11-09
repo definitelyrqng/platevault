@@ -308,6 +308,8 @@ export default async function UserProfilePage({
               targetRole={user.role}
               isBanned={isBanned}
               banExpiresAt={user.banExpiresAt?.toISOString() ?? null}
+              currentBanReason={user.banReason}
+              bannedAt={user.bannedAt?.toISOString() ?? null}
               actorRole={viewerRole}
             />
           )}

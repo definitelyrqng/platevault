@@ -9,6 +9,10 @@ type Props = {
   targetRole: string;
   isBanned: boolean;
   banExpiresAt: string | null;
+  /** Why the user is currently banned (shown to admins). */
+  currentBanReason?: string | null;
+  /** When the current ban started. */
+  bannedAt?: string | null;
   actorRole: string;
   /** Start expanded (used inside the admin hub, where it sits in its own row). */
   defaultOpen?: boolean;
@@ -26,6 +30,8 @@ export default function UserAdminPanel({
   targetRole,
   isBanned,
   banExpiresAt,
+  currentBanReason,
+  bannedAt,
   actorRole,
   defaultOpen = false,
 }: Props) {
@@ -139,8 +145,14 @@ export default function UserAdminPanel({
 
             {isBanned ? (
               <div className="space-y-2">
-                <div className="rounded-xl border border-red-900/40 bg-red-950/20 px-3 py-2 text-xs text-red-300">
-                  Currently banned{banExpiresAt ? ` until ${new Date(banExpiresAt).toLocaleDateString("en-GB")}` : " permanently"}.
+                <div className="space-y-1.5 rounded-xl border border-red-900/40 bg-red-950/20 px-3 py-2.5 text-xs text-red-300">
+                  <p className="font-semibold">
+                    Currently banned{banExpiresAt ? ` until ${new Date(banExpiresAt).toLocaleDateString("en-GB")}` : " permanently"}
+                    {bannedAt ? <span className="font-normal text-red-300/70"> · since {new Date(bannedAt).toLocaleDateString("en-GB")}</span> : null}
+                  </p>
+                  {currentBanReason
+                    ? <p><span className="text-red-300/60">Reason:</span> <span className="text-red-100">{currentBanReason}</span></p>
+                    : <p className="italic text-red-300/60">No reason was given.</p>}
                 </div>
                 <button
                   onClick={handleUnban}
