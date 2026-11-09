@@ -1,4 +1,5 @@
 import Flag from "@/app/components/Flag";
+import PlateBadge from "@/app/components/PlateBadge";
 import SpotCard from "@/app/components/SpotCard";
 import { getCountryMeta } from "@/app/lib/countries";
 import { plateTypeLabel } from "@/app/lib/plateTypes";
@@ -40,7 +41,7 @@ export default async function CountryPage({
   searchParams,
 }: {
   params: Promise<{ country: string }>;
-  searchParams: Promise<{ type?: string; page?: string }>;
+  searchParams: Promise<{ type?: string; page?: string; q?: string; brand?: string; user?: string; from?: string; to?: string }>;
 }) {
   const [{ country: rawCountry }, sp] = await Promise.all([params, searchParams]);
   const country = rawCountry.toLowerCase();
@@ -51,9 +52,21 @@ export default async function CountryPage({
   const page = Math.max(1, Number(sp.page) || 1);
 
   const base = { country, deletedAt: null, hidden: false };
-  const where = selectedTypes.length ? { ...base, plateType: { in: selectedTypes } } : base;
+  const q = (sp.q ?? "").trim().slice(0, 30);
+  const brandQ = (sp.brand ?? "").trim().slice(0, 40);
+  const userQ = (sp.user ?? "").trim().slice(0, 40);
+  const validDate = (v?: string) => (v && /^d{4}-d{2}-d{2}$/.test(v) && !isNaN(Date.parse(v)) ? new Date(v) : null);
+  const fromD = validDate(sp.from);
+  const toD = validDate(sp.to);
+  const lookupActive = !!(q || brandQ || userQ || fromD || toD);
+  const where: Record<string, unknown> = { ...base };
+  if (selectedTypes.length) where.plateType = { in: selectedTypes };
+  if (q) where.plateText = { contains: q, mode: "insensitive" };
+  if (brandQ) where.brand = { contains: brandQ, mode: "insensitive" };
+  if (userQ) where.user = { username: { contains: userQ, mode: "insensitive" } };
+  if (fromD || toD) where.createdAt = { ...(fromD ? { gte: fromD } : {}), ...(toD ? { lt: new Date(toD.getTime() + 86_400_000) } : {}) };
 
-  const [uploads, filteredCount, totalCount, typeGroups, spotterGroups, currentUser] = await Promise.all([
+  const [uploads, filteredCount, totalCount, typeGroups, spotterGroups, currentUser, typeSamples, popular] = await Promise.all([
     prisma.upload.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -84,16 +97,32 @@ export default async function CountryPage({
     }),
     prisma.upload.groupBy({ by: ["userId"], where: base }),
     getCurrentUser(),
+    // a real plate of each type, for the overview tiles
+    prisma.upload.findMany({
+      where: { ...base, plateType: { not: null } },
+      distinct: ["plateType"],
+      orderBy: { createdAt: "desc" },
+      select: { plateType: true, plateText: true },
+    }),
+    page === 1 && !type && !lookupActive
+      ? prisma.upload.findMany({
+          where: base,
+          orderBy: [{ likes: { _count: "desc" } }, { createdAt: "desc" }],
+          take: 8,
+          select: { id: true, numericId: true, plateText: true, plateType: true, country: true, imageUrl: true, createdAt: true, userId: true, brand: true, model: true, user: { select: { username: true } }, _count: { select: { likes: true, comments: true } } },
+        })
+      : Promise.resolve([]),
   ]);
+  const sampleOf = new Map(typeSamples.map((t) => [t.plateType as string, t.plateText]));
 
   // Merge stored type IDs that share a display name into one filter chip
-  const chips: { label: string; types: string[]; count: number }[] = [];
+  const chips: { label: string; types: string[]; count: number; sample?: string }[] = [];
   for (const g of typeGroups) {
     if (!g.plateType) continue;
     const label = plateTypeLabel(country, g.plateType) ?? g.plateType;
     const chip = chips.find((c) => c.label === label);
     if (chip) { chip.types.push(g.plateType); chip.count += g._count.id; }
-    else chips.push({ label, types: [g.plateType], count: g._count.id });
+    else chips.push({ label, types: [g.plateType], count: g._count.id, sample: sampleOf.get(g.plateType) });
   }
   chips.sort((a, b) => b.count - a.count);
   const chipActive = (c: { types: string[] }) =>
@@ -105,6 +134,11 @@ export default async function CountryPage({
     const qs = new URLSearchParams();
     const t = p.type === undefined ? type : p.type;
     if (t) qs.set("type", t);
+    if (q) qs.set("q", q);
+    if (brandQ) qs.set("brand", brandQ);
+    if (userQ) qs.set("user", userQ);
+    if (sp.from) qs.set("from", sp.from);
+    if (sp.to) qs.set("to", sp.to);
     if (p.page && p.page > 1) qs.set("page", String(p.page));
     const s = qs.toString();
     return `/c/${country}${s ? `?${s}` : ""}`;
@@ -135,24 +169,61 @@ export default async function CountryPage({
         </a>
       </div>
 
-      {/* ─── Plate type filter ─── */}
-      {chips.length > 1 && (
-        <div className="no-scrollbar -mx-4 mt-5 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
-          <a href={href({ type: null })}
-            className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-              !type ? "border-indigo-500 bg-indigo-600 text-white" : "border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-white"
-            }`}>
-            All <span className="ml-1 opacity-70 tabular-nums">{totalCount}</span>
-          </a>
-          {chips.map((c) => (
-            <a key={c.label} href={href({ type: c.types.join(",") })}
-              className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                chipActive(c) ? "border-indigo-500 bg-indigo-600 text-white" : "border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-white"
-              }`}>
-              {c.label} <span className="ml-1 opacity-70 tabular-nums">{c.count}</span>
-            </a>
+      {/* ─── Plate types: what is in the archive ─── */}
+      {chips.length > 0 && (
+        <section className="mt-6">
+          <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-zinc-500">Plate types</h2>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+            {chips.map((c) => (
+              <a key={c.label} href={href({ type: chipActive(c) ? null : c.types.join(","), page: 1 })}
+                className={`flex flex-col items-center gap-2 rounded-xl border p-3 text-center transition-all ${
+                  chipActive(c) ? "border-indigo-500 bg-indigo-600/10 ring-1 ring-indigo-500/50" : "border-zinc-800 bg-zinc-900/40 hover:border-zinc-600"
+                }`}>
+                <span className="flex h-[52px] items-center justify-center">
+                  {c.sample && <PlateBadge country={country} text={c.sample} plateType={c.types[0]} size="md" />}
+                </span>
+                <span className="text-sm font-medium text-zinc-200">{c.label}</span>
+                <span className="text-xs tabular-nums text-zinc-500">{c.count.toLocaleString()} photo{c.count === 1 ? "" : "s"}</span>
+              </a>
+            ))}
+          </div>
+          {type && <a href={href({ type: null })} className="mt-3 inline-block text-xs text-indigo-300 hover:text-indigo-200">× Show all plate types</a>}
+        </section>
+      )}
+
+      {/* ─── Lookup ─── */}
+      <form method="get" className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4">
+        <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-zinc-500">Lookup in {meta.name}</h2>
+        {type && <input type="hidden" name="type" value={type} />}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {([["q", "Plate number", q], ["brand", "Brand", brandQ], ["user", "Spotter", userQ]] as const).map(([name, label, val]) => (
+            <label key={name} className="text-xs text-zinc-500">{label}
+              <input name={name} defaultValue={val} className="mt-1 h-10 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 text-sm text-zinc-100 outline-none focus:border-indigo-500" />
+            </label>
           ))}
+          <label className="text-xs text-zinc-500">From
+            <input type="date" name="from" defaultValue={sp.from ?? ""} className="mt-1 h-10 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 text-sm text-zinc-100 outline-none focus:border-indigo-500" />
+          </label>
+          <label className="text-xs text-zinc-500">To
+            <input type="date" name="to" defaultValue={sp.to ?? ""} className="mt-1 h-10 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 text-sm text-zinc-100 outline-none focus:border-indigo-500" />
+          </label>
         </div>
+        <div className="mt-3 flex items-center gap-3">
+          <button className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500">Search</button>
+          {(lookupActive || type) && <a href={`/c/${country}`} className="text-xs text-zinc-400 hover:text-white">Clear</a>}
+          {(lookupActive || type) && <span className="text-xs tabular-nums text-zinc-500">{filteredCount.toLocaleString()} result{filteredCount === 1 ? "" : "s"}</span>}
+        </div>
+      </form>
+
+      {/* ─── Popular ─── */}
+      {popular.length > 0 && (
+        <section className="mt-8">
+          <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-zinc-500">Popular</h2>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
+            {popular.map((u) => <SpotCard key={u.id} spot={u} showFlag={false} />)}
+          </div>
+          <h2 className="mb-3 mt-10 text-xs font-bold uppercase tracking-widest text-zinc-500">Latest</h2>
+        </section>
       )}
 
       {/* ─── Grid ─── */}
