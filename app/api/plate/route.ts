@@ -132,10 +132,14 @@ export async function GET(req: Request) {
 
   // Seal(s): drawn per plate, between the text pieces, so margins stay equal on both sides
   let seals = "";
-  if (layout.art?.seal && layout.seals.length) {
-    const uri = await getArtDataUri(layout.art.seal);
-    seals = layout.seals.map((k) =>
-      `<image href="${uri}" x="${(k.cx - k.d / 2).toFixed(2)}" y="${(k.cy - k.d / 2).toFixed(2)}" width="${k.d.toFixed(2)}" height="${k.d.toFixed(2)}"/>`).join("");
+  if (layout.seals.length) {
+    seals = (await Promise.all(layout.seals.map(async (k) => {
+      const src = k.src ?? layout.art?.seal;
+      if (!src) return "";
+      const uri = await getArtDataUri(src);
+      const sh = k.h ?? k.d;
+      return `<image href="${uri}" x="${(k.cx - k.d / 2).toFixed(2)}" y="${(k.cy - sh / 2).toFixed(2)}" width="${k.d.toFixed(2)}" height="${sh.toFixed(2)}" preserveAspectRatio="none"/>`;
+    }))).join("");
   }
 
   const color = layout.art?.textColor ?? "#111";

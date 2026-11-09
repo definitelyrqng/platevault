@@ -34,7 +34,7 @@ export const AT_SPACE = 80;
  */
 export type ArtRow = {
   y0: number; y1: number; x0: number; x1: number; slots: number;
-  seal?: boolean | "left";
+  seal?: boolean | "left" | "right";
   /** Gap beside the seal as a fraction of the row height (default SEAL_GAP) — smaller on narrow rows. */
   gap?: number;
 };
@@ -48,7 +48,7 @@ export type ArtRow = {
  *  - "al-moto":    letters | digits                    ("AB 123" → AB | 123)
  *  - "al-trailer-two": letters | "R" + digits          ("AB R 456" → AB | R 456)
  */
-export type SplitRule = "at-two" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
+export type SplitRule = "at-two" | "at-seal" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
 
 export type PlateArt = {
   src: string;          // path under /public
@@ -58,6 +58,10 @@ export type PlateArt = {
   split: SplitRule;
   /** Seal image drawn between the first two pieces of a `seal` row. */
   seal?: string;
+  /** Austria: draw the coat of arms of the plate's state (by district) instead of a fixed seal. */
+  stateSeals?: boolean;
+  /** Height of a state coat of arms as a fraction of its row. */
+  sealH?: number;
   /** Lettering colour (default near-black). */
   textColor?: string;
 };
@@ -157,17 +161,17 @@ export const PLATE_ART: Record<string, PlateArt> = {
     split: "whole",
   },
   // ── Austria: backgrounds in public/plates/austria; one row per line of lettering ──
-  "austria:regular-single": { src: "/plates/austria/regular-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1015, slots: 1 }], split: "whole" },
-  "austria:regular-single-noeuro": { src: "/plates/austria/regular-single-noeuro.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 40, x1: 1000, slots: 1 }], split: "whole" },
-  "austria:repeater-single": { src: "/plates/austria/repeater-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1005, slots: 1 }], split: "whole" },
+  "austria:regular-single": { src: "/plates/austria/regular-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1015, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.8 },
+  "austria:regular-single-noeuro": { src: "/plates/austria/regular-single-noeuro.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 40, x1: 1000, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.8 },
+  "austria:repeater-single": { src: "/plates/austria/repeater-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1005, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.8 },
   "austria:provisional-single": { src: "/plates/austria/provisional-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 60, x1: 880, slots: 1 }], split: "whole", textColor: "#fff" },
   "austria:provisional-single-small": { src: "/plates/austria/provisional-single-small.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 60, x1: 880, slots: 1 }], split: "whole", textColor: "#fff" },
-  "austria:dealer-single": { src: "/plates/austria/dealer-single.png", w: 1040, h: 240, rows: [{ y0: 30, y1: 208, x0: 60, x1: 985, slots: 1 }], split: "whole", textColor: "#fff" },
+  "austria:dealer-single": { src: "/plates/austria/dealer-single.png", w: 1040, h: 240, rows: [{ y0: 30, y1: 208, x0: 60, x1: 985, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.8, textColor: "#fff" },
   "austria:export-single": { src: "/plates/austria/export-single.png", w: 1040, h: 240, rows: [{ y0: 30, y1: 208, x0: 50, x1: 880, slots: 1 }], split: "whole", textColor: "#fff" },
-  "austria:regular-two": { src: "/plates/austria/regular-two.png", w: 500, h: 400, rows: [{ y0: 24, y1: 195, x0: 120, x1: 480, slots: 1 }, { y0: 200, y1: 376, x0: 30, x1: 470, slots: 1 }], split: "at-two" },
-  "austria:regular-two-noeuro": { src: "/plates/austria/regular-two-noeuro.png", w: 540, h: 400, rows: [{ y0: 24, y1: 195, x0: 30, x1: 510, slots: 1 }, { y0: 200, y1: 376, x0: 30, x1: 510, slots: 1 }], split: "at-two" },
+  "austria:regular-two": { src: "/plates/austria/regular-two.png", w: 500, h: 400, rows: [{ y0: 24, y1: 195, x0: 120, x1: 480, slots: 1, seal: "right", gap: 0.2 }, { y0: 200, y1: 376, x0: 30, x1: 470, slots: 1 }], split: "at-two", stateSeals: true, sealH: 0.8 },
+  "austria:regular-two-noeuro": { src: "/plates/austria/regular-two-noeuro.png", w: 540, h: 400, rows: [{ y0: 24, y1: 195, x0: 30, x1: 510, slots: 1, seal: "right", gap: 0.2 }, { y0: 200, y1: 376, x0: 30, x1: 510, slots: 1 }], split: "at-two", stateSeals: true, sealH: 0.8 },
   "austria:provisional-two": { src: "/plates/austria/provisional-two.png", w: 540, h: 400, rows: [{ y0: 28, y1: 195, x0: 40, x1: 500, slots: 1 }, { y0: 202, y1: 376, x0: 40, x1: 395, slots: 1 }], split: "at-two", textColor: "#fff" },
-  "austria:dealer-two": { src: "/plates/austria/dealer-two.png", w: 540, h: 400, rows: [{ y0: 28, y1: 195, x0: 40, x1: 500, slots: 1 }, { y0: 202, y1: 376, x0: 40, x1: 500, slots: 1 }], split: "at-two", textColor: "#fff" },
+  "austria:dealer-two": { src: "/plates/austria/dealer-two.png", w: 540, h: 400, rows: [{ y0: 28, y1: 195, x0: 40, x1: 500, slots: 1, seal: "right", gap: 0.2 }, { y0: 202, y1: 376, x0: 40, x1: 500, slots: 1 }], split: "at-two", stateSeals: true, sealH: 0.8, textColor: "#fff" },
   "austria:export-two": { src: "/plates/austria/export-two.png", w: 540, h: 400, rows: [{ y0: 22, y1: 195, x0: 40, x1: 500, slots: 1 }, { y0: 200, y1: 376, x0: 40, x1: 365, slots: 1 }], split: "at-two", textColor: "#fff" },
 };
 
@@ -189,6 +193,37 @@ function austriaArtKey(plateType?: string | null): string | null {
   if (two) return euro ? "austria:regular-two" : "austria:regular-two-noeuro";
   return euro ? "austria:regular-single" : "austria:regular-single-noeuro";
 }
+
+/** Austrian coats of arms (public/plates/austria/seals), width ÷ height. */
+const SEAL_ASPECT: Record<string, number> = {
+  bund: 97 / 103, burgenland: 95 / 116, feuerwehr: 95 / 118, kaernten: 93 / 118, niederoesterreich: 71 / 119,
+  oberoesterreich: 65 / 118, salzburg: 65 / 118, steiermark: 73 / 118, tirol: 95 / 98, vorarlberg: 85 / 117, wien: 87 / 118,
+};
+const DISTRICT_STATE: Record<string, string[]> = {
+  vorarlberg: ["B", "BZ", "DO", "FK"],
+  wien: ["W"],
+  niederoesterreich: ["AM", "BL", "BN", "GD", "GF", "HL", "HO", "KG", "KO", "KR", "KS", "LF", "MD", "ME", "MI", "NK", "P", "PL", "SB", "SW", "TU", "WB", "WN", "WT", "WU", "WY", "ZT"],
+  burgenland: ["E", "EU", "GS", "JE", "MA", "ND", "OP", "OW"],
+  kaernten: ["FE", "HE", "K", "KL", "SP", "SV", "VI", "VK", "VL", "WO"],
+  steiermark: ["BA", "BM", "DL", "FB", "FF", "G", "GB", "GU", "HB", "HF", "JU", "KF", "LB", "LE", "LI", "LN", "MT", "MU", "MZ", "RA", "SO", "VO", "WZ"],
+  oberoesterreich: ["BR", "EF", "FR", "GM", "GR", "KI", "L", "LL", "PE", "RI", "RO", "SD", "SE", "SR", "UU", "VB", "WE", "WL"],
+  salzburg: ["HA", "JO", "S", "SL", "TA", "ZE"],
+  tirol: ["I", "IL", "IM", "KB", "KU", "LA", "LZ", "RE", "SZ"],
+  bund: ["BD", "BH", "BP", "FV", "JW", "PT"],
+  feuerwehr: ["FW"],
+};
+/** 1947 year system: the prefix is the state itself. */
+const STATE_1947: Record<string, string> = {
+  B: "burgenland", G: "steiermark", K: "kaernten", L: "oberoesterreich", N: "niederoesterreich", O: "oberoesterreich",
+  S: "salzburg", ST: "steiermark", T: "tirol", V: "vorarlberg", W: "wien",
+};
+const SEAL_OF_DISTRICT = new Map(Object.entries(DISTRICT_STATE).flatMap(([state, codes]) => codes.map((c) => [c, state] as const)));
+function austriaSealFor(district: string, plateType?: string | null): string | null {
+  const code = district.toUpperCase();
+  const state = /^at-(1947|dealer-1947)-/.test(plateType ?? "") ? STATE_1947[code] : SEAL_OF_DISTRICT.get(code);
+  return state ? `/plates/austria/seals/${state}.png` : null;
+}
+const sealAspect = (src: string) => SEAL_ASPECT[src.replace(/^.*\/|\.png$/g, "")] ?? 0.8;
 
 /** Artwork for a plate: its exact type first, then the country default. */
 export function plateArtFor(country: string, plateType?: string | null): PlateArt | null {
@@ -263,7 +298,7 @@ export function formatPlateText(country: string, raw: string) {
 
 /** Divide plate text into pieces, one per slot. Returns null if the text doesn't fit the rule. */
 function splitText(rule: SplitRule, text: string): string[] | null {
-  if (rule === "at-two") {
+  if (rule === "at-two" || rule === "at-seal") {
     const m = text.trim().match(/^(\S+)\s+(.+)$/);                                      // "W 12345 A" → W | 12345 A
     return m ? [m[1], m[2]] : null;
   }
@@ -315,7 +350,7 @@ export type PlateLayout = {
   font: PlateFont;
   runs: TextRun[];
   /** Seals to draw (centre + diameter, in output pixels). */
-  seals: { cx: number; cy: number; d: number }[];
+  seals: { cx: number; cy: number; d: number; h?: number; src?: string }[];
   /** Neutral chip styling when there is no artwork. */
   chip: { border: number; radius: number } | null;
 };
@@ -329,6 +364,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
 
   if (art) {
     const font = plateFont(key);
+    const stateSrc = art.stateSeals ? austriaSealFor(printed.split(" ")[0], plateType) : null;
     const s = h / art.h;
     const width = Math.round(art.w * s);
 
@@ -348,14 +384,17 @@ export function plateLayout(country: string, rawText: string, height: number, pl
     const lines = rows.map(({ row, texts }) => {
       const rowH = (row.y1 - row.y0) * s;
       // seal: true → between the first two pieces; seal: "left" → before the first piece
-      const mode: "between" | "left" | null = !art.seal || !row.seal ? null
+      const hasSeal = (art.seal || stateSrc) && row.seal;
+      const mode: "between" | "left" | "right" | null = !hasSeal ? null
         : row.seal === "left" ? (texts.length >= 1 ? "left" : null)
+        : row.seal === "right" ? (texts.length >= 1 ? "right" : null)
         : (texts.length === 2 ? "between" : null);
-      const sealD = mode ? rowH * SEAL_DIAMETER : 0;
+      const sealH = mode && stateSrc ? rowH * (art.sealH ?? 0.8) : 0;
+      const sealD = !mode ? 0 : stateSrc ? sealH * sealAspect(stateSrc) : rowH * SEAL_DIAMETER;
       const gap = mode ? rowH * (row.gap ?? SEAL_GAP) : 0;
-      const gaps = mode === "between" ? 2 : mode === "left" ? 1 : 0;   // gaps touching the seal
+      const gaps = mode === "between" ? 2 : mode === "left" || mode === "right" ? 1 : 0;   // gaps touching the seal
       const ems = texts.map((t) => textWidthEm(t, font));
-      return { row, texts, rowH, mode, sealD, gap, gaps, ems, avail: (row.x1 - row.x0) * s };
+      return { row, texts, rowH, mode, sealD, sealH, gap, gaps, ems, avail: (row.x1 - row.x0) * s };
     });
 
     // One letter height for the whole plate: capped by every row's height and by
@@ -366,21 +405,24 @@ export function plateLayout(country: string, rawText: string, height: number, pl
     );
 
     const runs: TextRun[] = [];
-    const seals: { cx: number; cy: number; d: number }[] = [];
+    const seals: { cx: number; cy: number; d: number; h?: number; src?: string }[] = [];
     for (const l of lines) {
       const widths = l.ems.map((em) => em * fontSize);
       const total = widths.reduce((x, y) => x + y, 0) + l.sealD + l.gaps * l.gap;
       let x = l.row.x0 * s + (l.avail - total) / 2;               // centred → equal margins
       const centerY = ((l.row.y0 + l.row.y1) / 2) * s;
       if (l.mode === "left") {                                    // ● then the text
-        seals.push({ cx: x + l.sealD / 2, cy: centerY, d: l.sealD });
+        seals.push({ cx: x + l.sealD / 2, cy: centerY, d: l.sealD, h: l.sealH || undefined, src: stateSrc ?? undefined });
         x += l.sealD + l.gap;
       }
       l.texts.forEach((text, i) => {
         runs.push({ text, x0: x, x1: x + widths[i], align: "left", fontSize, centerY });
         x += widths[i];
+        if (l.mode === "right" && i === l.texts.length - 1) {                 // text then ●
+          seals.push({ cx: x + l.gap + l.sealD / 2, cy: centerY, d: l.sealD, h: l.sealH || undefined, src: stateSrc ?? undefined });
+        }
         if (l.mode === "between" && i === 0) {                    // piece ● piece
-          seals.push({ cx: x + l.gap + l.sealD / 2, cy: centerY, d: l.sealD });
+          seals.push({ cx: x + l.gap + l.sealD / 2, cy: centerY, d: l.sealD, h: l.sealH || undefined, src: stateSrc ?? undefined });
           x += l.sealD + 2 * l.gap;
         }
       });
