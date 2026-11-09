@@ -8,8 +8,8 @@ import ReportButton from "./ReportButton";
 import SaveToCollection from "@/app/components/SaveToCollection";
 import ShareCardButton from "@/app/components/ShareCardButton";
 import TimeAgo from "@/app/components/TimeAgo";
-import GenerationLabel, { GenerationCodes } from "@/app/components/GenerationLabel";
-import { parseGeneration } from "@/app/lib/chassis";
+import GenerationLink from "@/app/components/GenerationLink";
+import { codeSlug, platformOf } from "@/app/lib/chassis";
 import EditSpotDetails from "./EditSpotDetails";
 import { DescriptionText } from "@/app/components/DescriptionInput";
 import PinButton from "@/app/components/PinButton";
@@ -367,13 +367,8 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                   {(upload.generation || upload.trim) && (
                     <div className="mt-1.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm text-zinc-400">
                       {upload.generation && upload.brand && upload.model ? (
-                        /* label → this model's generation; each chassis code → this model filtered to that platform */
-                        <GenerationLabel
-                          name={upload.generation}
-                          brandSlug={toSlug(upload.brand)}
-                          modelSlug={toSlug(upload.model)}
-                          labelHref={"/catalog/" + toSlug(upload.brand) + "/" + toSlug(upload.model) + "#" + toSlug(upload.generation)}
-                        />
+                        /* one link, shown exactly as named — opens every {model} on that platform */
+                        <GenerationLink name={upload.generation} brandSlug={toSlug(upload.brand)} modelSlug={toSlug(upload.model)} />
                       ) : upload.generation}
                       {upload.generation && upload.trim && <span className="text-zinc-600">·</span>}
                       {upload.trim}
@@ -513,10 +508,12 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                     </a>
                   </li>
                 )}
-                {upload.brand && upload.model && upload.generation && parseGeneration(upload.generation).codes.length > 0 && (
-                  <li className="flex flex-wrap items-center gap-2 text-zinc-300">
-                    <span className="w-4 text-center text-zinc-500">⚙</span> {upload.model} by platform
-                    <GenerationCodes name={upload.generation} brandSlug={toSlug(upload.brand)} modelSlug={toSlug(upload.model)} />
+                {upload.brand && upload.model && upload.generation && platformOf(upload.generation) && (
+                  <li>
+                    <a href={"/catalog/" + toSlug(upload.brand) + "/" + toSlug(upload.model) + "?platform=" + codeSlug(platformOf(upload.generation)!)}
+                      className="flex items-center gap-2 text-zinc-300 transition-colors hover:text-white">
+                      <span className="w-4 text-center text-zinc-500">⚙</span> All {upload.model} {platformOf(upload.generation)}
+                    </a>
                   </li>
                 )}
               </ul>

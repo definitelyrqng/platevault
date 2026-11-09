@@ -1,8 +1,7 @@
 import { prisma } from "@/app/lib/prisma";
 import { getSessionUser } from "@/app/lib/session";
 import { notFound } from "next/navigation";
-import { CodeChip } from "@/app/components/GenerationLabel";
-import { codesOf, toSlug, yearSpan } from "@/app/lib/chassis";
+import { toSlug, yearSpan } from "@/app/lib/chassis";
 import { AddModelButton, DeleteBrandButton, DeleteModelButton, RenameBrandButton, RenameModelButton } from "../CatalogAdminControls";
 
 export const dynamic = "force-dynamic";
@@ -88,7 +87,6 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
             const cover = coverByModel.get(m.name);
             const names = m.generations.map((g) => g.name);
             const span = yearSpan(names);
-            const codes = codesOf(names).slice(0, 4);
             return (
               <div key={m.id}
                 className={`group relative flex aspect-[4/3] flex-col justify-end overflow-hidden rounded-xl bg-zinc-900 ring-1 ring-zinc-800/80 transition hover:ring-indigo-500/60 ${n === 0 ? "opacity-70 hover:opacity-100" : ""}`}>
@@ -116,11 +114,6 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
                     {n > 0 ? `${n} spot${n === 1 ? "" : "s"}` : "no spots yet"} · {m.generations.length} gen{m.generations.length === 1 ? "" : "s"}
                     {span && <> · {span}</>}
                   </div>
-                  {codes.length > 0 && (
-                    <div className="relative z-20 mt-2 flex flex-wrap gap-1">
-                      {codes.map((c) => <CodeChip key={c} brandSlug={brandSlug} modelSlug={toSlug(m.name)} raw={c} code={c} className="bg-black/40 backdrop-blur" />)}
-                    </div>
-                  )}
                 </div>
               </div>
             );

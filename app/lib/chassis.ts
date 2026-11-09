@@ -85,3 +85,12 @@ export function hasCode(generation: string | null | undefined, slug: string) {
   if (!generation) return false;
   return parseGeneration(generation).codes.some((c) => codeSlug(c.code) === slug);
 }
+
+/**
+ * The platform a generation link filters by: the last code in its brackets
+ * ("4K8/C8" → C8, "4F5/C6" → C6). Null when the name has no code.
+ */
+export function platformOf(name: string): string | null {
+  const codes = parseGeneration(name).codes;
+  return codes.length ? codes[codes.length - 1].code : null;
+}
