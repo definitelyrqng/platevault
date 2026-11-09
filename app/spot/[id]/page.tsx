@@ -246,7 +246,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
     orderBy: { createdAt: "desc" },
     take: 4,
     select: {
-      id: true, numericId: true, plateText: true, imageUrl: true, brand: true, model: true,
+      id: true, numericId: true, plateText: true, plateType: true, imageUrl: true, brand: true, model: true,
       user: { select: { username: true } },
       _count: { select: { likes: true } },
     },
@@ -265,7 +265,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
         orderBy: { createdAt: "desc" },
         take: 8,
         select: {
-          id: true, numericId: true, plateText: true, imageUrl: true,
+          id: true, numericId: true, plateText: true, plateType: true, imageUrl: true,
           country: true, brand: true, model: true,
           _count: { select: { likes: true } },
         },
@@ -398,10 +398,10 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                   {/* The plate — big and centred */}
                   <div className="mt-6 max-w-full">
                     <div className="hidden sm:block">
-                      <PlateBadge country={upload.country} text={upload.plateText} size="xl" />
+                      <PlateBadge country={upload.country} text={upload.plateText} plateType={upload.plateType} size="xl" />
                     </div>
                     <div className="sm:hidden">
-                      <PlateBadge country={upload.country} text={upload.plateText} size="lg" />
+                      <PlateBadge country={upload.country} text={upload.plateText} plateType={upload.plateType} size="lg" />
                     </div>
                   </div>
 
@@ -669,7 +669,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 <SpotCard
                   key={s.numericId}
                   showFlag={false}
-                  spot={{ ...s, plateText: upload.plateText, country: upload.country, brand: upload.brand, model: upload.model }}
+                  spot={{ ...s, plateText: upload.plateText, plateType: upload.plateType, country: upload.country, brand: upload.brand, model: upload.model }}
                 />
               ))}
             </div>

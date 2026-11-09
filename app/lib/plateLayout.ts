@@ -7,32 +7,57 @@
 
 export type Box = { x0: number; x1: number };
 
+/** One line of writing on the plate: its vertical extent and the slots text is centred in. */
+export type ArtRow = { y0: number; y1: number; boxes: Box[] };
+
+/**
+ * How plate text is divided over the slots (all slots of all rows, in order):
+ *  - "whole":     everything in one slot (rows' slots merged)
+ *  - "seal":      first letter group | rest            ("AB 195 IF" → AB | 195 IF)
+ *  - "al-double": letters | digits | final letters     ("AB 123 CD" → AB | 123 | CD)
+ */
+export type SplitRule = "whole" | "seal" | "al-double";
+
 export type PlateArt = {
   src: string;          // path under /public
   w: number;            // image width (px)
   h: number;            // image height (px)
-  textY0: number;       // writable area top (px)
-  textY1: number;       // writable area bottom (px)
-  /** One box = text centred in it. Two boxes = text split at the first group (left | seal | right). */
-  boxes: [Box] | [Box, Box];
+  rows: ArtRow[];
+  split: SplitRule;
 };
 
 /**
- * Real plate artwork per country. To add one: drop the PNG into
- * /public/plates/<country>/, measure its white writable area (and seal, if any)
- * in image pixels, and add an entry here.
+ * Real plate artwork. Keys are "<country>" (the default for that country) or
+ * "<country>:<plateType>" for a specific plate type, e.g. "albania:trailer-2011-single".
+ *
+ * To add one: drop the PNG into /public/plates/<country>/, measure its writable
+ * area (and seal, if any) in image pixels, and add an entry here. Keep the black
+ * rounded border consistent with the other plates of that country.
  */
 export const PLATE_ART: Record<string, PlateArt> = {
-  // cars_current_single.png: white area x108–899, y14–205, seal x365–401.
+  // cars_current_single.png (1000×221): white area x108–899, y14–205, seal x365–401.
   albania: {
     src: "/plates/albania/cars_current_single.png",
     w: 1000,
     h: 221,
-    textY0: 14,
-    textY1: 205,
-    boxes: [{ x0: 120, x1: 355 }, { x0: 411, x1: 889 }],
+    rows: [{ y0: 14, y1: 205, boxes: [{ x0: 120, x1: 355 }, { x0: 411, x1: 889 }] }],
+    split: "seal",
+  },
+  // trailer_single.png (1598×354): teal area x177–1420, y21–332, seal x583–635.
+  "albania:trailer-2011-single": {
+    src: "/plates/albania/trailer_single.png",
+    w: 1598,
+    h: 354,
+    rows: [{ y0: 21, y1: 332, boxes: [{ x0: 191, x1: 573 }, { x0: 645, x1: 1408 }] }],
+    split: "seal",
   },
 };
+
+/** Artwork for a plate: its exact type first, then the country default. */
+export function plateArtFor(country: string, plateType?: string | null): PlateArt | null {
+  const key = country.toLowerCase();
+  return (plateType && PLATE_ART[`${key}:${plateType}`]) || PLATE_ART[key] || null;
+}
 
 export const PLATE_HEIGHTS = { xs: 20, sm: 28, md: 38, lg: 58, xl: 86 } as const;
 export type PlateSize = keyof typeof PLATE_HEIGHTS;
@@ -73,10 +98,22 @@ export function formatPlateText(country: string, raw: string) {
   return t;
 }
 
-/** "AB 195 IF" → ["AB", "195 IF"] for plates with a seal between the groups. */
-function splitAtSeal(text: string): [string, string] | null {
-  const m = text.match(/^([A-Z]{1,3})\s?(.+)$/);
-  return m ? [m[1], m[2].trim()] : null;
+/** Divide plate text into pieces, one per slot. Returns null if the text doesn't fit the rule. */
+function splitText(rule: SplitRule, text: string): string[] | null {
+  if (rule === "seal") {
+    const m = text.match(/^([A-Z]{1,3})\s?(.+)$/);          // "AB 195 IF" → AB | 195 IF
+    return m ? [m[1], m[2].trim()] : null;
+  }
+  if (rule === "al-double") {
+    const m = text.replace(/\s+/g, "").match(/^([A-Z]{1,3})(\d{1,4})([A-Z]{1,3})$/); // AB123CD
+    return m ? [m[1], m[2], m[3]] : null;
+  }
+  return null;
+}
+
+/** Slots in reading order, each with the row it sits in. */
+function slotsOf(art: PlateArt) {
+  return art.rows.flatMap((row) => row.boxes.map((box) => ({ row, box })));
 }
 
 export type TextRun = {
@@ -97,27 +134,33 @@ export type PlateLayout = {
   chip: { border: number; radius: number } | null;
 };
 
-export function plateLayout(country: string, rawText: string, height: number): PlateLayout {
+export function plateLayout(country: string, rawText: string, height: number, plateType?: string | null): PlateLayout {
   const key = country.toLowerCase();
   const printed = formatPlateText(key, rawText);
   const h = height;
-  const art = PLATE_ART[key] ?? null;
+  const art = plateArtFor(key, plateType);
   const capH = CAP_BOTTOM - CAP_TOP; // em
 
   if (art) {
     const s = h / art.h;
     const width = Math.round(art.w * s);
-    const areaH = (art.textY1 - art.textY0) * s;
-    const centerY = ((art.textY0 + art.textY1) / 2) * s;
-    const maxFont = (areaH * 0.72) / capH; // capitals fill ~72% of the white area
+    const slots = slotsOf(art);
 
-    const split = art.boxes.length === 2 ? splitAtSeal(printed) : null;
-    const parts = split
-      ? [{ text: split[0], box: art.boxes[0] }, { text: split[1], box: art.boxes[1] as Box }]
-      : [{ text: printed, box: { x0: art.boxes[0].x0, x1: art.boxes[art.boxes.length - 1].x1 } }];
+    // Pieces per slot; text that doesn't match the plate's pattern goes in the
+    // tallest row, with that row's slots merged into one.
+    const pieces = splitText(art.split, printed);
+    let parts: { text: string; row: ArtRow; box: Box }[];
+    if (pieces && pieces.length === slots.length) {
+      parts = slots.map((slot, i) => ({ text: pieces[i], ...slot }));
+    } else {
+      const row = art.rows.reduce((a, b) => (b.y1 - b.y0 > a.y1 - a.y0 ? b : a));
+      parts = [{ text: printed, row, box: { x0: row.boxes[0].x0, x1: row.boxes[row.boxes.length - 1].x1 } }];
+    }
 
+    // One font size for the whole plate (real plates use a single letter height),
+    // capped by each row's height and small enough for every piece to fit its slot.
     const fontSize = Math.min(
-      maxFont,
+      ...parts.map((p) => ((p.row.y1 - p.row.y0) * s * 0.72) / capH), // capitals fill ~72% of the row
       ...parts.map((p) => ((p.box.x1 - p.box.x0) * s) / (Math.max(textAdvanceEm(p.text), 0.6) * CONDENSE)),
     );
 
@@ -127,7 +170,13 @@ export function plateLayout(country: string, rawText: string, height: number): P
       printed,
       art,
       chip: null,
-      runs: parts.map((p) => ({ text: p.text, x0: p.box.x0 * s, x1: p.box.x1 * s, fontSize, centerY })),
+      runs: parts.map((p) => ({
+        text: p.text,
+        x0: p.box.x0 * s,
+        x1: p.box.x1 * s,
+        fontSize,
+        centerY: ((p.row.y0 + p.row.y1) / 2) * s,
+      })),
     };
   }
 

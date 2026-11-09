@@ -6,6 +6,7 @@ import { getCountryMeta } from "@/app/lib/countries";
 export type SpotCardData = {
   numericId: number;
   plateText: string;
+  plateType?: string | null;
   country: string;
   imageUrl: string;
   brand?: string | null;
@@ -67,7 +68,7 @@ export default function SpotCard({
 
       {/* Plate — centred under the photo */}
       <div className="mt-3 flex justify-center">
-        <PlateBadge country={spot.country} text={spot.plateText} size="sm" />
+        <PlateBadge country={spot.country} text={spot.plateText} plateType={spot.plateType} size="sm" />
       </div>
 
       <div className="mt-2 truncate text-center text-sm font-medium text-zinc-200 group-hover:text-white">

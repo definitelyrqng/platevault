@@ -18,6 +18,7 @@ const spotSelect = {
   id: true,
   numericId: true,
   plateText: true,
+  plateType: true,
   country: true,
   imageUrl: true,
   createdAt: true,
@@ -177,7 +178,7 @@ export default async function HomePage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-80 transition-opacity group-hover:opacity-100" />
                   <span className="absolute left-1.5 top-1.5 leading-none shadow ring-1 ring-black/30"><Flag iso={meta.iso} size="sm" /></span>
                   <span className="absolute bottom-1.5 left-1.5">
-                    <PlateBadge country={s.country} text={s.plateText} size="xs" />
+                    <PlateBadge country={s.country} text={s.plateText} plateType={s.plateType} size="xs" />
                   </span>
                 </a>
               );
@@ -199,7 +200,7 @@ export default async function HomePage() {
                   <a key={`${s.id}-${i}`} href={`/spot/${s.numericId}`} aria-hidden={i >= recent.length}
                     tabIndex={i >= recent.length ? -1 : undefined}
                     className="shrink-0 opacity-85 transition hover:-translate-y-0.5 hover:opacity-100">
-                    <PlateBadge country={s.country} text={s.plateText} size="xs" />
+                    <PlateBadge country={s.country} text={s.plateText} plateType={s.plateType} size="xs" />
                   </a>
                 ))}
               </div>

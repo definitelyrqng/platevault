@@ -3,11 +3,11 @@ import path from "node:path";
 import sharp from "sharp";
 import opentype from "opentype.js";
 import {
-  plateLayout, PLATE_ART, CAP_TOP, CAP_BOTTOM, CONDENSE, STROKE, UMLAUT_BASE,
+  plateLayout, CAP_TOP, CAP_BOTTOM, CONDENSE, STROKE, UMLAUT_BASE,
 } from "@/app/lib/plateLayout";
 
 /**
- * GET /api/plate?c=<country>&t=<plate text>&h=<height px>
+ * GET /api/plate?c=<country>&t=<plate text>&h=<height px>[&p=<plateType>]
  *
  * Bakes a plate into a PNG (artwork + lettering) so it can be right-click
  * copied / saved as one image. Output is deterministic for its query, so it
@@ -86,12 +86,17 @@ export async function GET(req: Request) {
     return new Response("Bad plate request", { status: 400 });
   }
 
-  const layout = plateLayout(country, text, height);
+  const plateType = (searchParams.get("p") ?? "").slice(0, 60) || null;
+  if (plateType && !/^[a-z0-9-]+$/i.test(plateType)) {
+    return new Response("Bad plate type", { status: 400 });
+  }
+
+  const layout = plateLayout(country, text, height, plateType);
   const font = await getFont();
   const { width, height: h } = layout;
 
   let background = "";
-  if (layout.art && PLATE_ART[country]) {
+  if (layout.art) {
     const uri = await getArtDataUri(layout.art.src);
     background = `<image href="${uri}" x="0" y="0" width="${width}" height="${h}" preserveAspectRatio="none"/>`;
   } else if (layout.chip) {
