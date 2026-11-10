@@ -30,14 +30,14 @@ const star = (cx, cy, R) => {
 
 /** Euroband x,y,w,h (outer corner radius handled by the clip). */
 function band(x, y, w, h, B) {
-  const cx = x + w / 2, ringR = w * 0.29, ringY = y + h * (h > 230 ? 0.36 : 0.37), R = w * 0.072;
+  const cx = x + w / 2, ringR = w * 0.34, ringY = y + h * 0.31, R = w * 0.078;
   const stars = Array.from({ length: 12 }, (_, i) => { const a = (i / 12) * Math.PI * 2 - Math.PI / 2; return star(cx + ringR * Math.cos(a), ringY + ringR * Math.sin(a), R); }).join("");
-  const bh = h * 0.235, s = bh / B.h, bw = B.w * s * 0.86;
+  const bh = h * 0.31, s = bh / B.h, bw = B.w * s * 0.86;
   return `<g clip-path="url(#plate)">
     <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#blue)"/>
     <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#bandShade)"/>
     ${stars}
-    <g transform="translate(${cx - bw / 2} ${y + h * 0.63}) scale(${s * 0.86} ${s}) translate(${-B.x0} ${-B.y0})" fill="#fff"><path d="${B.d}" fill-rule="evenodd"/></g>
+    <g transform="translate(${cx - bw / 2} ${y + h * 0.59}) scale(${s * 0.86} ${s}) translate(${-B.x0} ${-B.y0})" fill="#fff"><path d="${B.d}" fill-rule="evenodd"/></g>
     <rect x="${x + 1}" y="${y + 1}" width="${w - 2}" height="${h - 2}" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="2"/>
     <line x1="${x + w}" y1="${y}" x2="${x + w}" y2="${y + h}" stroke="#000" stroke-opacity=".28" stroke-width="2"/>
   </g>`;
