@@ -30,14 +30,14 @@ const star = (cx, cy, R) => {
 
 /** Euroband x,y,w,h (outer corner radius handled by the clip). */
 function band(x, y, w, h, B) {
-  const cx = x + w / 2, ringR = w * 0.33, ringY = y + h * 0.37, R = w * 0.088;
+  const cx = x + w / 2, ringR = w * 0.29, ringY = y + h * (h > 230 ? 0.36 : 0.37), R = w * 0.072;
   const stars = Array.from({ length: 12 }, (_, i) => { const a = (i / 12) * Math.PI * 2 - Math.PI / 2; return star(cx + ringR * Math.cos(a), ringY + ringR * Math.sin(a), R); }).join("");
-  const bh = h * 0.30, s = bh / B.h, bw = B.w * s * 0.86;
+  const bh = h * 0.235, s = bh / B.h, bw = B.w * s * 0.86;
   return `<g clip-path="url(#plate)">
     <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#blue)"/>
     <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#bandShade)"/>
     ${stars}
-    <g transform="translate(${cx - bw / 2} ${y + h * 0.60}) scale(${s * 0.86} ${s}) translate(${-B.x0} ${-B.y0})" fill="#fff"><path d="${B.d}" fill-rule="evenodd"/></g>
+    <g transform="translate(${cx - bw / 2} ${y + h * 0.63}) scale(${s * 0.86} ${s}) translate(${-B.x0} ${-B.y0})" fill="#fff"><path d="${B.d}" fill-rule="evenodd"/></g>
     <rect x="${x + 1}" y="${y + 1}" width="${w - 2}" height="${h - 2}" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="2"/>
     <line x1="${x + w}" y1="${y}" x2="${x + w}" y2="${y + h}" stroke="#000" stroke-opacity=".28" stroke-width="2"/>
   </g>`;
@@ -45,7 +45,7 @@ function band(x, y, w, h, B) {
 
 function plate(W, H, B, bandBox, holes, emblem) {
   const r = Math.round(H * 0.07);                       // plate corner radius
-  const ib = Math.round(H * 0.05), lw = Math.max(3, H * 0.022), rr = r * 0.6; // red line: inset, weight, radius
+  const ib = Math.round(H * 0.05), lw = Math.max(3, H * 0.03), rr = r * 0.6; // red line: inset, weight, radius
   const defs = `<defs>
     <clipPath id="plate"><rect x="3" y="3" width="${W - 6}" height="${H - 6}" rx="${r - 2}"/></clipPath>
     <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1263c0"/><stop offset="1" stop-color="#0a4fa4"/></linearGradient>
@@ -75,8 +75,8 @@ function plate(W, H, B, bandBox, holes, emblem) {
 (async () => {
   const B = await traceB();
   // single row 1040×220: band full height at the left, emblem beside it
-  await sharp(Buffer.from(plate(1040, 220, B, () => [3, 3, 96, 214], [[128, 207], [1000, 207]], [150, 62]))).png().toFile(path.join(OUT, "regular-single.png"));
+  await sharp(Buffer.from(plate(1040, 220, B, () => [3, 3, 96, 214], [], null))).png().toFile(path.join(OUT, "regular-single.png"));
   // two row 1024×512 (proportions of the supplied 512×256): band at the lower left
-  await sharp(Buffer.from(plate(1024, 512, B, () => [3, 256, 140, 253], [[190, 484], [984, 480], [40, 32], [984, 32]], [360, 100]))).png().toFile(path.join(OUT, "regular-two.png"));
+  await sharp(Buffer.from(plate(1024, 512, B, () => [3, 256, 140, 253], [], null))).png().toFile(path.join(OUT, "regular-two.png"));
   console.log("ok");
 })();
