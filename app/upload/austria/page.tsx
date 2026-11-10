@@ -336,7 +336,7 @@ export default function AustriaUploadPage() {
                       className={`group flex flex-col items-center gap-2 rounded-xl border p-3 text-center transition-all ${
                         active ? "border-indigo-500 bg-indigo-600/10 ring-1 ring-indigo-500/50" : "border-zinc-800 bg-zinc-950/50 hover:border-zinc-600"
                       }`}>
-                      <span className="flex h-[92px] items-center justify-center">
+                      <span className="block h-[92px] w-full overflow-hidden text-center leading-[92px]">
                         {/* two-line plates are tall and narrow — show them bigger so they read */}
                         <PlateBadge country="austria" text={austriaExample(t.category)} plateType={t.id} size={tileSize(t.id)} />
                       </span>

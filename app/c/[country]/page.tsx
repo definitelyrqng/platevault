@@ -179,7 +179,7 @@ export default async function CountryPage({
                 className={`flex flex-col items-center gap-2 rounded-xl border p-3 text-center transition-all ${
                   chipActive(c) ? "border-indigo-500 bg-indigo-600/10 ring-1 ring-indigo-500/50" : "border-zinc-800 bg-zinc-900/40 hover:border-zinc-600"
                 }`}>
-                <span className="flex h-[52px] items-center justify-center">
+                <span className="block h-[52px] w-full overflow-hidden text-center leading-[52px]">
                   {c.sample && <PlateBadge country={country} text={c.sample} plateType={c.types[0]} size="md" />}
                 </span>
                 <span className="text-sm font-medium text-zinc-200">{c.label}</span>
