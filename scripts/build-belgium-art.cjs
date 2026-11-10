@@ -43,34 +43,40 @@ function band(x, y, w, h, B) {
   </g>`;
 }
 
-function plate(W, H, B, bandBox, holes) {
-  const bd = Math.round(H * (W > 800 ? 0.055 : 0.032)), rx = Math.round(H * (W > 800 ? 0.13 : 0.085));
+function plate(W, H, B, bandBox, holes, emblem) {
+  const r = Math.round(H * 0.07);                       // plate corner radius
+  const ib = Math.round(H * 0.05), lw = Math.max(3, H * 0.022), rr = r * 0.6; // red line: inset, weight, radius
   const defs = `<defs>
-    <clipPath id="plate"><rect x="${bd}" y="${bd}" width="${W - 2 * bd}" height="${H - 2 * bd}" rx="${rx * 0.7}"/></clipPath>
-    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a5fb8"/><stop offset="1" stop-color="#004a9c"/></linearGradient>
-    <linearGradient id="bandShade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".10"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".16"/></linearGradient>
+    <clipPath id="plate"><rect x="3" y="3" width="${W - 6}" height="${H - 6}" rx="${r - 2}"/></clipPath>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1263c0"/><stop offset="1" stop-color="#0a4fa4"/></linearGradient>
+    <linearGradient id="bandShade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".10"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".14"/></linearGradient>
     <radialGradient id="gold" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#ffe94a"/><stop offset="1" stop-color="#f2c500"/></radialGradient>
-    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fdfdfb"/><stop offset="1" stop-color="#ececea"/></linearGradient>
-    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e01616"/><stop offset=".5" stop-color="#c10000"/><stop offset="1" stop-color="#8f0000"/></linearGradient>
-    <filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="7"/><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .07 0"/></filter>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbfbf9"/><stop offset="1" stop-color="#e8e8e5"/></linearGradient>
+    <linearGradient id="red" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d3202a"/><stop offset="1" stop-color="#a80f19"/></linearGradient>
+    <radialGradient id="hole" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#9a9a98"/><stop offset="1" stop-color="#4a4a48"/></radialGradient>
+    <filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="7"/><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .06 0"/></filter>
   </defs>`;
-  const holesSvg = holes.map(([hx, hy]) => `<circle cx="${hx}" cy="${hy}" r="${H * 0.03}" fill="#d8d8d6"/><circle cx="${hx}" cy="${hy}" r="${H * 0.03}" fill="none" stroke="#000" stroke-opacity=".25" stroke-width="1.5"/>`).join("");
+  const hr = H * 0.028;
+  const holesSvg = holes.map(([hx, hy]) => `<circle cx="${hx}" cy="${hy}" r="${hr + 2}" fill="#fff" fill-opacity=".7"/><circle cx="${hx}" cy="${hy}" r="${hr}" fill="url(#hole)"/><circle cx="${hx}" cy="${hy}" r="${hr}" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="1.5"/>`).join("");
+  const [bx, by, bw, bh] = bandBox();
+  const em = emblem ? `<g transform="translate(${emblem[0]} ${emblem[1]})" fill="none" stroke="#c4202b" stroke-width="${H * 0.012}"><ellipse rx="${H * 0.055}" ry="${H * 0.065}"/><path d="M${-H * 0.03} ${-H * 0.03} L0 ${H * 0.035} L${H * 0.03} ${-H * 0.03}" stroke-linejoin="round" stroke-linecap="round"/></g>` : "";
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${defs}
-    <rect width="${W}" height="${H}" rx="${rx}" fill="url(#rim)"/>
-    <rect x=".75" y=".75" width="${W - 1.5}" height="${H - 1.5}" rx="${rx}" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="1.5"/>
-    <rect x="${bd}" y="${bd}" width="${W - 2 * bd}" height="${H - 2 * bd}" rx="${rx * 0.7}" fill="url(#paper)"/>
-    <rect x="${bd}" y="${bd}" width="${W - 2 * bd}" height="${H - 2 * bd}" rx="${rx * 0.7}" filter="url(#grain)"/>
-    <rect x="${bd + 1}" y="${bd + 1}" width="${W - 2 * bd - 2}" height="${H - 2 * bd - 2}" rx="${rx * 0.7}" fill="none" stroke="#000" stroke-opacity=".22" stroke-width="2"/>
-    ${band(bandBox(bd)[0], bandBox(bd)[1], bandBox(bd)[2], bandBox(bd)[3], B)}
+    <rect x=".75" y=".75" width="${W - 1.5}" height="${H - 1.5}" rx="${r}" fill="#9d9d9a"/>
+    <rect x="2" y="2" width="${W - 4}" height="${H - 4}" rx="${r - 1}" fill="url(#paper)"/>
+    <rect x="2" y="2" width="${W - 4}" height="${H - 4}" rx="${r - 1}" filter="url(#grain)"/>
+    <rect x="${ib + 1}" y="${ib + 1.5}" width="${W - 2 * ib}" height="${H - 2 * ib}" rx="${rr}" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="${lw}"/>
+    <rect x="${ib}" y="${ib}" width="${W - 2 * ib}" height="${H - 2 * ib}" rx="${rr}" fill="none" stroke="url(#red)" stroke-width="${lw}"/>
+    ${band(bx, by, bw, bh, B)}
+    ${em}
     ${holesSvg}
   </svg>`;
 }
 
 (async () => {
   const B = await traceB();
-  // single row 1040×220: band full height
-  await sharp(Buffer.from(plate(1040, 220, B, (bd) => [bd, bd, 112, 220 - 2 * bd], []))).png().toFile(path.join(OUT, "regular-single.png"));
-  // two row 1024×512 (same proportions as the supplied 512×256): band on the lower left
-  await sharp(Buffer.from(plate(1024, 512, B, (bd) => [bd, 256, 136, 512 - bd - 256], [[40, 36], [984, 36], [984, 478]]))).png().toFile(path.join(OUT, "regular-two.png"));
+  // single row 1040×220: band full height at the left, emblem beside it
+  await sharp(Buffer.from(plate(1040, 220, B, () => [3, 3, 96, 214], [[128, 207], [1000, 207]], [150, 62]))).png().toFile(path.join(OUT, "regular-single.png"));
+  // two row 1024×512 (proportions of the supplied 512×256): band at the lower left
+  await sharp(Buffer.from(plate(1024, 512, B, () => [3, 256, 140, 253], [[190, 484], [984, 480], [40, 32], [984, 32]], [360, 100]))).png().toFile(path.join(OUT, "regular-two.png"));
   console.log("ok");
 })();
