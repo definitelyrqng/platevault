@@ -52,7 +52,7 @@ export type ArtRow = {
   /** Gap beside the seal as a fraction of the row height (default SEAL_GAP) — smaller on narrow rows. */
   gap?: number;
   /** Place the text against the right edge of the row instead of centring it. */
-  align?: "right";
+  align?: "right" | "left";
   /** Sized on its own (never shrinks the rest of the plate), e.g. the month in the red box. */
   own?: boolean;
 };
@@ -78,6 +78,8 @@ export type PlateArt = {
   seal?: string;
   /** Fixed-shape seal image (width ÷ height); its height is rowH × sealH. */
   sealAspect?: number;
+  /** Spread the characters so the text fills the whole width of its row (all rows share the tightest spacing). */
+  fillWidth?: boolean;
   /** Extra space after every character, in em (default 0). */
   tracking?: number;
   /** Share of the row height the capitals fill (default 0.72). */
@@ -187,8 +189,8 @@ export const PLATE_ART: Record<string, PlateArt> = {
     split: "whole",
   },
   // ── Bosnia: standard no-euroband plates (white, black frame). Black lettering in the Bosnian font. ──
-  "bosnia:single-no-euroband": { src: "/plates/bosnia/y1998-single.png", w: 1024, h: 196, rows: [{ y0: 20, y1: 176, x0: 40, x1: 984, slots: 1 }], split: "whole", font: "ba", fill: 0.7, tracking: 0.04 },
-  "bosnia:two-line-no-euroband": { src: "/plates/bosnia/y1998-two.png", w: 512, h: 256, rows: [{ y0: 18, y1: 126, x0: 30, x1: 482, slots: 1 }, { y0: 130, y1: 238, x0: 30, x1: 482, slots: 1 }], split: "ba-two", font: "ba", fill: 0.7, tracking: 0.04 },
+  "bosnia:single-no-euroband": { src: "/plates/bosnia/y1998-single.png", w: 1024, h: 196, rows: [{ y0: 10, y1: 186, x0: 46, x1: 978, slots: 1 }], split: "whole", font: "ba", fill: 0.88, fillWidth: true },
+  "bosnia:two-line-no-euroband": { src: "/plates/bosnia/y1998-two.png", w: 512, h: 256, rows: [{ y0: 8, y1: 134, x0: 26, x1: 486, slots: 1, align: "left" }, { y0: 122, y1: 248, x0: 26, x1: 486, slots: 1, align: "left" }], split: "ba-two", font: "ba", fill: 0.9, fillWidth: true },
   // ── Belgium: red plates. Euroband at the left; single row has the emblem / dash / DIV stamp as one seal between the first character and the rest ──
   "belgium:single-dash": { src: "/plates/belgium/regular-single.png", w: 1266, h: 261, rows: [{ y0: 31, y1: 229, x0: 143, x1: 1245, slots: 2, seal: true, gap: 0.12 }], split: "be-seal", seal: "/plates/belgium/seal.png", sealAspect: 60 / 184, sealH: 0.93, textColor: "#a3252b", tracking: 0.13, fill: 0.72 },
   "belgium:single-no-dash": { src: "/plates/belgium/regular-single.png", w: 1266, h: 261, rows: [{ y0: 31, y1: 229, x0: 143, x1: 1245, slots: 1 }], split: "whole", textColor: "#a3252b", tracking: 0.13, fill: 0.72 },
@@ -371,9 +373,9 @@ function splitText(rule: SplitRule, text: string): string[] | null {
     const parts = g[2].match(/^([A-Z]+)-?(\d+)$/);
     return parts ? [`${g[1]}-${parts[1]}`, parts[2]] : null;
   }
-  if (rule === "ba-two") {                                                              // 123-A-456 → 123-A | 456
-    const m = text.trim().match(/^(.+)-([^-]+)$/);
-    return m ? [m[1], m[2]] : null;
+  if (rule === "ba-two") {
+    const m = text.trim().match(/^([^-]+)-([^-]+)-([^-]+)$/);                              // 743-M-844 → 743-M | -844
+    return m ? [`${m[1]}-${m[2]}`, `-${m[3]}`] : null;
   }
   if (rule === "at47-two") {                                                           // "K 146.804" → K 146 | 804
     const m = text.trim().match(/^(\S+)\s+(\d{1,3})\.?(\d{1,3})$/);
@@ -492,13 +494,21 @@ export function plateLayout(country: string, rawText: string, height: number, pl
     const shared = lines.filter((l) => !l.row.own);
     const fontSize = Math.min(...(shared.length ? shared : lines).map(fit));   // capitals fill ~72% of the row
 
+    // fillWidth: stretch the letter spacing until the widest line spans its whole row
+    let fillTrack = 0;
+    if (art.fillWidth) {
+      const ts = lines.filter((l) => !l.mode && l.texts.length === 1 && [...l.texts[0]].length > 1)
+        .map((l) => (l.avail - l.ems[0] * fontSize) / (([...l.texts[0]].length - 1) * fontSize));
+      if (ts.length) fillTrack = Math.max(0, Math.min(...ts));
+    }
+
     const runs: TextRun[] = [];
     const seals: { cx: number; cy: number; d: number; h?: number; src?: string }[] = [];
     for (const l of lines) {
       const fs = l.row.own ? Math.min(fontSize, fit(l)) : fontSize;
-      const widths = l.ems.map((em) => em * fs);
+      const widths = l.ems.map((em, i) => em * fs + (fillTrack ? fillTrack * fs * ([...l.texts[i]].length - 1) : 0));
       const total = widths.reduce((x, y) => x + y, 0) + l.sealD + l.gaps * l.gap;
-      let x = l.row.align === "right" ? l.row.x1 * s - total : l.row.x0 * s + (l.avail - total) / 2;               // centred → equal margins
+      let x = l.row.align === "right" ? l.row.x1 * s - total : l.row.align === "left" ? l.row.x0 * s : l.row.x0 * s + (l.avail - total) / 2;               // centred → equal margins
       const centerY = ((l.row.y0 + l.row.y1) / 2) * s;
       if (l.mode === "left") {                                    // ● then the text
         seals.push({ cx: x + l.sealD / 2, cy: centerY, d: l.sealD, h: l.sealH || undefined, src: stateSrc ?? undefined });
@@ -506,7 +516,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
       }
       l.texts.forEach((text, i) => {
         // Belgian lettering has no slashed zero: use the plain O
-        runs.push({ text: key === "belgium" ? text.replace(/0/g, "O") : text, x0: x, x1: x + widths[i], align: "left", fontSize: fs, centerY, tracking: art.tracking });
+        runs.push({ text: key === "belgium" ? text.replace(/0/g, "O") : text, x0: x, x1: x + widths[i], align: "left", fontSize: fs, centerY, tracking: (art.tracking ?? 0) + fillTrack });
         x += widths[i];
         if (l.mode === "right" && i === l.texts.length - 1) {                 // text then ●
           seals.push({ cx: x + l.gap + l.sealD / 2, cy: centerY, d: l.sealD, h: l.sealH || undefined, src: stateSrc ?? undefined });

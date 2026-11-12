@@ -92,13 +92,14 @@ function runSvgTraced(run: TextRun, color: string, which: "al" | "at" | "at47" |
   };
   const capPx = fontSize * (CAP_BOTTOM - CAP_TOP);   // same capital height as FE plates
   const scale = capPx / capHeight;
+  const track = (run.tracking ?? 0) * fontSize / scale;      // extra space after each character, in glyph-sheet px
   const paths: string[] = [];
   let x = 0;
   for (const ch of which === "at47" ? glyphKeys47(text) : text) {
     const g = glyphs[ch];
-    if (!g) { x += space; continue; }
+    if (!g) { x += space + track; continue; }
     paths.push(`<path transform="translate(${x + bearing + g.dx} ${g.dy})" d="${g.d}"/>`);
-    x += g.w + 2 * bearing;
+    x += g.w + 2 * bearing + track;
   }
   const startX = runStartX(run, x * scale);
   const baseline = centerY + capPx / 2;
