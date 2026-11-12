@@ -8,13 +8,14 @@ import { AL_CAP_HEIGHT, AL_WIDTHS } from "./albaniaFontMetrics";
 import { BELGIUM_CATEGORIES, parseBelgiumPlateType } from "./belgiumData";
 import { AT_CAP_HEIGHT, AT_WIDTHS } from "./austriaFontMetrics";
 import { AT47_CAP_HEIGHT, AT47_WIDTHS } from "./austria1947FontMetrics";
+import { BA_CAP_HEIGHT, BA_WIDTHS } from "./bosniaFontMetrics";
 
 /**
  * Lettering per country. "fe" = FE-Schrift (default everywhere);
  * "al" = Albanian plate glyphs traced from assets/fonts/albania-glyphs.png
  * (scripts/build-albania-font.cjs). Only used on plates with real artwork.
  */
-export type PlateFont = "fe" | "al" | "at" | "at47";
+export type PlateFont = "fe" | "al" | "at" | "at47" | "ba";
 const COUNTRY_FONT: Record<string, PlateFont> = { albania: "al", austria: "at" };
 export function plateFont(country: string): PlateFont {
   return COUNTRY_FONT[country.toLowerCase()] ?? "fe";
@@ -26,6 +27,9 @@ export const AL_SPACE = 70;
 /** Austrian glyph spacing (assets/fonts/austria-glyphs.png), in glyph-sheet pixels. */
 export const AT_SIDE_BEARING = 12;
 export const AT_SPACE = 80;
+/** Bosnian plate lettering (assets/fonts/bosnia-glyphs.png), in glyph-sheet pixels. */
+export const BA_SIDE_BEARING = 6;
+export const BA_SPACE = 36;
 /** 1947-system lettering (assets/fonts/austria-1947-glyphs.png). */
 export const AT47_SIDE_BEARING = 14;
 export const AT47_SPACE = 60;
@@ -62,7 +66,7 @@ export type ArtRow = {
  *  - "al-moto":    letters | digits                    ("AB 123" → AB | 123)
  *  - "al-trailer-two": letters | "R" + digits          ("AB R 456" → AB | R 456)
  */
-export type SplitRule = "be-seal" | "be-two" | "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
+export type SplitRule = "ba-two" | "be-seal" | "be-two" | "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
 
 export type PlateArt = {
   src: string;          // path under /public
@@ -182,6 +186,9 @@ export const PLATE_ART: Record<string, PlateArt> = {
     rows: [{ y0: 23, y1: 334, x0: 205, x1: 1545, slots: 1 }],
     split: "whole",
   },
+  // ── Bosnia: standard no-euroband plates (white, black frame). Black lettering in the Bosnian font. ──
+  "bosnia:single-no-euroband": { src: "/plates/bosnia/y1998-single.png", w: 1024, h: 196, rows: [{ y0: 20, y1: 176, x0: 40, x1: 984, slots: 1 }], split: "whole", font: "ba", fill: 0.7, tracking: 0.04 },
+  "bosnia:two-line-no-euroband": { src: "/plates/bosnia/y1998-two.png", w: 512, h: 256, rows: [{ y0: 18, y1: 126, x0: 30, x1: 482, slots: 1 }, { y0: 130, y1: 238, x0: 30, x1: 482, slots: 1 }], split: "ba-two", font: "ba", fill: 0.7, tracking: 0.04 },
   // ── Belgium: red plates. Euroband at the left; single row has the emblem / dash / DIV stamp as one seal between the first character and the rest ──
   "belgium:single-dash": { src: "/plates/belgium/regular-single.png", w: 1266, h: 261, rows: [{ y0: 31, y1: 229, x0: 143, x1: 1245, slots: 2, seal: true, gap: 0.12 }], split: "be-seal", seal: "/plates/belgium/seal.png", sealAspect: 60 / 184, sealH: 0.93, textColor: "#a3252b", tracking: 0.13, fill: 0.72 },
   "belgium:single-no-dash": { src: "/plates/belgium/regular-single.png", w: 1266, h: 261, rows: [{ y0: 31, y1: 229, x0: 143, x1: 1245, slots: 1 }], split: "whole", textColor: "#a3252b", tracking: 0.13, fill: 0.72 },
@@ -317,6 +324,11 @@ const AT_PX_TO_EM = (CAP_BOTTOM - CAP_TOP) / AT_CAP_HEIGHT;
 
 /** Rendered width of a text run in em, for the given lettering (condensing included). */
 export function textWidthEm(s: string, font: PlateFont) {
+  if (font === "ba") {
+    let px = 0;
+    for (const ch of s) px += ch in BA_WIDTHS ? BA_WIDTHS[ch] + 2 * BA_SIDE_BEARING : BA_SPACE;
+    return px * ((CAP_BOTTOM - CAP_TOP) / BA_CAP_HEIGHT);
+  }
   if (font === "at47") {
     let px = 0;
     for (const k of glyphKeys47(s)) px += k in AT47_WIDTHS ? AT47_WIDTHS[k] + 2 * AT47_SIDE_BEARING : AT47_SPACE;
@@ -358,6 +370,10 @@ function splitText(rule: SplitRule, text: string): string[] | null {
     if (rule === "be-seal") return [g[1], g[2]];
     const parts = g[2].match(/^([A-Z]+)-?(\d+)$/);
     return parts ? [`${g[1]}-${parts[1]}`, parts[2]] : null;
+  }
+  if (rule === "ba-two") {                                                              // 123-A-456 → 123-A | 456
+    const m = text.trim().match(/^(.+)-([^-]+)$/);
+    return m ? [m[1], m[2]] : null;
   }
   if (rule === "at47-two") {                                                           // "K 146.804" → K 146 | 804
     const m = text.trim().match(/^(\S+)\s+(\d{1,3})\.?(\d{1,3})$/);
