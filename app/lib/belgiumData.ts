@@ -15,7 +15,8 @@ export type BelgiumCategoryId =
   | "professional"
   | "vanity"
   | "year-1951"
-  | "diplomatic";
+  | "diplomatic"
+  | "military";
 
 export type BelgiumPlateColor = "red" | "green";
 
@@ -41,6 +42,7 @@ export const BELGIUM_CATEGORIES: {
   { id: "vanity",        label: "Vanity",                      color: "red",   example: "HELLO",      hint: "Custom text (since 2014)" },
   { id: "year-1951",     label: "1951 Year system",            color: "red",   example: "AAA-111",    hint: "Select era pattern below" },
   { id: "diplomatic",    label: "Diplomatic",                  color: "red",   example: "01 CD 123",  hint: "Freetype diplomatic format" },
+  { id: "military",      label: "Military",                    color: "red",   example: "26287",      hint: "Belgian Defence — digits only, flag strip" },
 ];
 
 // 1951 era sub-formats
@@ -88,6 +90,8 @@ export function detectBelgiumCategory(raw: string): BelgiumCategoryId | null {
   if (/^Y-/i.test(t)) return "testing";
   // Professional: V-AA
   if (/^V-/i.test(t)) return "professional";
+  // Military: digits only (5–6)
+  if (/^d{5,6}$/.test(t)) return "military";
   // Regular: starts with digit
   if (/^\d/.test(t)) return "regular";
 
@@ -120,11 +124,13 @@ export const BELGIUM_FORMATS_FOR: Record<BelgiumCategoryId, string[]> = {
   international: STANDARD_FORMATS, agricultural: STANDARD_FORMATS, moped: STANDARD_FORMATS,
   rental: STANDARD_FORMATS, testing: STANDARD_FORMATS, professional: STANDARD_FORMATS,
   vanity: STANDARD_FORMATS, "year-1951": FORMATS_1951, diplomatic: STANDARD_FORMATS,
+  military: ["military-single"],
 };
 
 export const BE_FORMAT_LABELS: Record<string, string> = {
   "single-dash":          "Single-line (with dash)",
   "single-no-dash":       "Single-line (without dash)",
+  "military-single":      "Military, single-line",
   "two-line":             "Two-line",
   "two-line-us":          "Two-line (US vehicles & motorcycles)",
   "single-no-euroband":   "Single-line without euroband",

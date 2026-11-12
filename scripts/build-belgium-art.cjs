@@ -46,5 +46,17 @@ const OUT = path.join(ROOT, "public/plates/belgium");
   const mask = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${bw}" height="${bh}"><rect width="${bw}" height="${bh}" rx="0" fill="#fff"/><rect y="${bh - 40}" width="40" height="40" fill="#000"/><circle cx="${40}" cy="${bh - 40}" r="40" fill="#fff"/><rect x="40" y="${bh - 40}" width="${bw - 40}" height="40" fill="#fff"/></svg>`);
   const bandImg = await sharp(band).resize(bw, bh, { kernel: "lanczos3" }).composite([{ input: mask, blend: "dest-in" }]).png().toBuffer();
   await sharp(Buffer.from(svg)).composite([{ input: bandImg, left: bt, top: PH - bt - bh }]).png().toFile(path.join(OUT, "regular-two.png"));
+  // 4) military plate (single row): metal rim, black frame line, Belgian flag strip, black digits go on top
+  const MW = 1040, MH = 241;
+  const mil = `<svg xmlns="http://www.w3.org/2000/svg" width="${MW}" height="${MH}"><defs>
+      <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9d9d7"/><stop offset="1" stop-color="#a9a9a7"/></linearGradient>
+      <linearGradient id="face" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f4f2"/><stop offset="1" stop-color="#e4e4e1"/></linearGradient></defs>
+    <rect x=".75" y=".75" width="${MW - 1.5}" height="${MH - 1.5}" rx="12" fill="url(#rim)" stroke="#555" stroke-width="1.5"/>
+    <rect x="12" y="12" width="${MW - 24}" height="${MH - 24}" rx="7" fill="#1b1b1b"/>
+    <rect x="17" y="17" width="${MW - 34}" height="${MH - 34}" rx="4" fill="url(#face)"/>
+    <rect x="218" y="53" width="20" height="134" fill="#1b1b1b"/><rect x="238" y="53" width="20" height="134" fill="#fcd116"/><rect x="258" y="53" width="20" height="134" fill="#ee2a35"/>
+    <rect x="218" y="53" width="60" height="134" fill="none" stroke="#000" stroke-opacity=".25" stroke-width="1"/>
+  </svg>`;
+  await sharp(Buffer.from(mil)).png().toFile(path.join(OUT, "military-single.png"));
   console.log("ok");
 })();

@@ -173,6 +173,8 @@ export const PLATE_ART: Record<string, PlateArt> = {
     rows: [{ y0: 23, y1: 334, x0: 205, x1: 1545, slots: 1 }],
     split: "whole",
   },
+  // ── Belgium: military plates (digits only) — flag strip at x218–278, lettering to its right ──
+  "belgium:military-single": { src: "/plates/belgium/military-single.png", w: 1040, h: 241, rows: [{ y0: 30, y1: 210, x0: 300, x1: 950, slots: 1 }], split: "whole" },
   // ── Austria: backgrounds in public/plates/austria; one row per line of lettering ──
   "austria:regular-single": { src: "/plates/austria/regular-single.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 128, x1: 1015, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.78 },
   "austria:regular-single-noeuro": { src: "/plates/austria/regular-single-noeuro.png", w: 1040, h: 220, rows: [{ y0: 26, y1: 194, x0: 40, x1: 1000, slots: 2, seal: true, gap: 0.22 }], split: "at-seal", stateSeals: true, sealH: 0.78 },
