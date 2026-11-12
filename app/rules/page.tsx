@@ -54,7 +54,7 @@ export default function RulesPage() {
         <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-1">PlateVault</p>
         <h1 className="text-3xl font-black text-zinc-50">Community Rules</h1>
         <p className="mt-2 text-sm text-zinc-500">
-          Last updated: June 2026 · These rules apply to all users of PlateVault.
+          Last updated: November 2026 · These rules apply to all users of PlateVault.
         </p>
         <p className="mt-3 text-sm text-zinc-400">
           By registering an account on PlateVault, you confirm that you have read, understood, and agreed to these rules in their entirety.
@@ -62,6 +62,30 @@ export default function RulesPage() {
         </p>
         </div>
       </div>
+
+      {/* The short version */}
+      <section aria-label="The short version" className="mb-12">
+        <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-zinc-500">The short version</h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            { icon: "📸", title: "Real photos only", text: "Your own, not AI-made, not edited beyond light tone fixes.", href: "#uploads" },
+            { icon: "🔍", title: "Plate must be readable", text: "Whole plate legible, vehicle clearly in the frame.", href: "#quality" },
+            { icon: "📍", title: "Place first", text: "The description starts with city + country — never a street or house number.", href: "#location" },
+            { icon: "♻️", title: "No pointless duplicates", text: "A repeat is fine only when something is new: plate, angle, change, country.", href: "#uploads" },
+            { icon: "🤝", title: "Be decent", text: "Respect everyone, no spam or ads. Say thanks with a like, not a comment.", href: "#comments" },
+            { icon: "🚩", title: "Report, don't argue", text: "Spotted a mistake? Use the report button and let the team handle it.", href: "#moderation" },
+          ].map((c) => (
+            <a key={c.title} href={c.href}
+              className="group rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 transition-colors hover:border-indigo-500/60 hover:bg-zinc-900">
+              <div className="flex items-center gap-2.5">
+                <span className="grid h-9 w-9 place-items-center rounded-xl bg-indigo-500/10 text-lg ring-1 ring-indigo-500/20" aria-hidden="true">{c.icon}</span>
+                <span className="text-sm font-semibold text-zinc-100 group-hover:text-white">{c.title}</span>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-zinc-400">{c.text}</p>
+            </a>
+          ))}
+        </div>
+      </section>
 
       <div className="flex gap-12 items-start">
 
@@ -143,8 +167,8 @@ export default function RulesPage() {
             <SubRule n="3.3.e">Photos that do not show a real, road-registered vehicle with a plate fitted to it (exceptions apply for standalone plate photos — see 3.6).</SubRule>
             <SubRule n="3.3.f">Photos where the primary subject is not the vehicle or plate (e.g. landscapes, portraits, unrelated objects).</SubRule>
             <Rule n="3.4">
-              Each upload must include the correct plate text as it appears on the physical plate, the country of registration, and a broad location
-              (city + country at minimum — see Section 6).
+              Each upload must include the correct plate text as it appears on the physical plate, the country of registration, and a description that starts with the
+              place it was spotted (city + country at minimum — see Section 6).
             </Rule>
             <Rule n="3.5">
               Plate text must be entered exactly as it appears on the plate, including spacing and separators where they are part of the official format.
@@ -156,6 +180,24 @@ export default function RulesPage() {
             <Rule n="3.7">
               Minor image adjustments (brightness, contrast, colour balance, crop) are permitted. Compositing, heavy filtering, or any alteration that
               misrepresents the original scene is not.
+            </Rule>
+            <Rule n="3.8">
+              <strong className="text-zinc-100">Tag what is actually there.</strong> Choose the plate type that matches the plate, and add make, model and
+              generation when you can see or are sure of them. If you are not sure, leave the field empty rather than guessing.
+            </Rule>
+            <Rule n="3.9">
+              <strong className="text-zinc-100">Duplicates.</strong> Do not upload the same plate on the same vehicle twice. A repeat is welcome when it adds something new:
+            </Rule>
+            <SubRule n="3.9.a">a different plate, or a different vehicle wearing the same plate;</SubRule>
+            <SubRule n="3.9.b">a clearly different angle or scene;</SubRule>
+            <SubRule n="3.9.c">a visible change to the vehicle or the plate (modifications, new plate type, new tag);</SubRule>
+            <SubRule n="3.9.d">a different country or region.</SubRule>
+            <Rule n="3.10">
+              Otherwise, add what you know as a comment on the original spot instead of uploading it again.
+            </Rule>
+            <Rule n="3.11">
+              <strong className="text-zinc-100">Replacing photos.</strong> Ask for a replacement only when the new photo is clearly better — sharper, better lit, plate fully readable.
+              Do not swap photos back and forth, and do not replace a good photo with a similar one.
             </Rule>
           </Section>
 
@@ -200,19 +242,23 @@ export default function RulesPage() {
 
           <Section id="location" title="6. Location">
             <Rule n="6.1">
-              Every spot upload must include a location indicating at minimum the city and country where the photo was taken —
-              for example <span className="font-mono text-zinc-200">Berlin, Germany</span> or <span className="font-mono text-zinc-200">Tirana, Albania</span>.
+              Every spot has one <strong className="text-zinc-100">Description</strong>. It starts with the place where the photo was taken — at minimum the city
+              and country, for example <span className="font-mono text-zinc-200">Berlin, Germany</span> or <span className="font-mono text-zinc-200">Tirana, Albania</span> —
+              and then, if you like, anything else worth saying about the sighting (and #hashtags).
             </Rule>
             <Rule n="6.2">
               The location must reflect where the photo was taken, not where the vehicle is registered.
             </Rule>
             <Rule n="6.3">
               Street names, house numbers, precise GPS coordinates, or any information that could identify a private address are not permitted
-              in the location field.
+              in the description.
             </Rule>
             <Rule n="6.4">
               Providing a false or deliberately misleading location is a violation of these rules and may result in removal of the spot and
               sanctions against the uploader.
+            </Rule>
+            <Rule n="6.5">
+              If you are not the photographer, say so in the description, credit them by name, and only post the photo with their consent (see 3.2).
             </Rule>
           </Section>
 
@@ -237,6 +283,16 @@ export default function RulesPage() {
             <Rule n="7.5">
               The administration reserves the right to remove any comment at any time without explanation.
             </Rule>
+            <Rule n="7.6">
+              To say thanks or show you like a spot, use the like button — a comment that only says "nice" or "thanks" is noise.
+            </Rule>
+            <Rule n="7.7">
+              No advertising, no asking for likes or follows, and no posting the same comment on many spots. Links are fine when they genuinely relate to the spot
+              (for example a source or a related photo).
+            </Rule>
+            <Rule n="7.8">
+              Do not use comments to point out mistakes or to push a "better" replacement photo. Use the report button on the spot instead (see 8.7).
+            </Rule>
           </Section>
 
           <Section id="moderation" title="8. Moderation & Sanctions">
@@ -245,8 +301,8 @@ export default function RulesPage() {
               successfully appealed to an administrator.
             </Rule>
             <Rule n="8.2">
-              Sanctions range from content removal and warnings to temporary bans and permanent exclusion, depending on the nature and severity
-              of the violation.
+              Sanctions escalate in steps: <strong className="text-zinc-100">content removal → warning → temporary ban → permanent exclusion</strong>.
+              Which step applies depends on the nature and severity of the violation and on whether it is a repeat.
             </Rule>
             <Rule n="8.3">
               The following violations may result in immediate permanent exclusion without prior warning:
@@ -263,6 +319,13 @@ export default function RulesPage() {
               time after the sanction is imposed.
             </Rule>
             <Rule n="8.6">
+              Sanctions are normally imposed within a month of the violation being noticed, and the user is told which rule was broken.
+            </Rule>
+            <Rule n="8.7">
+              <strong className="text-zinc-100">Reporting problems.</strong> Wrong plate text, wrong vehicle or tags, a duplicate, or content that should be hidden or removed:
+              use the report button on the spot. Reports are read by the moderation team; please do not argue about them in comments.
+            </Rule>
+            <Rule n="8.8">
               The administration may update these rules at any time. Continued use of the platform after an update constitutes acceptance of the
               revised rules.
             </Rule>
