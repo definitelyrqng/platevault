@@ -52,7 +52,7 @@ export default function LegalPage() {
           <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-1">PlateVault</p>
           <h1 className="text-3xl font-black text-zinc-50">Terms of Service &amp; Privacy Policy</h1>
           <p className="mt-2 text-sm text-zinc-500">
-            Last updated: June 2026 · These terms govern your use of PlateVault.
+            Last updated: November 2026 · These terms govern your use of PlateVault.
           </p>
           <p className="mt-3 text-sm text-zinc-400">
             By registering an account or using PlateVault, you confirm that you have read and agreed to both the Terms of Service
@@ -181,7 +181,7 @@ export default function LegalPage() {
           <Section id="tos-termination" title="§5 Termination">
             <p>
               You may close your account at any time by contacting the administration. Account closure does not automatically
-              result in deletion of your uploaded content — see §3.3 and §12 of the Privacy Policy.
+              result in deletion of your uploaded content — see §3.3 and §11 of the Privacy Policy.
             </p>
             <p>
               We may suspend or permanently terminate your access at our discretion for any violation of these Terms or the Community Rules.
@@ -230,7 +230,7 @@ export default function LegalPage() {
           </Section>
 
           {/* ═══ PRIVACY POLICY ═══ */}
-          <div className="mb-4 mt-12 rounded-xl bg-emerald-950/30 border border-emerald-900/50 px-5 py-3">
+          <div id="privacy-controller" className="mb-4 mt-12 scroll-mt-8 rounded-xl bg-emerald-950/30 border border-emerald-900/50 px-5 py-3">
             <span className="text-xs font-semibold uppercase tracking-wider text-emerald-400">Privacy Policy</span>
             <p className="mt-1 text-xs text-zinc-400">
               This Privacy Policy applies to all personal data processed by PlateVault and fulfils our disclosure obligations
@@ -239,15 +239,15 @@ export default function LegalPage() {
           </div>
 
           <Section id="privacy-data" title="§9 Data We Collect">
-            <Sub title="10.1 Data you provide directly">
+            <Sub title="9.1 Data you provide directly">
               <p><strong className="text-zinc-200">Email address</strong> — collected at registration and stored in our database. Used for account authentication and, where applicable, notifications.</p>
               <p><strong className="text-zinc-200">Username</strong> — publicly visible display name chosen by you at registration.</p>
               <p><strong className="text-zinc-200">Password</strong> — stored as a secure hash. We cannot read your password.</p>
               <p><strong className="text-zinc-200">Uploaded images</strong> — photos you upload as spots, stored on our file hosting infrastructure.</p>
-              <p><strong className="text-zinc-200">Upload metadata</strong> — plate text, vehicle make/model, location (city + country), and any other fields you fill in when submitting a spot.</p>
+              <p><strong className="text-zinc-200">Upload metadata</strong> — plate text, vehicle make/model, the description (which starts with where it was spotted — city + country — and may contain any extra notes or #hashtags you add), and any other fields you fill in when submitting a spot.</p>
               <p><strong className="text-zinc-200">Comments and likes</strong> — text you write in comments and interactions you make on the platform.</p>
             </Sub>
-            <Sub title="10.2 Data collected automatically">
+            <Sub title="9.2 Data collected automatically">
               <p><strong className="text-zinc-200">Session token</strong> — a secure, random token stored in an httpOnly cookie on your device, used to keep you logged in. It is associated with your account in our database.</p>
               <p><strong className="text-zinc-200">Server logs</strong> — our hosting provider may automatically log IP addresses, request timestamps, and user-agent strings for security and operational purposes. We do not actively collect or store IP addresses beyond what our hosting infrastructure logs automatically.</p>
             </Sub>
@@ -335,7 +335,7 @@ export default function LegalPage() {
               <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-1">
                 <div className="text-sm font-semibold text-zinc-200">UploadThing (Ping Labs Inc.)</div>
                 <div className="text-xs text-zinc-400">File storage and delivery for uploaded spot images. Images are stored on UploadThing's infrastructure and served via their CDN.</div>
-                <div className="text-xs text-zinc-500">Servers may be located outside the EU — see §15. <a href="https://uploadthing.com/privacy" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300">Privacy Policy</a></div>
+                <div className="text-xs text-zinc-500">Servers may be located outside the EU — see §14. <a href="https://uploadthing.com/privacy" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300">Privacy Policy</a></div>
               </div>
               <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-1">
                 <div className="text-sm font-semibold text-zinc-200">Vercel (Vercel Inc.)</div>
@@ -357,7 +357,7 @@ export default function LegalPage() {
               {[
                 { right: "Right of access (Art. 15)", desc: "You may request a copy of the personal data we hold about you." },
                 { right: "Right to rectification (Art. 16)", desc: "You may request correction of inaccurate or incomplete personal data." },
-                { right: "Right to erasure (Art. 17)", desc: "You may request deletion of your personal data. This right is subject to our retention obligations and our rights over user-submitted content described in §12." },
+                { right: "Right to erasure (Art. 17)", desc: "You may request deletion of your personal data. This right is subject to our retention obligations and our rights over user-submitted content described in §3 and §11." },
                 { right: "Right to restriction (Art. 18)", desc: "You may request that we restrict processing of your data in certain circumstances." },
                 { right: "Right to data portability (Art. 20)", desc: "You may request a machine-readable copy of personal data you have provided to us." },
                 { right: "Right to object (Art. 21)", desc: "You may object to processing based on our legitimate interests. We will stop unless we can demonstrate compelling legitimate grounds." },
@@ -401,7 +401,7 @@ export default function LegalPage() {
             </p>
             <p>
               This cookie is strictly necessary for the platform to function. As such, under GDPR Recital 47 and the German Telecommunications
-              and Telemedia Data Protection Act (TTDSG), it does not require a separate consent banner.
+              Digital Services Data Protection Act (TDDDG, formerly TTDSG), it does not require a separate consent banner.
             </p>
           </Section>
 
