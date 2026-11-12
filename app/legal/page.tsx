@@ -309,7 +309,7 @@ export default function LegalPage() {
             <p>
               <strong className="text-zinc-200">Uploaded images and spot metadata</strong>: retained indefinitely as part of the community archive.
               We preserve the right to keep uploaded content even after account closure. If you wish to request removal of specific images,
-              contact us at <a href="mailto:legal@platevault.app" className="text-indigo-400 hover:text-indigo-300">legal@platevault.app</a>.
+              contact us through the <a href="/contact" className="text-indigo-400 hover:text-indigo-300">contact form</a>.
               We will evaluate each request and respond within 30 days. Removal is not guaranteed for content that forms part of the
               public archive, but we will always consider requests made under GDPR Art. 17.
             </p>
@@ -350,8 +350,8 @@ export default function LegalPage() {
           <Section id="privacy-rights" title="§13 Your Rights (GDPR)">
             <p>
               As a data subject under the GDPR, you have the following rights with respect to your personal data.
-              To exercise any of these rights, contact us at{" "}
-              <a href="mailto:legal@platevault.app" className="text-indigo-400 hover:text-indigo-300">legal@platevault.app</a>.
+              To exercise any of these rights, use our{" "}
+              <a href="/contact" className="text-indigo-400 hover:text-indigo-300">contact form</a>.
               We will respond within 30 days.
             </p>
             <div className="space-y-2">
@@ -409,16 +409,16 @@ export default function LegalPage() {
           <Section id="privacy-minors" title="§16 Minors">
             <p>
               PlateVault is not directed at children under the age of 16. We do not knowingly collect personal data from anyone under 16.
-              If you believe we have inadvertently collected data from a minor, please contact us immediately at{" "}
-              <a href="mailto:legal@platevault.app" className="text-indigo-400 hover:text-indigo-300">legal@platevault.app</a>{" "}
+              If you believe we have inadvertently collected data from a minor, please contact us immediately through our{" "}
+              <a href="/contact" className="text-indigo-400 hover:text-indigo-300">contact form</a>{" "}
               and we will take steps to delete it.
             </p>
           </Section>
 
           <Section id="privacy-contact" title="§17 Contact & Complaints">
             <p>
-              For any privacy-related questions or to exercise your rights, contact us at:{" "}
-              <a href="mailto:legal@platevault.app" className="text-indigo-400 hover:text-indigo-300">legal@platevault.app</a>
+              For any privacy-related questions or to exercise your rights, contact us through our{" "}
+              <a href="/contact" className="text-indigo-400 hover:text-indigo-300">contact form</a>
             </p>
             <p>
               If you believe we have not handled your data correctly, you have the right to lodge a complaint with the competent supervisory
