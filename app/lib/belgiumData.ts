@@ -73,13 +73,15 @@ export function detectBelgiumCategory(raw: string): BelgiumCategoryId | null {
   // Oldtimer
   if (/^O-/i.test(t)) return "oldtimer";
   // Motorcycle: M-X or 1-M
-  if (/^M-/i.test(t) || /^\d-M/i.test(t)) return "motorcycle";
+  if (/^[MW]-/i.test(t) || /^[0-9]-[MW]/i.test(t)) return "motorcycle";
   // Taxi: T-XA (second segment ends with A — wait for at least T-X)
-  if (/^T-/i.test(t)) return "taxi";
+  if (/^T-/i.test(t) || /^[0-9]-TX/i.test(t)) return "taxi";
   // Trailer
-  if (/^Q-/i.test(t)) return "trailer";
+  if (/^[QU]-/i.test(t)) return "trailer";
   // Dealer: Z-X or 1-Z
-  if (/^Z-/i.test(t) || /^\d-Z/i.test(t)) return "dealer";
+  if (/^ZZ/i.test(t)) return "testing";
+  if (/^Z-/i.test(t) || /^[0-9]-Z/i.test(t)) return "dealer";
+  if (/^CD-/i.test(t)) return "diplomatic";
   // International: 8-AA
   if (/^8-/i.test(t)) return "international";
   // Agricultural: G-L
