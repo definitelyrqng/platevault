@@ -34,7 +34,7 @@ const OUT = path.join(ROOT, "public/plates/belgium");
 
   // 3) two rows: same border style, the single-row euroband scaled into the lower left
   const band = await sharp(single).extract({ left: 22, top: 22, width: 106, height: 232 }).toBuffer();
-  const PW = 1000, PH = 600, bt = 26, r = 40;
+  const PW = 1000, PH = 600, bt = 14, r = 34;
   const bh = Math.round((PH - 2 * bt) * 0.5), bw = Math.round(bh * 106 / 232);
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${PW}" height="${PH}"><defs>
     <linearGradient id="red" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b02a30"/><stop offset="1" stop-color="#96202a"/></linearGradient></defs>
