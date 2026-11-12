@@ -61,16 +61,13 @@ export default function BelgiumPlateInput({
 
   function handleText(v: string) {
     if (pattern) return handleMasked(v);
-    const upper = v.toUpperCase();
+    // military plates are digits only
+    const upper = category === "military" ? v.replace(/[^0-9]/g, "").slice(0, 6) : v.toUpperCase();
     onComplete(upper.trim().length > 0);
     setText(upper);
     onChange(upper);
 
-    // Auto-detect category (only if not vanity/diplomatic/1951 — those are manual)
-    if (!pattern && category !== "vanity" && category !== "diplomatic" && category !== "year-1951") {
-      const detected = detectBelgiumCategory(upper);
-      if (detected && detected !== category) onCategoryDetected(detected);
-    }
+    // The category is only ever changed by the user (never guessed from what is typed).
 
     // Auto-detect 1951 era
     if (is1951) {
