@@ -385,8 +385,14 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                     </div>
                   </div>
 
-                  {upload.location && (
-                    <div className="mt-4 text-sm text-zinc-400">{upload.location}</div>
+                  {/* One description under the plate: where it was spotted + whatever the spotter added */}
+                  {(upload.description || upload.location) && (
+                    <div className="mx-auto mt-4 max-w-xl text-center">
+                      {upload.location && !(upload.description ?? "").includes(upload.location) && (
+                        <div className="text-sm text-zinc-400">{upload.location}</div>
+                      )}
+                      {upload.description && <DescriptionText text={upload.description} className="text-zinc-400" />}
+                    </div>
                   )}
 
                   {upload.tags.length > 0 && (
@@ -535,14 +541,6 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
               {czechRegion && (
                 <Detail label="Region" value={czechRegion} />
               )}
-              {/* ── Description ── */}
-              {upload.description && (
-                <div className="border-t border-zinc-800/60 pt-3">
-                  <DescriptionText text={upload.description} />
-                </div>
-              )}
-
-              {upload.location  && <Detail label="Location"   value={upload.location} />}
               {plateTypeName && <Detail label="Plate type" value={plateTypeName} />}
               {upload.badge      && <Detail label="Badge"      value={upload.badge} />}
               {upload.color      && <Detail label="Color"      value={upload.color} />}

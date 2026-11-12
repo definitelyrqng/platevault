@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import DescriptionField, { locationOf } from "@/app/components/DescriptionField";
 import { useRouter } from "next/navigation";
 import { generateReactHelpers } from "@uploadthing/react";
 import type { OurFileRouter } from "@/app/lib/uploadthing";
@@ -173,7 +174,7 @@ export default function CzechUploadPage() {
     [category, firstDigit, regionLetter, optionalChar, fourDigits, regionNum, dealerLetter, elDigit, diplom1, diplom2, custom, regionCode1960, serialLetter, num1, num2]);
 
   const plateTypeStored = useMemo(() => category === "moto1960" ? `cz-moto1960-${motoType1960}` : `cz-${category}-${plateFormat}`, [category, plateFormat, motoType1960]);
-  const locationWarning = useMemo(() => { if (!location.trim()) return ""; return locationTooExact(location) ? "Keep it broad — city or area only." : ""; }, [location]);
+  const locationWarning = useMemo(() => { if (!location.trim()) return ""; return locationTooExact(locationOf(location)) ? "Keep it broad — city or area only." : ""; }, [location]);
   const is1960 = ["car1960","moto1960","commercial1960","agricultural1960","trailer1977"].includes(category);
   const is2001RegionBased = ["car2001","moto2001","dealer2001","sport2001","oldtimer2001","electric","foreign"].includes(category);
   const isFreeText = ["vanity","export"].includes(category);
@@ -205,9 +206,9 @@ export default function CzechUploadPage() {
       setStatus("saving");
       const res = await fetch("/api/uploads", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ country: "czech", plateText: plateText.trim().toUpperCase(), plateType: plateTypeStored, imageUrl, location: location.trim(),
+        body: JSON.stringify({ country: "czech", plateText: plateText.trim().toUpperCase(), plateType: plateTypeStored, imageUrl, location: locationOf(location), description: location.trim() || null,
           plateRegion: is2001RegionBased ? (regionLetter || null) : (regionCode1960 || null),
-          brand: brand.trim(), model: model.trim(), generation: generation.trim(), trim: trim.trim(), color: color.trim(), badge: badge.trim(), tags, companyId, description: description.trim() || null }),
+          brand: brand.trim(), model: model.trim(), generation: generation.trim(), trim: trim.trim(), color: color.trim(), badge: badge.trim(), tags, companyId, }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not save upload.");
@@ -560,12 +561,7 @@ export default function CzechUploadPage() {
                 )}
 
                 {/* Location */}
-                <div className="border-t border-zinc-800 pt-5">
-                  <label className="block text-sm text-zinc-300 mb-1.5">Where did you spot it? <span className="text-zinc-600 text-xs">(city or area)</span></label>
-                  <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Prague, Brno, Ostrava…"
-                    className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm outline-none focus:border-zinc-600" />
-                  {locationWarning && <p className="mt-1 text-xs text-amber-400">{locationWarning}</p>}
-                </div>
+                <DescriptionField value={location} onChange={setLocation} warning={locationWarning} />
               </div>
 
               {/* Car details */}
@@ -583,7 +579,7 @@ export default function CzechUploadPage() {
               {/* Tags */}
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
                 <span className="block text-sm font-medium text-zinc-200 mb-3">Tags <span className="text-zinc-600 text-xs font-normal">(optional)</span></span>
-                <DescriptionInput value={description} onChange={setDescription} />
+                
                   <TagPicker selected={tags} onChange={setTags} />
               </div>
 

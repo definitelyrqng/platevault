@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useCallback, useEffect, useRef } from "react";
+import DescriptionField, { locationOf } from "@/app/components/DescriptionField";
 import { useRouter } from "next/navigation";
 import { generateReactHelpers } from "@uploadthing/react";
 import type { OurFileRouter } from "@/app/lib/uploadthing";
@@ -83,7 +84,7 @@ export default function BulgariaUploadPage() {
 
   const locationWarning = useMemo(() => {
     if (!location.trim()) return "";
-    return locationTooExact(location) ? "Keep it broad — city or area only, no street + number." : "";
+    return locationTooExact(locationOf(location)) ? "Keep it broad — city or area only, no street + number." : "";
   }, [location]);
 
   const catMeta = BULGARIA_CATEGORIES.find((c) => c.id === category);
@@ -132,14 +133,14 @@ export default function BulgariaUploadPage() {
           plateText: plateText.trim().toUpperCase(),
           plateType: format,
           imageUrl,
-          location: location.trim(),
+          location: locationOf(location), description: location.trim() || null,
           brand: brand.trim(),
           model: model.trim(),
           generation: generation.trim(),
           trim: trim.trim(),
           color: color.trim(),
           badge: badge.trim(),
-          description: description.trim() || null,
+          
           tags,
           companyId,
         }),
@@ -344,21 +345,7 @@ export default function BulgariaUploadPage() {
                 )}
 
                 {/* Location */}
-                <label className="grid gap-1.5">
-                  <span className="text-sm text-zinc-300">
-                    Location <span className="text-zinc-600 text-xs">(city + country required)</span>
-                  </span>
-                  <input
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="e.g. Sofia, Bulgaria"
-                    className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600"
-                  />
-                  {locationWarning
-                    ? <span className="text-xs text-amber-400">{locationWarning}</span>
-                    : <span className="text-xs text-zinc-600">City + country only — no street or house number.</span>
-                  }
-                </label>
+                <DescriptionField value={location} onChange={setLocation} warning={locationWarning} />
 
                 {/* Car details */}
                 <div className="pt-2 border-t border-zinc-800">
@@ -375,7 +362,7 @@ export default function BulgariaUploadPage() {
                     <p className="text-xs font-medium uppercase tracking-wider text-zinc-500 mb-1.5">Transport company</p>
                     <CompanyPicker value={companyId} onChange={(id) => setCompanyId(id)} />
                   </div>
-                  <DescriptionInput value={description} onChange={setDescription} />
+                  
                   <TagPicker selected={tags} onChange={setTags} max={6} />
                 </div>
 
@@ -387,7 +374,7 @@ export default function BulgariaUploadPage() {
                   </button>
                   {status === "idle" && (
                     <span className="text-xs text-zinc-500">
-                      {!file ? "Add a photo" : plateText.trim().length < 2 ? "Enter plate text" : location.trim().length < 2 ? "Enter a location" : "Ready"}
+                      {!file ? "Add a photo" : plateText.trim().length < 2 ? "Enter plate text" : location.trim().length < 2 ? "Add where you saw it" : "Ready"}
                     </span>
                   )}
                 </div>

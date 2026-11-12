@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useCallback, useEffect, useRef } from "react";
+import DescriptionField, { locationOf } from "@/app/components/DescriptionField";
 import { useRouter } from "next/navigation";
 import { generateReactHelpers } from "@uploadthing/react";
 import type { OurFileRouter } from "@/app/lib/uploadthing";
@@ -152,7 +153,7 @@ export default function AustriaUploadPage() {
 
   const locationWarning = useMemo(() => {
     if (!location.trim()) return "";
-    return locationTooExact(location) ? "Keep it broad — city or area only, no street + number." : "";
+    return locationTooExact(locationOf(location)) ? "Keep it broad — city or area only, no street + number." : "";
   }, [location]);
 
   const hasPhoto = !!file && !fileError;
@@ -202,7 +203,7 @@ export default function AustriaUploadPage() {
           plateText: plateText.trim().toUpperCase(),
           plateType: selectedType.id,
           imageUrl,
-          location: location.trim(),
+          location: locationOf(location), description: location.trim() || null,
           plateRegion: plateRegion || null,
           brand: brand.trim(),
           model: model.trim(),
@@ -212,7 +213,7 @@ export default function AustriaUploadPage() {
           badge: badge.trim(),
           tags,
           companyId,
-          description: description.trim() || null,
+          
         }),
       });
 
@@ -265,7 +266,7 @@ export default function AustriaUploadPage() {
     setTrim(d.trim); setColor(d.color); setBadge(d.badge);
   }, []);
 
-  const missing = [!hasPhoto && "a photo", !hasPlate && "the plate number", !hasLocation && "a location"].filter(Boolean) as string[];
+  const missing = [!hasPhoto && "a photo", !hasPlate && "the plate number", !hasLocation && "a description"].filter(Boolean) as string[];
 
   /* ─── Render ─── */
 
@@ -370,15 +371,7 @@ export default function AustriaUploadPage() {
             {/* ── 4. Where & what ── */}
             <section className="space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-6">
               <StepTitle n={4} title="Where & what" done={hasLocation} />
-              <label className="grid gap-1.5">
-                <span className="text-sm text-zinc-300">Location <span className="text-xs text-zinc-600">(required)</span></span>
-                <input value={location} onChange={(e) => setLocation(e.target.value)}
-                  placeholder="e.g. Vienna, Austria"
-                  className="h-11 rounded-xl border border-zinc-700 bg-zinc-950 px-3 text-sm outline-none transition-colors focus:border-indigo-500" />
-                {locationWarning
-                  ? <span className="text-xs text-amber-400">{locationWarning}</span>
-                  : <span className="text-xs text-zinc-600">City or area only — no street or house number.</span>}
-              </label>
+              <DescriptionField value={location} onChange={setLocation} warning={locationWarning} />
 
               <div className="border-t border-zinc-800 pt-4">
                 <CarDetailsFields onChange={onCarDetails} />
@@ -396,7 +389,7 @@ export default function AustriaUploadPage() {
                     <p className="mb-1.5 text-xs font-medium uppercase tracking-wider text-zinc-500">Transport company</p>
                     <CompanyPicker value={companyId} onChange={(id) => setCompanyId(id)} />
                   </div>
-                  <DescriptionInput value={description} onChange={setDescription} />
+                  
                   <TagPicker selected={tags} onChange={setTags} max={6} />
                 </div>
               </div>
@@ -447,13 +440,13 @@ export default function AustriaUploadPage() {
               <div className="mt-2 text-center text-sm text-zinc-300">
                 {[brand, model].filter(Boolean).join(" ") || <span className="text-zinc-600">Vehicle (optional)</span>}
               </div>
-              <div className="mt-0.5 text-center text-xs text-zinc-500">{selectedType.label}{location.trim() && ` · ${location.trim()}`}</div>
+              <div className="mt-0.5 text-center text-xs text-zinc-500">{selectedType.label}{location.trim() && ` · ${locationOf(location)}`}</div>
 
               <ul className="mt-4 space-y-1.5 border-t border-zinc-800 pt-4 text-sm">
                 {[
                   { ok: hasPhoto, label: "Photo" },
                   { ok: hasPlate, label: "Plate number" },
-                  { ok: hasLocation, label: "Location" },
+                  { ok: hasLocation, label: "Description" },
                 ].map((c) => (
                   <li key={c.label} className={`flex items-center gap-2 ${c.ok ? "text-zinc-300" : "text-zinc-500"}`}>
                     <span className={`grid h-4 w-4 place-items-center rounded-full text-[10px] ${c.ok ? "bg-emerald-500/20 text-emerald-300" : "bg-zinc-800 text-zinc-600"}`}>

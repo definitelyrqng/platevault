@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useCallback, useEffect, useRef } from "react";
+import DescriptionField, { locationOf } from "@/app/components/DescriptionField";
 import { useRouter } from "next/navigation";
 import { generateReactHelpers } from "@uploadthing/react";
 import type { OurFileRouter } from "@/app/lib/uploadthing";
@@ -79,7 +80,7 @@ export default function CroatiaUploadPage() {
 
   const locationWarning = useMemo(() => {
     if (!location.trim()) return "";
-    return locationTooExact(location) ? "Keep it broad — city or area only, no street + number." : "";
+    return locationTooExact(locationOf(location)) ? "Keep it broad — city or area only, no street + number." : "";
   }, [location]);
 
   const catMeta = CROATIA_CATEGORIES.find((c) => c.id === category)!;
@@ -120,10 +121,10 @@ export default function CroatiaUploadPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           country: "croatia", plateText: plateText.trim().toUpperCase(),
-          plateType: format, imageUrl, location: location.trim(),
+          plateType: format, imageUrl, location: locationOf(location), description: location.trim() || null,
           brand: brand.trim(), model: model.trim(), generation: generation.trim(),
           trim: trim.trim(), color: color.trim(), badge: badge.trim(),
-          description: description.trim() || null,
+          
           tags, companyId,
         }),
       });
@@ -285,16 +286,7 @@ export default function CroatiaUploadPage() {
 
 
             {/* Location */}
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
-              <span className="block text-sm text-zinc-300 mb-2">Location spotted</span>
-              <input
-                className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600"
-                placeholder="e.g. Zagreb, Split, Dubrovnik…"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-              />
-              {locationWarning && <p className="mt-2 text-xs text-amber-400">⚠ {locationWarning}</p>}
-            </div>
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5"><DescriptionField value={location} onChange={setLocation} warning={locationWarning} /></div>
 
             {/* Car details */}
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
@@ -314,7 +306,7 @@ export default function CroatiaUploadPage() {
             {/* Tags */}
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4">
               <span className="block text-sm text-zinc-300 mb-2">Tags <span className="text-zinc-600 text-xs">(optional, up to 6)</span></span>
-              <DescriptionInput value={description} onChange={setDescription} />
+              
                   <TagPicker selected={tags} onChange={setTags} max={6} />
             </div>
 
