@@ -63,6 +63,15 @@ const OUT = path.join(ROOT, "public/plates/belgium");
     <rect x="218" y="53" width="60" height="134" fill="none" stroke="#000" stroke-opacity=".25" stroke-width="1"/>
   </svg>`;
   await sharp(Buffer.from(mil)).png().toFile(path.join(OUT, "military-single.png"));
+  // 4b) agricultural plate: dark red plate, thin white line, white lettering, same euroband
+  {
+    const AW = SW, AH = SH;
+    const bandA = await sharp(single).extract({ left: 15, top: 15, width: 106, height: 232 }).resize(104, AH - 36, { kernel: "lanczos3" }).toBuffer();
+    const base = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${AW}" height="${AH}">
+      <rect width="${AW}" height="${AH}" rx="22" fill="#a51f1f"/>
+      <rect x="11" y="11" width="${AW - 22}" height="${AH - 22}" rx="13" fill="none" stroke="#f1f1f1" stroke-width="4"/></svg>`);
+    await sharp(base).composite([{ input: bandA, left: 17, top: 18 }]).png().toFile(path.join(OUT, "agricultural-single.png"));
+  }
   // 5) green variants (dealer, testing, professional plates): red border / emblem recoloured to green
   async function greenify(file, out) {
     const { data: d, info: i } = await sharp(path.join(OUT, file)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });

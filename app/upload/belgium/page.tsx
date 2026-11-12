@@ -13,7 +13,7 @@ import BelgiumPlateInput from "@/app/upload/BelgiumPlateInput";
 import MilestonePopup from "@/app/components/MilestonePopup";
 import OcrHint from "@/app/components/OcrHint";
 import {
-  BELGIUM_CATEGORIES, BELGIUM_FORMATS_FOR, BE_FORMAT_LABELS,
+  BELGIUM_CATEGORIES, BELGIUM_FORMATS_FOR, BE_FORMAT_LABELS, BELGIUM_PATTERNS, padBelgiumPlate,
   BE_COLOR_CLASSES, BELGIUM_1951_ERAS,
   type BelgiumCategoryId,
 } from "@/app/lib/belgiumData";
@@ -42,10 +42,13 @@ export default function BelgiumUploadPage() {
   const [plateText, setPlateText] = useState("");
   const [format, setFormat]       = useState<string>(BELGIUM_FORMATS_FOR["regular"][0]);
   const [era, setEra]             = useState<string>(BELGIUM_1951_ERAS[0].id);
+  const [variant, setVariant]     = useState(0);
+  const [plateComplete, setPlateComplete] = useState(false);
 
   // When user manually switches category, reset format to that category's first
   function handleCategoryChange(c: BelgiumCategoryId) {
     setCategory(c);
+    setVariant(0);
     setFormat(BELGIUM_FORMATS_FOR[c][0]);
     setPlateText("");
     setEra(BELGIUM_1951_ERAS[0].id);
@@ -96,9 +99,11 @@ export default function BelgiumUploadPage() {
   const plateColorClass = BE_COLOR_CLASSES[catMeta?.color ?? "red"];
   const eraData = BELGIUM_1951_ERAS.find((e) => e.id === era) ?? BELGIUM_1951_ERAS[0];
 
+  const pat = BELGIUM_PATTERNS[category]?.[variant] ?? BELGIUM_PATTERNS[category]?.[0];
+  const livePlate = pat ? padBelgiumPlate(plateText.trim(), pat) : (plateText.trim() || catMeta?.example || "1-ABC-123");
   const canSubmit =
     !!file && !fileError &&
-    plateText.trim().length >= 1 &&
+    plateText.trim().length >= 1 && (!BELGIUM_PATTERNS[category] || plateComplete) &&
     location.trim().length >= 2 &&
     !locationWarning &&
     status === "idle";
@@ -228,7 +233,7 @@ export default function BelgiumUploadPage() {
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-zinc-200">Plate category</span>
-                <span className="text-[10px] text-zinc-600 italic">auto-detected from plate text</span>
+                <span className="text-[10px] text-zinc-600 italic">pick one — the plate format fills in for you</span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {BELGIUM_CATEGORIES.map((c) => (
@@ -257,37 +262,6 @@ export default function BelgiumUploadPage() {
             {/* ── Main fields card ── */}
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-5">
 
-              {/* Photo */}
-              <div>
-                <span className="block text-sm text-zinc-300 mb-2">Photo <span className="text-zinc-600 text-xs">(JPG or PNG, max 8 MB)</span></span>
-                <label
-                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                  onDragLeave={() => setIsDragging(false)}
-                  onDrop={onDrop}
-                  className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden ${
-                    isDragging ? "border-zinc-400 bg-zinc-800/60" : fileError ? "border-red-800 bg-red-950/20" : "border-zinc-700 bg-zinc-950/40 hover:border-zinc-500"
-                  }`}
-                  style={{ minHeight: preview ? "auto" : "150px" }}
-                >
-                  {preview ? (
-                    <div className="relative w-full group">
-                      <ZoomImage src={preview} alt="Preview" className="rounded-xl" />
-                      <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/0 group-hover:bg-zinc-950/50 transition-colors rounded-xl pointer-events-none">
-                        <span className="opacity-0 group-hover:opacity-100 text-xs text-zinc-200 transition-opacity">Click to change</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="py-8 text-center px-4">
-                      <div className="text-2xl mb-2">📷</div>
-                      <div className="text-sm text-zinc-400">Drag &amp; drop or <span className="text-zinc-200 underline">browse</span></div>
-                    </div>
-                  )}
-                  <input type="file" accept="image/jpeg,image/png" className="sr-only" onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)} />
-                </label>
-                {fileError && <p className="mt-1.5 text-xs text-red-400">{fileError}</p>}
-                <OcrHint file={file} onSuggest={setPlateText} />
-              </div>
-
               {/* Plate input */}
               <div className="grid gap-1.5">
                 <span className="text-sm text-zinc-300">Plate text</span>
@@ -297,6 +271,7 @@ export default function BelgiumUploadPage() {
                   onEraDetected={setEra}
                   onFormatChange={setFormat}
                   onChange={setPlateText}
+                  variant={variant} onVariantChange={setVariant} onComplete={setPlateComplete}
                 />
               </div>
 
@@ -344,12 +319,43 @@ export default function BelgiumUploadPage() {
           </form>
 
           {/* ── Sidebar ── */}
-          <aside className="space-y-4">
+          <aside className="space-y-4 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:self-start lg:overflow-y-auto">
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
+              <div>
+                <span className="block text-sm text-zinc-300 mb-2">Photo <span className="text-zinc-600 text-xs">(JPG or PNG, max 8 MB)</span></span>
+                <label
+                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={onDrop}
+                  className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden ${
+                    isDragging ? "border-zinc-400 bg-zinc-800/60" : fileError ? "border-red-800 bg-red-950/20" : "border-zinc-700 bg-zinc-950/40 hover:border-zinc-500"
+                  }`}
+                  style={{ minHeight: preview ? "auto" : "150px" }}
+                >
+                  {preview ? (
+                    <div className="relative w-full group">
+                      <ZoomImage src={preview} alt="Preview" className="rounded-xl" />
+                      <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/0 group-hover:bg-zinc-950/50 transition-colors rounded-xl pointer-events-none">
+                        <span className="opacity-0 group-hover:opacity-100 text-xs text-zinc-200 transition-opacity">Click to change</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-8 text-center px-4">
+                      <div className="text-2xl mb-2">📷</div>
+                      <div className="text-sm text-zinc-400">Drag &amp; drop or <span className="text-zinc-200 underline">browse</span></div>
+                    </div>
+                  )}
+                  <input type="file" accept="image/jpeg,image/png" className="sr-only" onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)} />
+                </label>
+                {fileError && <p className="mt-1.5 text-xs text-red-400">{fileError}</p>}
+                <OcrHint file={file} onSuggest={setPlateText} />
+              </div>
+            </div>
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5">
               <div className="text-xs uppercase tracking-wider text-zinc-500 mb-3">Live preview</div>
               <div className={`rounded-xl border px-4 py-5 text-center ${plateColorClass}`}>
                 <div className="flex justify-center">
-                  <PlateBadge country="belgium" text={plateText.trim() || catMeta?.example || "1-ABC-123"} plateType={composedType} size="lg" />
+                  <PlateBadge country="belgium" text={livePlate} plateType={composedType} size="lg" />
                 </div>
                 <div className="mt-2 text-xs opacity-70">
                   {catMeta?.label}

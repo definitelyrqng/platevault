@@ -367,40 +367,6 @@ export default function AustriaUploadPage() {
               <p className="mt-2 text-xs text-zinc-500">Pick the district first — the plate preview updates with the right coat of arms.</p>
             </section>
 
-            {/* ── 3. Photo ── */}
-            <section className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-6">
-              <StepTitle n={3} title="Photo" done={hasPhoto}>
-                <span className="text-xs text-zinc-500">JPG or PNG, max {MAX_SIZE_MB} MB</span>
-              </StepTitle>
-              <label
-                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                onDragLeave={() => setIsDragging(false)}
-                onDrop={onDrop}
-                className={`relative flex cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-colors ${
-                  isDragging ? "border-indigo-400 bg-indigo-950/30" : fileError ? "border-red-800 bg-red-950/20" : "border-zinc-700 bg-zinc-950/40 hover:border-zinc-500"
-                }`}
-                style={{ minHeight: preview ? "auto" : "170px" }}
-              >
-                {preview ? (
-                  <div className="group relative w-full">
-                    <ZoomImage src={preview} alt="Preview" className="rounded-lg" />
-                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg bg-zinc-950/0 transition-colors group-hover:bg-zinc-950/50">
-                      <span className="text-xs text-zinc-200 opacity-0 transition-opacity group-hover:opacity-100">Click to change</span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="px-4 py-8 text-center">
-                    <div className="mb-2 text-3xl">📷</div>
-                    <div className="text-sm text-zinc-300">Drop your photo here, or <span className="text-indigo-300 underline">browse</span></div>
-                    <div className="mt-1 text-xs text-zinc-500">Make sure the plate is readable</div>
-                  </div>
-                )}
-                <input type="file" accept="image/jpeg,image/png" className="sr-only" onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)} />
-              </label>
-              {fileError && <p className="mt-1.5 text-xs text-red-400">{fileError}</p>}
-              <OcrHint file={file} onSuggest={setPlateText} />
-            </section>
-
             {/* ── 4. Where & what ── */}
             <section className="space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-6">
               <StepTitle n={4} title="Where & what" done={hasLocation} />
@@ -438,15 +404,44 @@ export default function AustriaUploadPage() {
           </div>
 
           {/* ── Summary (sticky on desktop) ── */}
-          <aside className="lg:sticky lg:top-20 lg:self-start">
+          <aside className="space-y-4 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:self-start lg:overflow-y-auto">
+            {/* ── 3. Photo ── */}
+            <section className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-6">
+              <StepTitle n={3} title="Photo" done={hasPhoto}>
+                <span className="text-xs text-zinc-500">JPG or PNG, max {MAX_SIZE_MB} MB</span>
+              </StepTitle>
+              <label
+                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={onDrop}
+                className={`relative flex cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-colors ${
+                  isDragging ? "border-indigo-400 bg-indigo-950/30" : fileError ? "border-red-800 bg-red-950/20" : "border-zinc-700 bg-zinc-950/40 hover:border-zinc-500"
+                }`}
+                style={{ minHeight: preview ? "auto" : "170px" }}
+              >
+                {preview ? (
+                  <div className="group relative w-full">
+                    <ZoomImage src={preview} alt="Preview" className="rounded-lg" />
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg bg-zinc-950/0 transition-colors group-hover:bg-zinc-950/50">
+                      <span className="text-xs text-zinc-200 opacity-0 transition-opacity group-hover:opacity-100">Click to change</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="px-4 py-8 text-center">
+                    <div className="mb-2 text-3xl">📷</div>
+                    <div className="text-sm text-zinc-300">Drop your photo here, or <span className="text-indigo-300 underline">browse</span></div>
+                    <div className="mt-1 text-xs text-zinc-500">Make sure the plate is readable</div>
+                  </div>
+                )}
+                <input type="file" accept="image/jpeg,image/png" className="sr-only" onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)} />
+              </label>
+              {fileError && <p className="mt-1.5 text-xs text-red-400">{fileError}</p>}
+              <OcrHint file={file} onSuggest={setPlateText} />
+            </section>
+
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
               <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Your spot</div>
-              <div className="overflow-hidden rounded-xl bg-zinc-950 ring-1 ring-zinc-800">
-                {preview
-                  ? <img src={preview} alt="" className="aspect-[4/3] w-full object-cover" />
-                  : <div className="grid aspect-[4/3] place-items-center text-xs text-zinc-600">No photo yet</div>}
-              </div>
-              <div className={`mt-3 flex justify-center ${showingExample ? "opacity-40" : ""}`}>
+                            <div className={`mt-3 flex justify-center ${showingExample ? "opacity-40" : ""}`}>
                 <PlateBadge country="austria" text={showingExample ? austriaExample(selectedType.category) : previewText} plateType={plateTypeId} size="sm" />
               </div>
               <div className="mt-2 text-center text-sm text-zinc-300">

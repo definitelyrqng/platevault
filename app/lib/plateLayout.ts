@@ -183,10 +183,11 @@ export const PLATE_ART: Record<string, PlateArt> = {
     split: "whole",
   },
   // ── Belgium: red plates. Euroband at the left; single row has the emblem / dash / DIV stamp as one seal between the first character and the rest ──
-  "belgium:single-dash": { src: "/plates/belgium/regular-single.png", w: 1266, h: 261, rows: [{ y0: 31, y1: 229, x0: 143, x1: 1233, slots: 2, seal: true, gap: 0.12 }], split: "be-seal", seal: "/plates/belgium/seal.png", sealAspect: 60 / 184, sealH: 0.93, textColor: "#a3252b", tracking: 0.1, fill: 0.66 },
-  "belgium:single-no-dash": { src: "/plates/belgium/regular-single.png", w: 1266, h: 261, rows: [{ y0: 31, y1: 229, x0: 143, x1: 1233, slots: 1 }], split: "whole", textColor: "#a3252b", tracking: 0.1, fill: 0.66 },
+  "belgium:single-dash": { src: "/plates/belgium/regular-single.png", w: 1266, h: 261, rows: [{ y0: 31, y1: 229, x0: 143, x1: 1245, slots: 2, seal: true, gap: 0.12 }], split: "be-seal", seal: "/plates/belgium/seal.png", sealAspect: 60 / 184, sealH: 0.93, textColor: "#a3252b", tracking: 0.13, fill: 0.72 },
+  "belgium:single-no-dash": { src: "/plates/belgium/regular-single.png", w: 1266, h: 261, rows: [{ y0: 31, y1: 229, x0: 143, x1: 1245, slots: 1 }], split: "whole", textColor: "#a3252b", tracking: 0.13, fill: 0.72 },
   "belgium:two-line": { src: "/plates/belgium/regular-two.png", w: 1000, h: 600, rows: [{ y0: 36, y1: 300, x0: 190, x1: 830, slots: 1 }, { y0: 304, y1: 568, x0: 190, x1: 830, slots: 1, align: "right" }], split: "be-two", textColor: "#a3252b", tracking: 0.07, fill: 0.64 },
   "belgium:two-line-us": { src: "/plates/belgium/regular-two.png", w: 1000, h: 600, rows: [{ y0: 36, y1: 300, x0: 190, x1: 830, slots: 1 }, { y0: 304, y1: 568, x0: 190, x1: 830, slots: 1, align: "right" }], split: "be-two", textColor: "#a3252b", tracking: 0.07, fill: 0.64 },
+  "belgium:agricultural": { src: "/plates/belgium/agricultural-single.png", w: 1266, h: 261, rows: [{ y0: 31, y1: 229, x0: 143, x1: 1245, slots: 1 }], split: "whole", textColor: "#f4f4f4", tracking: 0.12, fill: 0.7 },
   // ── Belgium: military plates (digits only) — flag strip at x218–278, lettering to its right ──
   "belgium:military-single": { src: "/plates/belgium/military-single.png", w: 1040, h: 241, rows: [{ y0: 30, y1: 210, x0: 300, x1: 950, slots: 1 }], split: "whole" },
   // ── Austria: backgrounds in public/plates/austria; one row per line of lettering ──
@@ -270,7 +271,9 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
   }
   if (key === "belgium") {
     const { category, format } = parseBelgiumPlateType(plateType);
-    const art = PLATE_ART[`belgium:${format}`] ?? null;
+    // oldtimers have no emblem / DIV stamp; agricultural plates are dark red with white lettering
+    const key2 = category === "agricultural" ? "agricultural" : category === "oldtimer" && format === "single-dash" ? "single-no-dash" : format;
+    const art = PLATE_ART[`belgium:${key2}`] ?? null;
     // dealer, testing and professional plates have green lettering
     const green = category && BELGIUM_CATEGORIES.find((c) => c.id === category)?.color === "green";
     return art && green

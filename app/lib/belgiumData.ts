@@ -27,18 +27,18 @@ export const BELGIUM_CATEGORIES: {
   example: string;
   hint: string;
 }[] = [
-  { id: "regular",       label: "Regular car plates",          color: "red",   example: "1-ABC-123",  hint: "Standard format since 2010" },
-  { id: "oldtimer",      label: "Oldtimers",                   color: "red",   example: "O-ABC-123",  hint: "Starts with O or 1 (pre-2010 vehicles)" },
-  { id: "motorcycle",    label: "Motorcycles",                 color: "red",   example: "M-ABC-123",  hint: "Starts with M-X or 1-M" },
-  { id: "taxi",          label: "Taxi",                        color: "red",   example: "T-AAA",      hint: "Starts with T-XA" },
-  { id: "trailer",       label: "Trailers",                    color: "red",   example: "Q-ABC-123",  hint: "Starts with Q-X" },
-  { id: "dealer",        label: "Dealer",                      color: "green", example: "Z-AAA",      hint: "Starts with 1-Z or Z-X" },
-  { id: "international", label: "International organizations", color: "red",   example: "8-AA-123",   hint: "Starts with 8-AA (since 2010)" },
-  { id: "agricultural",  label: "Agricultural vehicles",       color: "red",   example: "G-LAA",      hint: "Starts with G-L (since 2013)" },
-  { id: "moped",         label: "Mopeds",                      color: "red",   example: "S-AAA",      hint: "Starts with S-X" },
-  { id: "rental",        label: "Rental cars",                 color: "red",   example: "T-LAA",      hint: "Starts with 1-TL or T-L" },
-  { id: "testing",       label: "Testing",                     color: "green", example: "Y-AAA",      hint: "Starts with Y-AAA or Y-QAA" },
-  { id: "professional",  label: "Professional plates",         color: "green", example: "V-AA-123",   hint: "Starts with V-AA" },
+  { id: "regular",       label: "Regular car plates",          color: "red",   example: "1-XXX-123",  hint: "Standard format since 2010" },
+  { id: "oldtimer",      label: "Oldtimers",                   color: "red",   example: "O-XXX-123",  hint: "Oldtimers (25+ years), no emblem" },
+  { id: "motorcycle",    label: "Motorcycles",                 color: "red",   example: "M-XXX-123",  hint: "Starts with M" },
+  { id: "taxi",          label: "Taxi",                        color: "red",   example: "T-XAX-123",      hint: "T-XAX-123" },
+  { id: "trailer",       label: "Trailers",                    color: "red",   example: "Q-AXX-123",  hint: "Q-AXX-123 or 1-QXX-123" },
+  { id: "dealer",        label: "Dealer",                      color: "green", example: "Z-AAX-123",      hint: "Z-AAX-123, green" },
+  { id: "international", label: "International organizations", color: "red",   example: "8-AAX-123",   hint: "8-AAX-123" },
+  { id: "agricultural",  label: "Agricultural vehicles",       color: "red",   example: "G-LXX-123",      hint: "G-LXX-123" },
+  { id: "moped",         label: "Mopeds",                      color: "red",   example: "S-XXX-123",      hint: "S-XXX-123" },
+  { id: "rental",        label: "Rental cars",                 color: "red",   example: "T-LXX-123",      hint: "T-LXX-123 or 1-TLX-123" },
+  { id: "testing",       label: "Testing",                     color: "green", example: "Y-AAA-123",      hint: "Y-AAA-123 or Y-QAA-123, green" },
+  { id: "professional",  label: "Professional plates",         color: "green", example: "V-AAX-123",   hint: "V-AAX-123 or V-QAA-123, green" },
   { id: "vanity",        label: "Vanity",                      color: "red",   example: "HELLO",      hint: "Custom text (since 2014)" },
   // (1951 year system hidden for now — re-add its entry here to bring it back)
   { id: "diplomatic",    label: "Diplomatic",                  color: "red",   example: "01 CD 123",  hint: "Freetype diplomatic format" },
@@ -123,7 +123,7 @@ const FORMATS_1951     = ["single-no-euroband", "two-line-no-euroband", "single-
 export const BELGIUM_FORMATS_FOR: Record<BelgiumCategoryId, string[]> = {
   regular: STANDARD_FORMATS, oldtimer: STANDARD_FORMATS, motorcycle: ["two-line"],
   taxi: STANDARD_FORMATS, trailer: STANDARD_FORMATS, dealer: STANDARD_FORMATS,
-  international: STANDARD_FORMATS, agricultural: STANDARD_FORMATS, moped: ["two-line"],
+  international: STANDARD_FORMATS, agricultural: ["single-dash"], moped: ["two-line"],
   rental: STANDARD_FORMATS, testing: STANDARD_FORMATS, professional: STANDARD_FORMATS,
   vanity: STANDARD_FORMATS, "year-1951": FORMATS_1951, diplomatic: STANDARD_FORMATS,
   military: ["military-single"],
@@ -158,4 +158,54 @@ export function parseBelgiumPlateType(t?: string | null): { category: BelgiumCat
     if (cat) return { category: cat.id, format: raw.slice(i + 2) };
   }
   return { category: null, format: raw };
+}
+
+/**
+ * Plate patterns per category: "X" = any letter, "#" = any digit, anything else is fixed
+ * and filled in for the user. Categories with two entries have two real formats.
+ */
+export const BELGIUM_PATTERNS: Partial<Record<BelgiumCategoryId, string[]>> = {
+  regular: ["#-XXX-###"],
+  oldtimer: ["O-XXX-###"],
+  motorcycle: ["M-XXX-###"],
+  taxi: ["T-XAX-###"],
+  trailer: ["Q-AXX-###", "1-QXX-###"],
+  dealer: ["Z-AAX-###"],
+  international: ["8-AAX-###"],
+  agricultural: ["G-LXX-###"],
+  moped: ["S-XXX-###"],
+  rental: ["T-LXX-###", "1-TLX-###"],
+  testing: ["Y-AAA-###", "Y-QAA-###"],
+  professional: ["V-AAX-###", "V-QAA-###"],
+};
+
+/** "T-XAX-###" → "T-XAX-123" (what the preview shows before anything is typed). */
+export const patternExample = (p: string) => p.replace(/###/g, "123").replace(/#/g, "1");
+
+const isLetter = (c: string) => c >= "A" && c <= "Z";
+const isDigit = (c: string) => c >= "0" && c <= "9";
+
+/** Fit what the user typed to a pattern, filling in the fixed characters (dashes, fixed letters). */
+export function maskBelgiumPlate(raw: string, pattern: string): string {
+  const src = raw.toUpperCase();
+  let pos = 0, out = "";
+  for (const p of pattern) {
+    if (p === "X" || p === "#") {
+      const ok = p === "X" ? isLetter : isDigit;
+      while (pos < src.length && !ok(src[pos])) pos++;
+      if (pos >= src.length) break;
+      out += src[pos++];
+    } else {
+      out += p;
+      if (src[pos] === p) pos++;          // the user typed the fixed character themselves
+    }
+  }
+  return out;
+}
+
+/** The typed text followed by the rest of the pattern as placeholders, for the live preview. */
+export function padBelgiumPlate(text: string, pattern: string): string {
+  let n = 0;
+  const rest = [...pattern].slice(text.length).map((p) => (p === "X" ? "X" : p === "#" ? String((n++ % 3) + 1) : p)).join("");
+  return text + rest;
 }
