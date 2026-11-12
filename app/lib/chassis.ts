@@ -3,8 +3,8 @@
  *   "2nd Gen (4K8/C8) (2018-2023)"  →  label "2nd Gen", codes 4K8 + C8, years 2018–2023
  *
  * A code page ("all C8s") is brand-scoped: /catalog/<brand>/chassis/<code>.
- * Facelift variants count as their base platform: C7.5 → C7, G01 LCI → G01,
- * B299 Phase 2 → B299.
+ * LCI / Phase labels count as their base platform (G01 LCI → G01, B299 Phase 2 → B299),
+ * but numbered mid-cycle codes are their own platform: B9 and B9.5 are separate.
  */
 
 export type GenCode = { raw: string; code: string };
@@ -16,9 +16,9 @@ export function toSlug(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
-/** "C7.5" → "C7", "G01 LCI" → "G01", "B299 Phase 2" → "B299". */
+/** "G01 LCI" → "G01", "B299 Phase 2" → "B299". "B9.5" stays "B9.5" (its own platform). */
 export function normaliseCode(raw: string) {
-  return raw.trim().replace(/\s+(LCI|Facelift|Phase\s*\d+)$/i, "").replace(/\.\d+$/, "").trim();
+  return raw.trim().replace(/\s+(LCI|Facelift|Phase\s*\d+)$/i, "").trim();
 }
 
 export const codeSlug = toSlug;
