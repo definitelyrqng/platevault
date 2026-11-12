@@ -46,6 +46,8 @@ export type ArtRow = {
   seal?: boolean | "left" | "right";
   /** Gap beside the seal as a fraction of the row height (default SEAL_GAP) — smaller on narrow rows. */
   gap?: number;
+  /** Place the text against the right edge of the row instead of centring it. */
+  align?: "right";
   /** Sized on its own (never shrinks the rest of the plate), e.g. the month in the red box. */
   own?: boolean;
 };
@@ -59,7 +61,7 @@ export type ArtRow = {
  *  - "al-moto":    letters | digits                    ("AB 123" → AB | 123)
  *  - "al-trailer-two": letters | "R" + digits          ("AB R 456" → AB | R 456)
  */
-export type SplitRule = "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
+export type SplitRule = "be-seal" | "be-two" | "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
 
 export type PlateArt = {
   src: string;          // path under /public
@@ -69,6 +71,8 @@ export type PlateArt = {
   split: SplitRule;
   /** Seal image drawn between the first two pieces of a `seal` row. */
   seal?: string;
+  /** Fixed-shape seal image (width ÷ height); its height is rowH × sealH. */
+  sealAspect?: number;
   /** Austria: draw the coat of arms of the plate's state (by district) instead of a fixed seal. */
   stateSeals?: boolean;
   /** Height of a state coat of arms as a fraction of its row. */
@@ -173,6 +177,11 @@ export const PLATE_ART: Record<string, PlateArt> = {
     rows: [{ y0: 23, y1: 334, x0: 205, x1: 1545, slots: 1 }],
     split: "whole",
   },
+  // ── Belgium: red plates. Euroband at the left; single row has the emblem / dash / DIV stamp as one seal between the first character and the rest ──
+  "belgium:single-dash": { src: "/plates/belgium/regular-single.png", w: 1280, h: 275, rows: [{ y0: 38, y1: 236, x0: 150, x1: 1240, slots: 2, seal: true, gap: 0.12 }], split: "be-seal", seal: "/plates/belgium/seal.png", sealAspect: 60 / 184, sealH: 0.93, textColor: "#a3252b" },
+  "belgium:single-no-dash": { src: "/plates/belgium/regular-single.png", w: 1280, h: 275, rows: [{ y0: 38, y1: 236, x0: 150, x1: 1240, slots: 1 }], split: "whole", textColor: "#a3252b" },
+  "belgium:two-line": { src: "/plates/belgium/regular-two.png", w: 1000, h: 600, rows: [{ y0: 36, y1: 300, x0: 190, x1: 830, slots: 1 }, { y0: 304, y1: 568, x0: 190, x1: 830, slots: 1, align: "right" }], split: "be-two", textColor: "#a3252b" },
+  "belgium:two-line-us": { src: "/plates/belgium/regular-two.png", w: 1000, h: 600, rows: [{ y0: 36, y1: 300, x0: 190, x1: 830, slots: 1 }, { y0: 304, y1: 568, x0: 190, x1: 830, slots: 1, align: "right" }], split: "be-two", textColor: "#a3252b" },
   // ── Belgium: military plates (digits only) — flag strip at x218–278, lettering to its right ──
   "belgium:military-single": { src: "/plates/belgium/military-single.png", w: 1040, h: 241, rows: [{ y0: 30, y1: 210, x0: 300, x1: 950, slots: 1 }], split: "whole" },
   // ── Austria: backgrounds in public/plates/austria; one row per line of lettering ──
@@ -323,6 +332,16 @@ export function formatPlateText(country: string, raw: string) {
 
 /** Divide plate text into pieces, one per slot. Returns null if the text doesn't fit the rule. */
 function splitText(rule: SplitRule, text: string): string[] | null {
+  if (rule === "be-seal" || rule === "be-two") {                                         // Belgian: 1-ABC-123 → 1 | ABC-123   (two rows: 1-ABC | 123)
+    const t = text.trim().toUpperCase();
+    const m = t.match(/^(\d)-?([A-Z]{3})-?(\d{3})$/);
+    if (m) return rule === "be-seal" ? [m[1], `${m[2]}-${m[3]}`] : [`${m[1]}-${m[2]}`, m[3]];
+    const g = t.match(/^([A-Z0-9])-(.+)$/);                                               // O-ABC-123, T-AAA, Z-AAA …
+    if (!g) return null;
+    if (rule === "be-seal") return [g[1], g[2]];
+    const parts = g[2].match(/^([A-Z]+)-?(\d+)$/);
+    return parts ? [`${g[1]}-${parts[1]}`, parts[2]] : null;
+  }
   if (rule === "at47-two") {                                                           // "K 146.804" → K 146 | 804
     const m = text.trim().match(/^(\S+)\s+(\d{1,3})\.?(\d{1,3})$/);
     return m ? [`${m[1]} ${m[2]}`, m[3]] : null;
@@ -425,8 +444,8 @@ export function plateLayout(country: string, rawText: string, height: number, pl
         : row.seal === "left" ? (texts.length >= 1 ? "left" : null)
         : row.seal === "right" ? (texts.length >= 1 ? "right" : null)
         : (texts.length === 2 ? "between" : null);
-      const sealH = mode && stateSrc ? rowH * (art.sealH ?? 0.8) : 0;
-      const sealD = !mode ? 0 : stateSrc ? sealH * sealAspect(stateSrc) : rowH * SEAL_DIAMETER;
+      const sealH = mode && (stateSrc || art.sealAspect) ? rowH * (art.sealH ?? 0.8) : 0;
+      const sealD = !mode ? 0 : stateSrc ? sealH * sealAspect(stateSrc) : art.sealAspect ? sealH * art.sealAspect : rowH * SEAL_DIAMETER;
       const gap = mode ? rowH * (row.gap ?? SEAL_GAP) : 0;
       const gaps = mode === "between" ? 2 : mode === "left" || mode === "right" ? 1 : 0;   // gaps touching the seal
       const ems = texts.map((t) => textWidthEm(t, font));
@@ -445,14 +464,15 @@ export function plateLayout(country: string, rawText: string, height: number, pl
       const fs = l.row.own ? Math.min(fontSize, fit(l)) : fontSize;
       const widths = l.ems.map((em) => em * fs);
       const total = widths.reduce((x, y) => x + y, 0) + l.sealD + l.gaps * l.gap;
-      let x = l.row.x0 * s + (l.avail - total) / 2;               // centred → equal margins
+      let x = l.row.align === "right" ? l.row.x1 * s - total : l.row.x0 * s + (l.avail - total) / 2;               // centred → equal margins
       const centerY = ((l.row.y0 + l.row.y1) / 2) * s;
       if (l.mode === "left") {                                    // ● then the text
         seals.push({ cx: x + l.sealD / 2, cy: centerY, d: l.sealD, h: l.sealH || undefined, src: stateSrc ?? undefined });
         x += l.sealD + l.gap;
       }
       l.texts.forEach((text, i) => {
-        runs.push({ text, x0: x, x1: x + widths[i], align: "left", fontSize: fs, centerY });
+        // Belgian lettering has no slashed zero: use the plain O
+        runs.push({ text: key === "belgium" ? text.replace(/0/g, "O") : text, x0: x, x1: x + widths[i], align: "left", fontSize: fs, centerY });
         x += widths[i];
         if (l.mode === "right" && i === l.texts.length - 1) {                 // text then ●
           seals.push({ cx: x + l.gap + l.sealD / 2, cy: centerY, d: l.sealD, h: l.sealH || undefined, src: stateSrc ?? undefined });

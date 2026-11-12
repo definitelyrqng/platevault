@@ -19,8 +19,10 @@ const OUT = path.join(ROOT, "public/plates/belgium");
   const set = (x, y, c) => { data[(y * W + x) * C] = c[0]; data[(y * W + x) * C + 1] = c[1]; data[(y * W + x) * C + 2] = c[2]; };
   const get = (x, y) => [data[(y * W + x) * C], data[(y * W + x) * C + 1], data[(y * W + x) * C + 2]];
 
-  // 1) paint out the lettering (the emblem at 300–352 × 60–118 and the DIV stamp at 303–350 × 198–240 stay)
-  const boxes = [[140, 40, 262, 245], [290, 120, 362, 182], [378, 40, 765, 245], [770, 95, 860, 175], [866, 40, 1243, 245]];
+  // 0) the emblem + dash + DIV stamp stack becomes its own seal image
+  await sharp(SRC).extract({ left: 296, top: 58, width: 60, height: 184 }).png().toFile(path.join(OUT, "seal.png"));
+  // 1) paint out the lettering, emblem and stamp
+  const boxes = [[140, 40, 262, 245], [290, 50, 362, 245], [378, 40, 765, 245], [770, 95, 860, 175], [866, 40, 1243, 245]];
   for (const [x0, y0, x1, y1] of boxes) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) set(x, y, [255, 255, 255]);
 
   // 2) screw holes: copy a clean patch from the same column

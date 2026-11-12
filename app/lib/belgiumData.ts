@@ -91,7 +91,7 @@ export function detectBelgiumCategory(raw: string): BelgiumCategoryId | null {
   // Professional: V-AA
   if (/^V-/i.test(t)) return "professional";
   // Military: digits only (5–6)
-  if (/^d{5,6}$/.test(t)) return "military";
+  if (/^\d{5,6}$/.test(t)) return "military";
   // Regular: starts with digit
   if (/^\d/.test(t)) return "regular";
 

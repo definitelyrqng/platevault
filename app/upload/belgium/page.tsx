@@ -7,6 +7,7 @@ import type { OurFileRouter } from "@/app/lib/uploadthing";
 import CarDetailsFields from "@/app/upload/CarDetailsFields";
 import CompanyPicker from "@/app/components/CompanyPicker";
 import ZoomImage from "@/app/components/ZoomImage";
+import PlateBadge from "@/app/components/PlateBadge";
 import TagPicker from "@/app/components/TagPicker";
 import BelgiumPlateInput from "@/app/upload/BelgiumPlateInput";
 import MilestonePopup from "@/app/components/MilestonePopup";
@@ -344,8 +345,8 @@ export default function BelgiumUploadPage() {
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5">
               <div className="text-xs uppercase tracking-wider text-zinc-500 mb-3">Live preview</div>
               <div className={`rounded-xl border px-4 py-5 text-center ${plateColorClass}`}>
-                <div className="font-mono text-xl font-bold tracking-widest">
-                  {plateText.trim() || catMeta?.example || "1-ABC-123"}
+                <div className="flex justify-center">
+                  <PlateBadge country="belgium" text={plateText.trim() || catMeta?.example || "1-ABC-123"} plateType={composedType} size="lg" />
                 </div>
                 <div className="mt-2 text-xs opacity-70">
                   {catMeta?.label}
