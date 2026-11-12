@@ -43,6 +43,7 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 /** SVG for one run of text: glyph outlines, umlauts synthesised (font has none). */
 function runSvg(font: opentype.Font, run: TextRun, color = "#111") {
   const { text, fontSize, centerY } = run;
+  const track = (run.tracking ?? 0) * fontSize / CONDENSE;   // drawn inside the condensing transform
   const scale = fontSize / font.unitsPerEm;
   const out = new opentype.Path();
   const dots: string[] = [];
@@ -69,7 +70,7 @@ function runSvg(font: opentype.Font, run: TextRun, color = "#111") {
                 `<circle cx="${(cx + 0.17 * fontSize).toFixed(2)}" cy="${cy.toFixed(2)}" r="${r.toFixed(2)}"/>`);
     }
     out.extend(gp);
-    x += (glyph.advanceWidth ?? 0) * scale;
+    x += (glyph.advanceWidth ?? 0) * scale + track;
   }
 
   const width = x * CONDENSE;
@@ -114,7 +115,7 @@ export async function GET(req: Request) {
   }
 
   const plateType = (searchParams.get("p") ?? "").slice(0, 60) || null;
-  if (plateType && !/^[a-z0-9-]+$/i.test(plateType)) {
+  if (plateType && !/^[a-z0-9_-]+$/i.test(plateType)) {
     return new Response("Bad plate type", { status: 400 });
   }
 

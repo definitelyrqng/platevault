@@ -1,3 +1,4 @@
+import { BELGIUM_CATEGORIES, parseBelgiumPlateType } from "./belgiumData";
 /**
  * Short, human-friendly plate type names for badges, filter chips and links.
  *
@@ -66,6 +67,13 @@ const COUNTRY_PREFIX = /^(de|at|al|be|ba|bg|hr|cz)-/i;
 
 export function plateTypeLabel(country: string, type: string | null | undefined): string | null {
   if (!type) return null;
+  if (country.toLowerCase() === "belgium") {
+    const { category, format } = parseBelgiumPlateType(type);
+    if (category) {
+      const base = category === "regular" ? "Standard" : (BELGIUM_CATEGORIES.find((c) => c.id === category)?.label ?? category);
+      return /two-line/.test(format) ? `${base} · Two-line` : base;
+    }
+  }
   const exact = EXACT[country.toLowerCase()]?.[type];
   if (exact) return exact;
 

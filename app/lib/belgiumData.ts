@@ -40,7 +40,7 @@ export const BELGIUM_CATEGORIES: {
   { id: "testing",       label: "Testing",                     color: "green", example: "Y-AAA",      hint: "Starts with Y-AAA or Y-QAA" },
   { id: "professional",  label: "Professional plates",         color: "green", example: "V-AA-123",   hint: "Starts with V-AA" },
   { id: "vanity",        label: "Vanity",                      color: "red",   example: "HELLO",      hint: "Custom text (since 2014)" },
-  { id: "year-1951",     label: "1951 Year system",            color: "red",   example: "AAA-111",    hint: "Select era pattern below" },
+  // (1951 year system hidden for now — re-add its entry here to bring it back)
   { id: "diplomatic",    label: "Diplomatic",                  color: "red",   example: "01 CD 123",  hint: "Freetype diplomatic format" },
   { id: "military",      label: "Military",                    color: "red",   example: "26287",      hint: "Belgian Defence — digits only, flag strip" },
 ];
@@ -121,9 +121,9 @@ const STANDARD_FORMATS = ["single-dash", "single-no-dash", "two-line", "two-line
 const FORMATS_1951     = ["single-no-euroband", "two-line-no-euroband", "single-euroband", "two-line-euroband"];
 
 export const BELGIUM_FORMATS_FOR: Record<BelgiumCategoryId, string[]> = {
-  regular: STANDARD_FORMATS, oldtimer: STANDARD_FORMATS, motorcycle: STANDARD_FORMATS,
+  regular: STANDARD_FORMATS, oldtimer: STANDARD_FORMATS, motorcycle: ["two-line"],
   taxi: STANDARD_FORMATS, trailer: STANDARD_FORMATS, dealer: STANDARD_FORMATS,
-  international: STANDARD_FORMATS, agricultural: STANDARD_FORMATS, moped: STANDARD_FORMATS,
+  international: STANDARD_FORMATS, agricultural: STANDARD_FORMATS, moped: ["two-line"],
   rental: STANDARD_FORMATS, testing: STANDARD_FORMATS, professional: STANDARD_FORMATS,
   vanity: STANDARD_FORMATS, "year-1951": FORMATS_1951, diplomatic: STANDARD_FORMATS,
   military: ["military-single"],
@@ -145,3 +145,17 @@ export const BE_COLOR_CLASSES: Record<BelgiumPlateColor, string> = {
   red:   "border-red-700/60 text-red-300 bg-red-950/30",
   green: "border-green-700/60 text-green-300 bg-green-950/30",
 };
+
+/**
+ * Stored Belgian plate types are "<category>__<format>" (e.g. "vanity__single-dash").
+ * Older spots store only the format ("single-dash"), or "<format>__<era>" for 1951 plates.
+ */
+export function parseBelgiumPlateType(t?: string | null): { category: BelgiumCategoryId | null; format: string } {
+  const raw = t ?? "";
+  const i = raw.indexOf("__");
+  if (i > 0) {
+    const cat = BELGIUM_CATEGORIES.find((c) => c.id === raw.slice(0, i) && c.id !== "year-1951");
+    if (cat) return { category: cat.id, format: raw.slice(i + 2) };
+  }
+  return { category: null, format: raw };
+}

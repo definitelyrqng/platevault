@@ -31,11 +31,14 @@ const OUT = path.join(ROOT, "public/plates/belgium");
     for (let y = -14; y <= 14; y++) for (let x = -14; x <= 14; x++) patch.push([x, y, get(hx + x, hy + y + dy)]);
     for (const [x, y, c] of patch) if (x * x + y * y <= 15 * 15) set(hx + x, hy + y, c);
   }
-  const single = await sharp(data, { raw: { width: W, height: H, channels: C } }).png().toBuffer();
+  // trim the white margin around the template and make everything outside the rounded plate transparent
+  const M = 7, SW = W - 2 * M, SH = H - 2 * M;
+  const outline = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${SW}" height="${SH}"><rect width="${SW}" height="${SH}" rx="22" fill="#fff"/></svg>`);
+  const single = await sharp(data, { raw: { width: W, height: H, channels: C } }).extract({ left: M, top: M, width: SW, height: SH }).png().composite([{ input: outline, blend: "dest-in" }]).toBuffer();
   await sharp(single).toFile(path.join(OUT, "regular-single.png"));
 
   // 3) two rows: same border style, the single-row euroband scaled into the lower left
-  const band = await sharp(single).extract({ left: 22, top: 22, width: 106, height: 232 }).toBuffer();
+  const band = await sharp(single).extract({ left: 15, top: 15, width: 106, height: 232 }).toBuffer();
   const PW = 1000, PH = 600, bt = 14, r = 34;
   const bh = Math.round((PH - 2 * bt) * 0.5), bw = Math.round(bh * 106 / 232);
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${PW}" height="${PH}"><defs>
@@ -60,5 +63,20 @@ const OUT = path.join(ROOT, "public/plates/belgium");
     <rect x="218" y="53" width="60" height="134" fill="none" stroke="#000" stroke-opacity=".25" stroke-width="1"/>
   </svg>`;
   await sharp(Buffer.from(mil)).png().toFile(path.join(OUT, "military-single.png"));
+  // 5) green variants (dealer, testing, professional plates): red border / emblem recoloured to green
+  async function greenify(file, out) {
+    const { data: d, info: i } = await sharp(path.join(OUT, file)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    for (let p = 0; p < d.length; p += 4) {
+      const r = d[p], g = d[p + 1], b = d[p + 2];
+      const t = Math.max(0, Math.min(1, (r - g - 50) / 60));      // how red the pixel is
+      if (!t) continue;
+      const gr = [Math.round(r * 0.12), Math.round(r * 0.72), Math.round(r * 0.36)];
+      d[p] = Math.round(r + (gr[0] - r) * t); d[p + 1] = Math.round(g + (gr[1] - g) * t); d[p + 2] = Math.round(b + (gr[2] - b) * t);
+    }
+    await sharp(d, { raw: { width: i.width, height: i.height, channels: 4 } }).png().toFile(path.join(OUT, out));
+  }
+  await greenify("regular-single.png", "regular-single-green.png");
+  await greenify("regular-two.png", "regular-two-green.png");
+  await greenify("seal.png", "seal-green.png");
   console.log("ok");
 })();

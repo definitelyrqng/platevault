@@ -5,6 +5,7 @@
  * Pure data + math only (no React, no fs) — safe to import anywhere.
  */
 import { AL_CAP_HEIGHT, AL_WIDTHS } from "./albaniaFontMetrics";
+import { BELGIUM_CATEGORIES, parseBelgiumPlateType } from "./belgiumData";
 import { AT_CAP_HEIGHT, AT_WIDTHS } from "./austriaFontMetrics";
 import { AT47_CAP_HEIGHT, AT47_WIDTHS } from "./austria1947FontMetrics";
 
@@ -73,6 +74,10 @@ export type PlateArt = {
   seal?: string;
   /** Fixed-shape seal image (width ÷ height); its height is rowH × sealH. */
   sealAspect?: number;
+  /** Extra space after every character, in em (default 0). */
+  tracking?: number;
+  /** Share of the row height the capitals fill (default 0.72). */
+  fill?: number;
   /** Austria: draw the coat of arms of the plate's state (by district) instead of a fixed seal. */
   stateSeals?: boolean;
   /** Height of a state coat of arms as a fraction of its row. */
@@ -178,10 +183,10 @@ export const PLATE_ART: Record<string, PlateArt> = {
     split: "whole",
   },
   // ── Belgium: red plates. Euroband at the left; single row has the emblem / dash / DIV stamp as one seal between the first character and the rest ──
-  "belgium:single-dash": { src: "/plates/belgium/regular-single.png", w: 1280, h: 275, rows: [{ y0: 38, y1: 236, x0: 150, x1: 1240, slots: 2, seal: true, gap: 0.12 }], split: "be-seal", seal: "/plates/belgium/seal.png", sealAspect: 60 / 184, sealH: 0.93, textColor: "#a3252b" },
-  "belgium:single-no-dash": { src: "/plates/belgium/regular-single.png", w: 1280, h: 275, rows: [{ y0: 38, y1: 236, x0: 150, x1: 1240, slots: 1 }], split: "whole", textColor: "#a3252b" },
-  "belgium:two-line": { src: "/plates/belgium/regular-two.png", w: 1000, h: 600, rows: [{ y0: 36, y1: 300, x0: 190, x1: 830, slots: 1 }, { y0: 304, y1: 568, x0: 190, x1: 830, slots: 1, align: "right" }], split: "be-two", textColor: "#a3252b" },
-  "belgium:two-line-us": { src: "/plates/belgium/regular-two.png", w: 1000, h: 600, rows: [{ y0: 36, y1: 300, x0: 190, x1: 830, slots: 1 }, { y0: 304, y1: 568, x0: 190, x1: 830, slots: 1, align: "right" }], split: "be-two", textColor: "#a3252b" },
+  "belgium:single-dash": { src: "/plates/belgium/regular-single.png", w: 1266, h: 261, rows: [{ y0: 31, y1: 229, x0: 143, x1: 1233, slots: 2, seal: true, gap: 0.12 }], split: "be-seal", seal: "/plates/belgium/seal.png", sealAspect: 60 / 184, sealH: 0.93, textColor: "#a3252b", tracking: 0.1, fill: 0.66 },
+  "belgium:single-no-dash": { src: "/plates/belgium/regular-single.png", w: 1266, h: 261, rows: [{ y0: 31, y1: 229, x0: 143, x1: 1233, slots: 1 }], split: "whole", textColor: "#a3252b", tracking: 0.1, fill: 0.66 },
+  "belgium:two-line": { src: "/plates/belgium/regular-two.png", w: 1000, h: 600, rows: [{ y0: 36, y1: 300, x0: 190, x1: 830, slots: 1 }, { y0: 304, y1: 568, x0: 190, x1: 830, slots: 1, align: "right" }], split: "be-two", textColor: "#a3252b", tracking: 0.07, fill: 0.64 },
+  "belgium:two-line-us": { src: "/plates/belgium/regular-two.png", w: 1000, h: 600, rows: [{ y0: 36, y1: 300, x0: 190, x1: 830, slots: 1 }, { y0: 304, y1: 568, x0: 190, x1: 830, slots: 1, align: "right" }], split: "be-two", textColor: "#a3252b", tracking: 0.07, fill: 0.64 },
   // ── Belgium: military plates (digits only) — flag strip at x218–278, lettering to its right ──
   "belgium:military-single": { src: "/plates/belgium/military-single.png", w: 1040, h: 241, rows: [{ y0: 30, y1: 210, x0: 300, x1: 950, slots: 1 }], split: "whole" },
   // ── Austria: backgrounds in public/plates/austria; one row per line of lettering ──
@@ -262,6 +267,15 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
     // electric vehicles and green-lettered mopeds: same plate, green characters
     const green = /^at-electric/.test(plateType ?? "") || /moped-green$/.test(plateType ?? "");
     return art && green && !art.textColor ? { ...art, textColor: "#0b7a3b" } : art;
+  }
+  if (key === "belgium") {
+    const { category, format } = parseBelgiumPlateType(plateType);
+    const art = PLATE_ART[`belgium:${format}`] ?? null;
+    // dealer, testing and professional plates have green lettering
+    const green = category && BELGIUM_CATEGORIES.find((c) => c.id === category)?.color === "green";
+    return art && green
+      ? { ...art, src: art.src.replace(".png", "-green.png"), seal: art.seal?.replace("seal.png", "seal-green.png"), textColor: "#1d7a3c" }
+      : art;
   }
   return (plateType && PLATE_ART[`${key}:${plateType}`]) || PLATE_ART[key] || null;
 }
@@ -387,6 +401,7 @@ export type TextRun = {
   align: "left" | "center" | "right";
   fontSize: number;
   centerY: number;     // vertical centre of the capitals
+  tracking?: number;   // extra space after each character, em
 };
 
 /** Left edge of a run of the given width inside its slot. */
@@ -448,10 +463,10 @@ export function plateLayout(country: string, rawText: string, height: number, pl
       const sealD = !mode ? 0 : stateSrc ? sealH * sealAspect(stateSrc) : art.sealAspect ? sealH * art.sealAspect : rowH * SEAL_DIAMETER;
       const gap = mode ? rowH * (row.gap ?? SEAL_GAP) : 0;
       const gaps = mode === "between" ? 2 : mode === "left" || mode === "right" ? 1 : 0;   // gaps touching the seal
-      const ems = texts.map((t) => textWidthEm(t, font));
+      const ems = texts.map((t) => textWidthEm(t, font) + (art.tracking ?? 0) * [...t].length);
       return { row, texts, rowH, mode, sealD, sealH, gap, gaps, ems, avail: (row.x1 - row.x0) * s };
     });
-    const fit = (l: (typeof lines)[number]) => Math.min((l.rowH * 0.72) / capH, (l.avail - l.sealD - l.gaps * l.gap) / Math.max(l.ems.reduce((x, y) => x + y, 0), 0.5));
+    const fit = (l: (typeof lines)[number]) => Math.min((l.rowH * (art.fill ?? 0.72)) / capH, (l.avail - l.sealD - l.gaps * l.gap) / Math.max(l.ems.reduce((x, y) => x + y, 0), 0.5));
 
     // One letter height for the whole plate: capped by every row's height and by
     // every row's width (text + seal must fit between the bands).
@@ -472,7 +487,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
       }
       l.texts.forEach((text, i) => {
         // Belgian lettering has no slashed zero: use the plain O
-        runs.push({ text: key === "belgium" ? text.replace(/0/g, "O") : text, x0: x, x1: x + widths[i], align: "left", fontSize: fs, centerY });
+        runs.push({ text: key === "belgium" ? text.replace(/0/g, "O") : text, x0: x, x1: x + widths[i], align: "left", fontSize: fs, centerY, tracking: art.tracking });
         x += widths[i];
         if (l.mode === "right" && i === l.texts.length - 1) {                 // text then ●
           seals.push({ cx: x + l.gap + l.sealD / 2, cy: centerY, d: l.sealD, h: l.sealH || undefined, src: stateSrc ?? undefined });

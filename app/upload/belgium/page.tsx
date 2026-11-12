@@ -127,7 +127,7 @@ export default function BelgiumUploadPage() {
       if (!uploaded || !uploaded[0]?.ufsUrl) throw new Error("Image upload failed — please try again.");
       const imageUrl = uploaded[0].ufsUrl;
       setStatus("saving");
-      const composedType = category === "year-1951" ? `${format}__${era}` : format;
+      const composedType = category === "year-1951" ? `${format}__${era}` : `${category}__${format}`;
       const res = await fetch("/api/uploads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -173,7 +173,7 @@ export default function BelgiumUploadPage() {
     await doUpload();
   }
 
-  const composedType = category === "year-1951" ? `${format}__${era}` : format;
+  const composedType = category === "year-1951" ? `${format}__${era}` : `${category}__${format}`;
 
   return (
     <>
@@ -233,12 +233,15 @@ export default function BelgiumUploadPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {BELGIUM_CATEGORIES.map((c) => (
                   <button key={c.id} type="button" onClick={() => handleCategoryChange(c.id as BelgiumCategoryId)}
-                    className={`rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${
+                    className={`flex flex-col items-center gap-2 rounded-xl border px-3 py-3 text-center text-sm transition-all ${
                       category === c.id
                         ? "border-indigo-600 bg-indigo-950/50 text-indigo-200"
                         : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
                     }`}>
-                    {c.label}{c.color === "green" ? " 🟢" : ""}
+                    <span className="block h-[44px] w-full overflow-hidden text-center leading-[44px]">
+                      <PlateBadge country="belgium" text={c.example} plateType={`${c.id}__${BELGIUM_FORMATS_FOR[c.id as BelgiumCategoryId][0]}`} size="md" />
+                    </span>
+                    <span>{c.label}</span>
                   </button>
                 ))}
               </div>
