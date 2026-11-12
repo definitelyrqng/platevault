@@ -233,8 +233,9 @@ export default function LegalPage() {
           <div id="privacy-controller" className="mb-4 mt-12 scroll-mt-8 rounded-xl bg-emerald-950/30 border border-emerald-900/50 px-5 py-3">
             <span className="text-xs font-semibold uppercase tracking-wider text-emerald-400">Privacy Policy</span>
             <p className="mt-1 text-xs text-zinc-400">
-              This Privacy Policy applies to all personal data processed by PlateVault and fulfils our disclosure obligations
-              under the EU General Data Protection Regulation (GDPR) and the German Federal Data Protection Act (BDSG).
+              This Privacy Policy applies to all personal data processed by PlateVault. PlateVault is operated from Bosnia and Herzegovina
+              and follows the Law on Personal Data Protection of Bosnia and Herzegovina. Because many of our users are in the European Union,
+              we also apply the principles and user rights of the EU General Data Protection Regulation (GDPR).
             </p>
           </div>
 
@@ -375,8 +376,8 @@ export default function LegalPage() {
 
           <Section id="privacy-transfers" title="§14 International Transfers">
             <p>
-              Some of our third-party processors (Vercel, UploadThing) operate infrastructure outside the European Economic Area,
-              including in the United States. When we transfer personal data outside the EEA, we rely on appropriate safeguards as
+              PlateVault is operated from Bosnia and Herzegovina, which is outside the European Economic Area. Some of our third-party
+              processors (Vercel, UploadThing) also operate infrastructure outside the EEA, including in the United States. When we transfer personal data outside the EEA, we rely on appropriate safeguards as
               required by GDPR Chapter V, including Standard Contractual Clauses (SCCs) where applicable.
             </p>
             <p>
@@ -400,8 +401,8 @@ export default function LegalPage() {
               No third-party cookies are set by the platform itself.
             </p>
             <p>
-              This cookie is strictly necessary for the platform to function. As such, under GDPR Recital 47 and the German Telecommunications
-              Digital Services Data Protection Act (TDDDG, formerly TTDSG), it does not require a separate consent banner.
+              This cookie is strictly necessary for the platform to function. Strictly necessary cookies do not need separate consent under
+              the EU's ePrivacy rules (see also GDPR Recital 47), so we do not show a cookie consent banner.
             </p>
           </Section>
 
@@ -421,13 +422,12 @@ export default function LegalPage() {
             </p>
             <p>
               If you believe we have not handled your data correctly, you have the right to lodge a complaint with the competent supervisory
-              authority. In Germany, this is the data protection authority of the state where we are established. You may also contact the
-              Federal Commissioner for Data Protection and Freedom of Information (BfDI):
+              authority. In Bosnia and Herzegovina this is the Personal Data Protection Agency (<span className="italic">Agencija za zaštitu ličnih podataka u Bosni i Hercegovini</span>).
+              If you live in the EU, you may instead contact the data protection authority in your own country.
             </p>
             <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 text-xs text-zinc-400 space-y-1">
-              <p className="font-semibold text-zinc-200">Bundesbeauftragte für den Datenschutz und die Informationsfreiheit (BfDI)</p>
-              <p>Graurheindorfer Str. 153, 53117 Bonn, Germany</p>
-              <p><a href="https://www.bfdi.bund.de" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300">www.bfdi.bund.de</a></p>
+              <p className="font-semibold text-zinc-200">Personal Data Protection Agency in Bosnia and Herzegovina</p>
+              <p><a href="https://www.azlp.ba" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300">www.azlp.ba</a></p>
             </div>
           </Section>
 
