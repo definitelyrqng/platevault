@@ -1,82 +1,50 @@
 #!/usr/bin/env node
 /**
- * Builds the Belgian plate backgrounds (single row and two rows) as vector artwork:
- * red embossed border, textured white plate, euroband with 12 stars and a "B" traced from
- * assets/belgium-two-row-source.png (the supplied two-row plate).
+ * Belgian plate backgrounds, built from the supplied templates:
+ *   assets/belgium-single-source.png  (single row, "1-ABC-003")
+ * Single row: lettering and screw holes painted out, emblem + DIV stamp kept.
+ * Two rows: border drawn to match, with the single-row euroband scaled into the lower left.
  *
  *   node scripts/build-belgium-art.cjs
  */
 const sharp = require("sharp");
-const { Potrace } = require("potrace");
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
-const SRC = path.join(ROOT, "assets/belgium-two-row-source.png");
+const SRC = path.join(ROOT, "assets/belgium-single-source.png");
 const OUT = path.join(ROOT, "public/plates/belgium");
 
-async function traceB() {
-  const crop = await sharp(SRC).extract({ left: 24, top: 196, width: 40, height: 42 }).resize({ width: 800, kernel: "lanczos3" })
-    .removeAlpha().grayscale().blur(2).threshold(170).negate().png().toBuffer();
-  const d = await new Promise((res, rej) => { const p = new Potrace({ threshold: 128, turdSize: 40, optTolerance: 0.6, alphaMax: 1 }); p.loadImage(crop, (e) => e ? rej(e) : res(p.getPathTag().match(/ d="([^"]+)"/)[1])); });
-  const { data, info } = await sharp(crop).raw().toBuffer({ resolveWithObject: true });
-  let x0 = 1e9, x1 = 0, y0 = 1e9, y1 = 0;
-  for (let y = 0; y < info.height; y++) for (let x = 0; x < info.width; x++) if (data[(y * info.width + x) * info.channels] < 128) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
-  return { d, x0, y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
-}
-
-const star = (cx, cy, R) => {
-  const pts = Array.from({ length: 10 }, (_, k) => { const r = k % 2 ? R * 0.38 : R, t = (k / 10) * Math.PI * 2 - Math.PI / 2; return `${(cx + r * Math.cos(t)).toFixed(2)},${(cy + r * Math.sin(t)).toFixed(2)}`; }).join(" ");
-  return `<polygon points="${pts}" fill="url(#gold)"/>`;
-};
-
-/** Euroband x,y,w,h (outer corner radius handled by the clip). */
-function band(x, y, w, h, B) {
-  const cx = x + w / 2, ringR = w * 0.34, ringY = y + h * 0.31, R = w * 0.078;
-  const stars = Array.from({ length: 12 }, (_, i) => { const a = (i / 12) * Math.PI * 2 - Math.PI / 2; return star(cx + ringR * Math.cos(a), ringY + ringR * Math.sin(a), R); }).join("");
-  const bh = h * 0.31, s = bh / B.h, bw = B.w * s * 0.86;
-  return `<g clip-path="url(#plate)">
-    <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#blue)"/>
-    <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#bandShade)"/>
-    ${stars}
-    <g transform="translate(${cx - bw / 2} ${y + h * 0.59}) scale(${s * 0.86} ${s}) translate(${-B.x0} ${-B.y0})" fill="#fff"><path d="${B.d}" fill-rule="evenodd"/></g>
-    <rect x="${x + 1}" y="${y + 1}" width="${w - 2}" height="${h - 2}" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="2"/>
-    <line x1="${x + w}" y1="${y}" x2="${x + w}" y2="${y + h}" stroke="#000" stroke-opacity=".28" stroke-width="2"/>
-  </g>`;
-}
-
-function plate(W, H, B, bandBox, holes, emblem) {
-  const r = Math.round(H * 0.07);                       // plate corner radius
-  const ib = Math.round(H * 0.05), lw = Math.max(3, H * 0.03), rr = r * 0.6; // red line: inset, weight, radius
-  const defs = `<defs>
-    <clipPath id="plate"><rect x="3" y="3" width="${W - 6}" height="${H - 6}" rx="${r - 2}"/></clipPath>
-    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1263c0"/><stop offset="1" stop-color="#0a4fa4"/></linearGradient>
-    <linearGradient id="bandShade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".10"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".14"/></linearGradient>
-    <radialGradient id="gold" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#ffe94a"/><stop offset="1" stop-color="#f2c500"/></radialGradient>
-    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbfbf9"/><stop offset="1" stop-color="#e8e8e5"/></linearGradient>
-    <linearGradient id="red" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d3202a"/><stop offset="1" stop-color="#a80f19"/></linearGradient>
-    <radialGradient id="hole" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#9a9a98"/><stop offset="1" stop-color="#4a4a48"/></radialGradient>
-    <filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="7"/><feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .06 0"/></filter>
-  </defs>`;
-  const hr = H * 0.028;
-  const holesSvg = holes.map(([hx, hy]) => `<circle cx="${hx}" cy="${hy}" r="${hr + 2}" fill="#fff" fill-opacity=".7"/><circle cx="${hx}" cy="${hy}" r="${hr}" fill="url(#hole)"/><circle cx="${hx}" cy="${hy}" r="${hr}" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="1.5"/>`).join("");
-  const [bx, by, bw, bh] = bandBox();
-  const em = emblem ? `<g transform="translate(${emblem[0]} ${emblem[1]})" fill="none" stroke="#c4202b" stroke-width="${H * 0.012}"><ellipse rx="${H * 0.055}" ry="${H * 0.065}"/><path d="M${-H * 0.03} ${-H * 0.03} L0 ${H * 0.035} L${H * 0.03} ${-H * 0.03}" stroke-linejoin="round" stroke-linecap="round"/></g>` : "";
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${defs}
-    <rect x=".75" y=".75" width="${W - 1.5}" height="${H - 1.5}" rx="${r}" fill="#9d9d9a"/>
-    <rect x="2" y="2" width="${W - 4}" height="${H - 4}" rx="${r - 1}" fill="url(#paper)"/>
-    <rect x="2" y="2" width="${W - 4}" height="${H - 4}" rx="${r - 1}" filter="url(#grain)"/>
-    <rect x="${ib + 1}" y="${ib + 1.5}" width="${W - 2 * ib}" height="${H - 2 * ib}" rx="${rr}" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="${lw}"/>
-    <rect x="${ib}" y="${ib}" width="${W - 2 * ib}" height="${H - 2 * ib}" rx="${rr}" fill="none" stroke="url(#red)" stroke-width="${lw}"/>
-    ${band(bx, by, bw, bh, B)}
-    ${em}
-    ${holesSvg}
-  </svg>`;
-}
-
 (async () => {
-  const B = await traceB();
-  // single row 1040×220: band full height at the left, emblem beside it
-  await sharp(Buffer.from(plate(1040, 220, B, () => [3, 3, 96, 214], [], null))).png().toFile(path.join(OUT, "regular-single.png"));
-  // two row 1024×512 (proportions of the supplied 512×256): band at the lower left
-  await sharp(Buffer.from(plate(1024, 512, B, () => [3, 256, 140, 253], [], null))).png().toFile(path.join(OUT, "regular-two.png"));
+  const { data, info } = await sharp(SRC).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const W = info.width, H = info.height, C = 3;
+  const set = (x, y, c) => { data[(y * W + x) * C] = c[0]; data[(y * W + x) * C + 1] = c[1]; data[(y * W + x) * C + 2] = c[2]; };
+  const get = (x, y) => [data[(y * W + x) * C], data[(y * W + x) * C + 1], data[(y * W + x) * C + 2]];
+
+  // 1) paint out the lettering (the emblem at 300–352 × 60–118 and the DIV stamp at 303–350 × 198–240 stay)
+  const boxes = [[140, 40, 262, 245], [290, 120, 362, 182], [378, 40, 765, 245], [770, 95, 860, 175], [866, 40, 1243, 245]];
+  for (const [x0, y0, x1, y1] of boxes) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) set(x, y, [255, 255, 255]);
+
+  // 2) screw holes: copy a clean patch from the same column
+  for (const [hx, hy, dy] of [[33, 36, 112], [33, 243, -100], [1245, 36, 100], [1245, 243, -100]]) {
+    const patch = [];
+    for (let y = -14; y <= 14; y++) for (let x = -14; x <= 14; x++) patch.push([x, y, get(hx + x, hy + y + dy)]);
+    for (const [x, y, c] of patch) if (x * x + y * y <= 15 * 15) set(hx + x, hy + y, c);
+  }
+  const single = await sharp(data, { raw: { width: W, height: H, channels: C } }).png().toBuffer();
+  await sharp(single).toFile(path.join(OUT, "regular-single.png"));
+
+  // 3) two rows: same border style, the single-row euroband scaled into the lower left
+  const band = await sharp(single).extract({ left: 22, top: 22, width: 106, height: 232 }).toBuffer();
+  const PW = 1000, PH = 600, bt = 26, r = 40;
+  const bh = Math.round((PH - 2 * bt) * 0.5), bw = Math.round(bh * 106 / 232);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${PW}" height="${PH}"><defs>
+    <linearGradient id="red" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b02a30"/><stop offset="1" stop-color="#96202a"/></linearGradient></defs>
+    <rect x=".75" y=".75" width="${PW - 1.5}" height="${PH - 1.5}" rx="${r}" fill="#8d8d8d"/>
+    <rect x="3" y="3" width="${PW - 6}" height="${PH - 6}" rx="${r - 2}" fill="url(#red)"/>
+    <rect x="${bt - 1.5}" y="${bt - 1.5}" width="${PW - 2 * bt + 3}" height="${PH - 2 * bt + 3}" rx="${r - bt + 4}" fill="#6b6b6b"/>
+    <rect x="${bt}" y="${bt}" width="${PW - 2 * bt}" height="${PH - 2 * bt}" rx="${r - bt + 2}" fill="#fff"/>
+  </svg>`;
+  const mask = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${bw}" height="${bh}"><rect width="${bw}" height="${bh}" rx="0" fill="#fff"/><rect y="${bh - 40}" width="40" height="40" fill="#000"/><circle cx="${40}" cy="${bh - 40}" r="40" fill="#fff"/><rect x="40" y="${bh - 40}" width="${bw - 40}" height="40" fill="#fff"/></svg>`);
+  const bandImg = await sharp(band).resize(bw, bh, { kernel: "lanczos3" }).composite([{ input: mask, blend: "dest-in" }]).png().toBuffer();
+  await sharp(Buffer.from(svg)).composite([{ input: bandImg, left: bt, top: PH - bt - bh }]).png().toFile(path.join(OUT, "regular-two.png"));
   console.log("ok");
 })();
