@@ -7,11 +7,12 @@ import MaintenanceToggle from "./MaintenanceToggle";
 import HiddenSpotActions from "./HiddenSpotActions";
 import UserAdminPanel from "@/app/u/[id]/UserAdminPanel";
 import PlateBadge from "@/app/components/PlateBadge";
+import ReportsTab from "./ReportsTab";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Admin" };
 
-type Tab = "overview" | "users" | "spots" | "site";
+type Tab = "overview" | "reports" | "users" | "spots" | "site";
 
 async function getSessionUser() {
   const cookieStore = await cookies();
@@ -51,14 +52,16 @@ function Stat({ label, value, href, tone }: { label: string; value: number; href
   return href ? <a href={href}>{inner}</a> : inner;
 }
 
-export default async function AdminPage({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string }> }) {
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string; rs?: string; rc?: string; rp?: string }> }) {
   const user = await getSessionUser();
   if (!user || (user.role !== "SUPERADMIN" && user.role !== "ADMIN")) redirect("/");
   const isSuper = user.role === "SUPERADMIN";
 
   const sp = await searchParams;
+  const openReports = await prisma.report.count({ where: { status: "OPEN" } });
   const tabs: { id: Tab; label: string; show: boolean }[] = [
     { id: "overview", label: "Overview", show: true },
+    { id: "reports", label: openReports > 0 ? `Reports (${openReports})` : "Reports", show: true },
     { id: "users", label: "Users", show: true },
     { id: "spots", label: "Hidden spots", show: true },
     { id: "site", label: "Site", show: isSuper },
@@ -95,6 +98,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           <Stat label="New spots (7d)" value={newSpots} />
           <Stat label="Users" value={users} href="?tab=users" />
           <Stat label="New users (7d)" value={newUsers} />
+          <Stat label="Open reports" value={openReports} href="?tab=reports" tone="warn" />
           <Stat label="Hidden spots" value={hidden} href="?tab=spots" tone="warn" />
           <Stat label="Banned users" value={banned} tone="warn" />
         </div>
@@ -127,6 +131,10 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         </section>
       </div>
     );
+  }
+
+  if (tab === "reports") {
+    body = <ReportsTab rs={sp.rs} rc={sp.rc} rp={sp.rp} openCount={openReports} />;
   }
 
   if (tab === "users") {

@@ -1,3 +1,4 @@
+import { reportCategory } from "@/app/lib/reports";
 /**
  * PlateVault Discord logging
  * All events fire-and-forget unless they need delivery confirmation.
@@ -334,25 +335,22 @@ export async function sendReport(opts: {
   const url = W.moderation ?? W.default;
   if (!url) return false;
 
-  const emoji: Record<string, string> = {
-    inappropriate: "🔞",
-    incorrect:     "❌",
-    missing_model: "🚗",
-    other:         "💬",
-  };
+  const cat = reportCategory(opts.category);
+  const emoji = cat?.icon ?? "📢";
 
   const body = JSON.stringify({
     content: "@here",
     embeds: [{
-      title:     `${emoji[opts.category] ?? "📢"} Spot reported`,
+      title:     `${emoji} Spot reported`,
       color:     C.red,
       thumbnail: { url: opts.imageUrl },
       fields: [
         { name: "Plate",    value: opts.plateText,                                       inline: true },
         { name: "Reporter", value: `@${opts.reporterUsername}`,                          inline: true },
-        { name: "Category", value: opts.category.replace(/_/g, " "),                    inline: true },
+        { name: "Reason",   value: cat?.short ?? opts.category,                    inline: true },
         { name: "Details",  value: opts.details || "No details provided",               inline: false },
-        { name: "🔗 Link",  value: `https://platevault.app/spot/${opts.numericId}`,     inline: false },
+        { name: "🔗 Spot",  value: `https://www.platevault.app/spot/${opts.numericId}`,     inline: false },
+        { name: "🛠️ Admin", value: "https://www.platevault.app/admin?tab=reports",       inline: false },
       ],
       footer:    { text: "PlateVault Report System" },
       timestamp: new Date().toISOString(),

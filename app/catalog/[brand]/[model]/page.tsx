@@ -30,10 +30,11 @@ type BrandRow = { id: number; name: string; models: ModelRow[] };
 
 export default async function ModelPage({ params, searchParams }: {
   params: Promise<{ brand: string; model: string }>;
-  searchParams: Promise<{ platform?: string; page?: string }>;
+  searchParams: Promise<{ platform?: string; gen?: string; page?: string }>;
 }) {
   const [{ brand: brandSlug, model: modelSlug }, sp] = await Promise.all([params, searchParams]);
   const platform = sp.platform ? codeSlug(sp.platform) : null;
+  const genOnly = !platform && sp.gen ? sp.gen.slice(0, 160) : null;      // a generation without a chassis code: exactly that one
   const requestedPage = Math.max(1, Number(sp.page) || 1);
 
   const [currentUser, allBrands] = await Promise.all([
@@ -67,10 +68,14 @@ export default async function ModelPage({ params, searchParams }: {
      Results view — "License plates found N / You have searched: …" (PlatesMania style)
      e.g. ?platform=c8 → every A7 Sportback C8, facelift included.
      ─────────────────────────────────────────────────────────────────────────── */
-  if (platform) {
-    const matching = modelData.generations.filter((g) => hasCode(g.name, platform));
+  if (platform || genOnly) {
+    const matching = platform
+      ? modelData.generations.filter((g) => hasCode(g.name, platform))
+      : modelData.generations.filter((g) => g.name === genOnly);
     const genNames = matching.map((g) => g.name);
-    const activeCode = codesOf(genNames).find((c) => codeSlug(c) === platform) ?? platform.toUpperCase();
+    const activeCode = platform
+      ? (codesOf(genNames).find((c) => codeSlug(c) === platform) ?? platform.toUpperCase())
+      : (genOnly ?? "");
     const where = { brand: brandData.name, model: modelData.name, deletedAt: null, hidden: false, generation: { in: genNames } };
 
     const perGen = genNames.length ? await prisma.upload.groupBy({ by: ["generation"], where, _count: { id: true } }) : [];
@@ -82,7 +87,7 @@ export default async function ModelPage({ params, searchParams }: {
       ? await prisma.upload.findMany({ where, orderBy: { createdAt: "desc" }, skip: (page - 1) * PAGE_SIZE, take: PAGE_SIZE, select })
       : [];
     const span = yearSpan(genNames);
-    const pageHref = (n: number) => `${base}?platform=${platform}${n > 1 ? `&page=${n}` : ""}`;
+    const pageHref = (n: number) => `${base}?${platform ? `platform=${platform}` : `gen=${encodeURIComponent(genOnly ?? "")}`}${n > 1 ? `&page=${n}` : ""}`;
 
     const pager = pages > 1 && (
       <nav className="my-6 flex flex-wrap items-center justify-center gap-1 text-sm" aria-label="Pagination">

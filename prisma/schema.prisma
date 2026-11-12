@@ -63,6 +63,7 @@ model User {
 
   sessions            Session[]
   passwordResetTokens PasswordResetToken[]
+  reports             Report[]
   uploads             Upload[]
   likes               Like[]
   comments            Comment[]
@@ -128,6 +129,7 @@ model Upload {
   deletedAt DateTime?
   createdAt DateTime @default(now())
 
+  reports          Report[]
   likes            Like[]
   comments         Comment[]
   pollNominees     PollNominee[]
@@ -417,4 +419,24 @@ model ChallengeCompletion {
 
   @@unique([userId, challengeKey])
   @@index([userId])
+}
+
+// ─── Reports (error / problem reports on a spot, shown in the admin panel) ─────
+
+model Report {
+  id           String    @id @default(cuid())
+  uploadId     String
+  reporterId   String
+  category     String    @db.VarChar(20)   // plate | brand_model | photo | delete | other
+  details      String    @default("") @db.VarChar(500)
+  status       String    @default("OPEN") @db.VarChar(10)   // OPEN | DONE
+  createdAt    DateTime  @default(now())
+  resolvedAt   DateTime?
+  resolvedById String?
+
+  upload       Upload    @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+  reporter     User      @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@index([uploadId])
 }

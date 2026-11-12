@@ -528,7 +528,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
             {/* Details */}
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
               <div className="text-xs uppercase tracking-wider text-zinc-500 mb-2">Details</div>
-              <div className="flex items-start justify-between gap-3 text-base"><span className="text-zinc-400 shrink-0">Country</span><span className="inline-flex items-center gap-1.5 text-zinc-200"><Flag iso={meta.iso} />{meta.name}</span></div>
+              <div className="flex items-start justify-between gap-3 text-base"><span className="text-zinc-400 shrink-0">Country</span><span className="min-w-0 text-right text-zinc-200"><span className="mr-2 inline-block align-[-3px]"><Flag iso={meta.iso} /></span>{meta.name}</span></div>
               {albaniaRegion && (
                 <Detail label="Region" value={albaniaRegion.district} />
               )}

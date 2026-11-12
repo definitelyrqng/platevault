@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { REPORT_CATEGORIES } from "@/app/lib/reports";
 
-const CATEGORIES = [
-  { value: "inappropriate", label: "🔞 Inappropriate content",          desc: "Image or content violates community rules" },
-  { value: "incorrect",     label: "❌ Incorrect information",           desc: "Wrong plate text, country, car details etc." },
-  { value: "missing_model", label: "🚗 Missing vehicle brand / model",   desc: "The car brand or model isn't in the system yet" },
-  { value: "other",         label: "💬 Other",                           desc: "Something else that needs staff attention" },
-];
+const DESC: Record<string, string> = {
+  plate: "The plate text, type or country is wrong",
+  brand_model: "Wrong or missing car brand, model or generation",
+  photo: "Photo missing, or the plate can't be seen",
+  delete: "This spot should be removed",
+  other: "Anything else the team should look at",
+};
+const CATEGORIES = REPORT_CATEGORIES.map((c) => ({ value: c.value as string, label: `${c.icon} ${c.label}`, desc: DESC[c.value] }));
 
 export default function ReportButton({ uploadNumericId }: { uploadNumericId: number }) {
   const [open, setOpen]         = useState(false);
@@ -69,7 +72,7 @@ export default function ReportButton({ uploadNumericId }: { uploadNumericId: num
               <div className="p-8 text-center">
                 <div className="text-3xl mb-3">✅</div>
                 <div className="text-base font-semibold text-zinc-100 mb-1">Report sent</div>
-                <p className="text-sm text-zinc-400">Our moderation team has been notified and will review this spot.</p>
+                <p className="text-sm text-zinc-400">Thanks — the moderation team has been notified and will look at it.</p>
                 <button
                   onClick={reset}
                   className="mt-5 rounded-xl bg-zinc-800 px-5 py-2 text-sm text-zinc-200 hover:bg-zinc-700"
@@ -110,13 +113,13 @@ export default function ReportButton({ uploadNumericId }: { uploadNumericId: num
                   {/* Details */}
                   <div>
                     <label className="text-xs font-medium text-zinc-400 mb-1.5 block">
-                      Additional details <span className="text-zinc-600">(optional)</span>
+                      What is wrong, or what should it be? <span className="text-zinc-600">{category === "other" ? "(required)" : "(optional)"}</span>
                     </label>
                     <textarea
                       rows={3}
                       value={details}
                       onChange={(e) => setDetails(e.target.value)}
-                      placeholder="Add any extra context that'll help mods…"
+                      placeholder="If possible, say what is wrong on this page or what must be right"
                       className="w-full rounded-xl border border-zinc-800 bg-zinc-950/60 px-4 py-2.5 text-sm text-zinc-200 placeholder:text-zinc-600 outline-none focus:border-zinc-600 resize-none transition-colors"
                     />
                     <div className="text-right text-xs text-zinc-600 mt-1">{details.length}/500</div>
@@ -134,7 +137,7 @@ export default function ReportButton({ uploadNumericId }: { uploadNumericId: num
                     </button>
                     <button
                       onClick={submit}
-                      disabled={!category || status === "loading"}
+                      disabled={!category || (category === "other" && details.trim().length < 3) || status === "loading"}
                       className="flex-1 rounded-xl bg-red-600/80 py-2.5 text-sm font-semibold text-white hover:bg-red-600 disabled:opacity-40 transition-colors"
                     >
                       {status === "loading" ? "Sending…" : "Send report"}
