@@ -192,13 +192,13 @@ export const PLATE_ART: Record<string, PlateArt> = {
     split: "whole",
   },
   // ── Bosnia: current plates (euroband, BiH). Same artwork for every category; FE-Schrift lettering. ──
-  "bosnia:single-euroband": { src: "/plates/bosnia/standard-single.png", w: 1920, h: 458, rows: [{ y0: 66, y1: 384, x0: 228, x1: 1852, slots: 1 }], split: "whole", fill: 0.86, fillWidth: true, maxTrack: 0.12 },
+  "bosnia:single-euroband": { src: "/plates/bosnia/standard-single.png", w: 1920, h: 458, rows: [{ y0: 66, y1: 384, x0: 252, x1: 1806, slots: 1 }], split: "whole", fill: 0.86, fillWidth: true, maxTrack: 0.12 },
   // diplomatic: blue plate, no euroband, gold lettering, centred
-  "bosnia:diplomatic-single": { src: "/plates/bosnia/diplomatic-single.png", w: 1920, h: 458, rows: [{ y0: 66, y1: 384, x0: 80, x1: 1840, slots: 1 }], split: "whole", fill: 0.86, fillWidth: true, maxTrack: 0.12, textColor: "#f39a2f" },
-  "bosnia:diplomatic-two": { src: "/plates/bosnia/diplomatic-two.png", w: 1024, h: 578, rows: [{ y0: 36, y1: 286, x0: 40, x1: 984, slots: 1 }, { y0: 293, y1: 543, x0: 40, x1: 984, slots: 1 }], split: "ba-two", fill: 0.84, fillWidth: true, maxTrack: 0.07, textColor: "#f39a2f" },
-  "bosnia:two-line-euroband": { src: "/plates/bosnia/standard-two.png", w: 1024, h: 578, rows: [{ y0: 36, y1: 286, x0: 180, x1: 996, slots: 1 }, { y0: 293, y1: 543, x0: 34, x1: 990, slots: 1 }], split: "ba-two-eu", fill: 0.84, fillWidth: true, maxTrack: 0.07 },
+  "bosnia:diplomatic-single": { src: "/plates/bosnia/diplomatic-single.png", w: 1920, h: 458, rows: [{ y0: 66, y1: 384, x0: 130, x1: 1790, slots: 1 }], split: "whole", fill: 0.86, fillWidth: true, maxTrack: 0.12, textColor: "#f39a2f" },
+  "bosnia:diplomatic-two": { src: "/plates/bosnia/diplomatic-two.png", w: 1024, h: 578, rows: [{ y0: 36, y1: 286, x0: 70, x1: 954, slots: 1 }, { y0: 293, y1: 543, x0: 70, x1: 954, slots: 1 }], split: "ba-two", fill: 0.84, fillWidth: true, maxTrack: 0.07, textColor: "#f39a2f" },
+  "bosnia:two-line-euroband": { src: "/plates/bosnia/standard-two.png", w: 1024, h: 578, rows: [{ y0: 36, y1: 286, x0: 190, x1: 984, slots: 1 }, { y0: 293, y1: 543, x0: 56, x1: 968, slots: 1 }], split: "ba-two-eu", fill: 0.84, fillWidth: true, maxTrack: 0.07 },
   // ── Bosnia: standard no-euroband plates (white, black frame). Black lettering in the Bosnian font. ──
-  "bosnia:single-no-euroband": { src: "/plates/bosnia/y1998-single.png", w: 1024, h: 196, rows: [{ y0: 10, y1: 186, x0: 46, x1: 978, slots: 1 }], split: "whole", font: "ba", fill: 0.88, fillWidth: true },
+  "bosnia:single-no-euroband": { src: "/plates/bosnia/y1998-single.png", w: 1024, h: 196, rows: [{ y0: 10, y1: 186, x0: 72, x1: 952, slots: 1 }], split: "whole", font: "ba", fill: 0.88, fillWidth: true },
   "bosnia:two-line-no-euroband": { src: "/plates/bosnia/y1998-two.png", w: 512, h: 256, rows: [{ y0: 22, y1: 134, x0: 38, x1: 474, slots: 1, align: "left" }, { y0: 122, y1: 234, x0: 38, x1: 474, slots: 1, align: "left" }], split: "ba-two", font: "ba", fill: 0.8, fillWidth: true, maxTrack: 0.08 },
   // ── Belgium: red plates. Euroband at the left; single row has the emblem / dash / DIV stamp as one seal between the first character and the rest ──
   "belgium:single-dash": { src: "/plates/belgium/regular-single.png", w: 1266, h: 261, rows: [{ y0: 31, y1: 229, x0: 143, x1: 1245, slots: 2, seal: true, gap: 0.12 }], split: "be-seal", seal: "/plates/belgium/seal.png", sealAspect: 60 / 184, sealH: 0.93, textColor: "#a3252b", tracking: 0.13, fill: 0.72 },

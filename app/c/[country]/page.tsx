@@ -3,6 +3,7 @@ import PlateBadge from "@/app/components/PlateBadge";
 import SpotCard from "@/app/components/SpotCard";
 import { getCountryMeta } from "@/app/lib/countries";
 import { plateTypeLabel } from "@/app/lib/plateTypes";
+import { catalogPlateTypes } from "@/app/lib/countryPlateTypes";
 import { prisma } from "@/app/lib/prisma";
 import { cookies } from "next/headers";
 import LikeButton from "./LikeButton";
@@ -125,6 +126,11 @@ export default async function CountryPage({
     else chips.push({ label, types: [g.plateType], count: g._count.id, sample: sampleOf.get(g.plateType) });
   }
   chips.sort((a, b) => b.count - a.count);
+  // plate types the upload form offers but nobody has spotted yet
+  for (const e of catalogPlateTypes(country) ?? []) {
+    const label = plateTypeLabel(country, e.type) ?? e.type;
+    if (!chips.some((c) => c.label === label)) chips.push({ label, types: [e.type], count: 0, sample: e.sample });
+  }
   const chipActive = (c: { types: string[] }) =>
     selectedTypes.length > 0 && selectedTypes.every((t) => c.types.includes(t));
 
@@ -183,7 +189,7 @@ export default async function CountryPage({
                   {c.sample && <PlateBadge country={country} text={c.sample} plateType={c.types[0]} size="md" />}
                 </span>
                 <span className="text-sm font-medium text-zinc-200">{c.label}</span>
-                <span className="text-xs tabular-nums text-zinc-500">{c.count.toLocaleString()} photo{c.count === 1 ? "" : "s"}</span>
+                <span className={`text-xs tabular-nums ${c.count ? "text-zinc-500" : "text-zinc-600"}`}>{c.count ? `${c.count.toLocaleString()} photo${c.count === 1 ? "" : "s"}` : "not spotted yet"}</span>
               </a>
             ))}
           </div>
