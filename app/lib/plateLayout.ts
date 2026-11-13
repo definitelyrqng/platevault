@@ -188,6 +188,9 @@ export const PLATE_ART: Record<string, PlateArt> = {
     rows: [{ y0: 23, y1: 334, x0: 205, x1: 1545, slots: 1 }],
     split: "whole",
   },
+  // ── Bosnia: current plates (euroband, BiH). Same artwork for every category; FE-Schrift lettering. ──
+  "bosnia:single-euroband": { src: "/plates/bosnia/standard-single.png", w: 1920, h: 458, rows: [{ y0: 66, y1: 384, x0: 228, x1: 1852, slots: 1 }], split: "whole", fill: 0.86 },
+  "bosnia:two-line-euroband": { src: "/plates/bosnia/standard-two.png", w: 1024, h: 512, rows: [{ y0: 26, y1: 262, x0: 190, x1: 1000, slots: 1, align: "left" }, { y0: 250, y1: 486, x0: 190, x1: 1000, slots: 1, align: "left" }], split: "ba-two", fill: 0.84 },
   // ── Bosnia: standard no-euroband plates (white, black frame). Black lettering in the Bosnian font. ──
   "bosnia:single-no-euroband": { src: "/plates/bosnia/y1998-single.png", w: 1024, h: 196, rows: [{ y0: 10, y1: 186, x0: 46, x1: 978, slots: 1 }], split: "whole", font: "ba", fill: 0.88, fillWidth: true },
   "bosnia:two-line-no-euroband": { src: "/plates/bosnia/y1998-two.png", w: 512, h: 256, rows: [{ y0: 8, y1: 134, x0: 26, x1: 486, slots: 1, align: "left" }, { y0: 122, y1: 248, x0: 26, x1: 486, slots: 1, align: "left" }], split: "ba-two", font: "ba", fill: 0.9, fillWidth: true },
