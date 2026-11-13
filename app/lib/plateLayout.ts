@@ -66,7 +66,7 @@ export type ArtRow = {
  *  - "al-moto":    letters | digits                    ("AB 123" → AB | 123)
  *  - "al-trailer-two": letters | "R" + digits          ("AB R 456" → AB | R 456)
  */
-export type SplitRule = "ba-two" | "be-seal" | "be-two" | "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
+export type SplitRule = "ba-two-eu" | "ba-two" | "be-seal" | "be-two" | "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
 
 export type PlateArt = {
   src: string;          // path under /public
@@ -190,7 +190,7 @@ export const PLATE_ART: Record<string, PlateArt> = {
   },
   // ── Bosnia: current plates (euroband, BiH). Same artwork for every category; FE-Schrift lettering. ──
   "bosnia:single-euroband": { src: "/plates/bosnia/standard-single.png", w: 1920, h: 458, rows: [{ y0: 66, y1: 384, x0: 228, x1: 1852, slots: 1 }], split: "whole", fill: 0.86 },
-  "bosnia:two-line-euroband": { src: "/plates/bosnia/standard-two.png", w: 1024, h: 512, rows: [{ y0: 26, y1: 262, x0: 190, x1: 1000, slots: 1, align: "left" }, { y0: 250, y1: 486, x0: 190, x1: 1000, slots: 1, align: "left" }], split: "ba-two", fill: 0.84 },
+  "bosnia:two-line-euroband": { src: "/plates/bosnia/standard-two.png", w: 1024, h: 578, rows: [{ y0: 36, y1: 286, x0: 180, x1: 996, slots: 1 }, { y0: 293, y1: 543, x0: 34, x1: 990, slots: 1 }], split: "ba-two-eu", fill: 0.78, fillWidth: true },
   // ── Bosnia: standard no-euroband plates (white, black frame). Black lettering in the Bosnian font. ──
   "bosnia:single-no-euroband": { src: "/plates/bosnia/y1998-single.png", w: 1024, h: 196, rows: [{ y0: 10, y1: 186, x0: 46, x1: 978, slots: 1 }], split: "whole", font: "ba", fill: 0.88, fillWidth: true },
   "bosnia:two-line-no-euroband": { src: "/plates/bosnia/y1998-two.png", w: 512, h: 256, rows: [{ y0: 8, y1: 134, x0: 26, x1: 486, slots: 1, align: "left" }, { y0: 122, y1: 248, x0: 26, x1: 486, slots: 1, align: "left" }], split: "ba-two", font: "ba", fill: 0.9, fillWidth: true },
@@ -375,6 +375,10 @@ function splitText(rule: SplitRule, text: string): string[] | null {
     if (rule === "be-seal") return [g[1], g[2]];
     const parts = g[2].match(/^([A-Z]+)-?(\d+)$/);
     return parts ? [`${g[1]}-${parts[1]}`, parts[2]] : null;
+  }
+  if (rule === "ba-two-eu") {                                                           // K98-M-599 → K98 | -M-599
+    const m = text.trim().match(/^([^-]+)(-.+)$/);
+    return m ? [m[1], m[2]] : null;
   }
   if (rule === "ba-two") {
     const m = text.trim().match(/^([^-]+)-([^-]+)-([^-]+)$/);                              // 743-M-844 → 743-M | -844
