@@ -69,7 +69,10 @@ const COUNTRY_PREFIX = /^(de|at|al|be|ba|bg|hr|cz)-/i;
 export function plateTypeLabel(country: string, type: string | null | undefined): string | null {
   if (!type) return null;
   if (country.toLowerCase() === "bosnia") {
-    const { category, format } = parseBosniaPlateType(type);
+    const parsed = parseBosniaPlateType(type);
+    const format = parsed.format;
+    // spots saved before categories were stored: the white no-euroband plates are the 1998 system
+    const category = parsed.category ?? (/no-euroband/.test(format) ? "year-1998" : null);
     if (category) {
       const base = category === "regular" ? "Standard" : (BOSNIA_CATEGORIES.find((c) => c.id === category)?.label ?? category);
       return /two-line/.test(format) ? `${base} · Two-line` : base;
