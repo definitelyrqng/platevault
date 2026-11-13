@@ -11,13 +11,14 @@ import { parseBulgariaPlateType } from "./bulgariaData";
 import { AT_CAP_HEIGHT, AT_WIDTHS } from "./austriaFontMetrics";
 import { AT47_CAP_HEIGHT, AT47_WIDTHS } from "./austria1947FontMetrics";
 import { BA_CAP_HEIGHT, BA_WIDTHS } from "./bosniaFontMetrics";
+import { BG_CAP_HEIGHT, BG_WIDTHS } from "./bulgariaFontMetrics";
 
 /**
  * Lettering per country. "fe" = FE-Schrift (default everywhere);
  * "al" = Albanian plate glyphs traced from assets/fonts/albania-glyphs.png
  * (scripts/build-albania-font.cjs). Only used on plates with real artwork.
  */
-export type PlateFont = "fe" | "al" | "at" | "at47" | "ba";
+export type PlateFont = "fe" | "al" | "at" | "at47" | "ba" | "bg";
 const COUNTRY_FONT: Record<string, PlateFont> = { albania: "al", austria: "at" };
 export function plateFont(country: string): PlateFont {
   return COUNTRY_FONT[country.toLowerCase()] ?? "fe";
@@ -29,6 +30,9 @@ export const AL_SPACE = 70;
 /** Austrian glyph spacing (assets/fonts/austria-glyphs.png), in glyph-sheet pixels. */
 export const AT_SIDE_BEARING = 12;
 export const AT_SPACE = 80;
+/** Bulgarian plate lettering (built from real plates by scripts/build-bulgaria-font.cjs), in 4× pixels. */
+export const BG_SIDE_BEARING = 28;
+export const BG_SPACE = 250;
 /** Bosnian plate lettering (assets/fonts/bosnia-glyphs.png), in glyph-sheet pixels. */
 export const BA_SIDE_BEARING = 6;
 export const BA_SPACE = 36;
@@ -193,9 +197,9 @@ export const PLATE_ART: Record<string, PlateArt> = {
     split: "whole",
   },
   // ── Bulgaria: standard plate (euroband, black frame). FE-Schrift for now — the real lettering has its own shapes. ──
-  "bulgaria:single-flag": { src: "/plates/bulgaria/military-single.png", w: 1000, h: 224, rows: [{ y0: 22, y1: 204, x0: 124, x1: 964, slots: 1 }], split: "whole", fill: 0.82 },
-  "bulgaria:temporary": { src: "/plates/bulgaria/temporary-single.png", w: 1000, h: 224, rows: [{ y0: 22, y1: 204, x0: 124, x1: 826, slots: 1 }, { y0: 122, y1: 200, x0: 850, x1: 968, slots: 1, own: true }], split: "bg-year", fill: 0.82 },
-  "bulgaria:single-euroband": { src: "/plates/bulgaria/standard-single.png", w: 1000, h: 224, rows: [{ y0: 22, y1: 204, x0: 124, x1: 964, slots: 1 }], split: "whole", fill: 0.82 },
+  "bulgaria:single-flag": { src: "/plates/bulgaria/military-single.png", w: 1000, h: 224, rows: [{ y0: 22, y1: 204, x0: 124, x1: 964, slots: 1 }], font: "bg", split: "whole", fill: 0.82 },
+  "bulgaria:temporary": { src: "/plates/bulgaria/temporary-single.png", w: 1000, h: 224, rows: [{ y0: 22, y1: 204, x0: 124, x1: 826, slots: 1 }, { y0: 122, y1: 200, x0: 850, x1: 968, slots: 1, own: true }], font: "bg", split: "bg-year", fill: 0.82 },
+  "bulgaria:single-euroband": { src: "/plates/bulgaria/standard-single.png", w: 1000, h: 224, rows: [{ y0: 22, y1: 204, x0: 124, x1: 964, slots: 1 }], font: "bg", split: "whole", fill: 0.82 },
   // ── Bosnia: current plates (euroband, BiH). Same artwork for every category; FE-Schrift lettering. ──
   "bosnia:single-euroband": { src: "/plates/bosnia/standard-single.png", w: 1920, h: 458, rows: [{ y0: 66, y1: 384, x0: 252, x1: 1806, slots: 1 }], split: "whole", fill: 0.86, fillWidth: true, maxTrack: 0.12 },
   // diplomatic: blue plate, no euroband, gold lettering, centred
@@ -356,6 +360,11 @@ const AT_PX_TO_EM = (CAP_BOTTOM - CAP_TOP) / AT_CAP_HEIGHT;
 
 /** Rendered width of a text run in em, for the given lettering (condensing included). */
 export function textWidthEm(s: string, font: PlateFont) {
+  if (font === "bg") {
+    let px = 0;
+    for (const ch of s) px += ch in BG_WIDTHS ? BG_WIDTHS[ch] + 2 * BG_SIDE_BEARING : BG_SPACE;
+    return px * ((CAP_BOTTOM - CAP_TOP) / BG_CAP_HEIGHT);
+  }
   if (font === "ba") {
     let px = 0;
     for (const ch of s) px += ch in BA_WIDTHS ? BA_WIDTHS[ch] + 2 * BA_SIDE_BEARING : BA_SPACE;
