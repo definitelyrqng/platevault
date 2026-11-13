@@ -180,7 +180,7 @@ export const BELGIUM_PATTERNS: Partial<Record<BelgiumCategoryId, string[]>> = {
 };
 
 /** "T-XAX-###" → "T-XAX-123" (what the preview shows before anything is typed). */
-export const patternExample = (p: string) => p.replace(/###/g, "123").replace(/#/g, "1");
+export const patternExample = (p: string) => p.replace(/#+/g, (m) => "1234567890".slice(0, m.length));
 
 const isLetter = (c: string) => c >= "A" && c <= "Z";
 const isDigit = (c: string) => c >= "0" && c <= "9";

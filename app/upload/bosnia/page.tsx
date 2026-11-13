@@ -8,23 +8,26 @@ import type { OurFileRouter } from "@/app/lib/uploadthing";
 import CarDetailsFields from "@/app/upload/CarDetailsFields";
 import CompanyPicker from "@/app/components/CompanyPicker";
 import ZoomImage from "@/app/components/ZoomImage";
+import PlateBadge from "@/app/components/PlateBadge";
 import TagPicker from "@/app/components/TagPicker";
 import BosniaPlateInput from "@/app/upload/BosniaPlateInput";
 import MilestonePopup from "@/app/components/MilestonePopup";
 import OcrHint from "@/app/components/OcrHint";
 import {
-  BOSNIA_CATEGORIES, BOSNIA_FORMATS_FOR, BA_FORMAT_LABELS,
+  BOSNIA_CATEGORIES, BOSNIA_FORMATS_FOR, BA_FORMAT_LABELS, BOSNIA_PATTERNS,
   type BosniacategoryId,
 } from "@/app/lib/bosniaData";
+import { padBelgiumPlate as padPlate } from "@/app/lib/belgiumData";
 
 const { useUploadThing } = generateReactHelpers<OurFileRouter>();
+
 const MAX_SIZE_MB = 8;
 const ALLOWED_TYPES = ["image/jpeg", "image/png"];
 
 function locationTooExact(loc: string) {
   const t = loc.toLowerCase();
-  const words = ["ulica", "street", "str.", "road", "rd.", "avenue", "blvd"];
-  return words.some((w) => t.includes(w)) && /\b\d{1,4}[a-z]?\b/.test(t);
+  const streetWords = ["ulica", "street", "str.", "road", "rd.", "avenue", "blvd"];
+  return streetWords.some((w) => t.includes(w)) && /\b\d{1,4}[a-z]?\b/.test(t);
 }
 function validateFile(f: File): string | null {
   if (!ALLOWED_TYPES.includes(f.type)) return "Only JPG and PNG files are allowed.";
@@ -35,37 +38,40 @@ function validateFile(f: File): string | null {
 export default function BosniaUploadPage() {
   const router = useRouter();
 
-  const [category, setCategory] = useState<BosniacategoryId>("regular");
+  // ── Plate state (all lifted here) ──
+  const [category, setCategory]   = useState<BosniacategoryId>("regular");
   const [plateText, setPlateText] = useState("");
-  const [format, setFormat] = useState<string>(BOSNIA_FORMATS_FOR["regular"][0]);
+  const [format, setFormat]       = useState<string>(BOSNIA_FORMATS_FOR["regular"][0]);
+  const [variant, setVariant]     = useState(0);
+  const [plateComplete, setPlateComplete] = useState(false);
 
+  // When user manually switches category, reset format to that category's first
   function handleCategoryChange(c: BosniacategoryId) {
-    setCategory(c); setPlateText(""); setFormat(BOSNIA_FORMATS_FOR[c][0]);
-  }
-  function handleCategoryDetected(c: BosniacategoryId) {
-    if (c === category) return;
     setCategory(c);
+    setVariant(0);
+    setFormat(BOSNIA_FORMATS_FOR[c][0]);
+    setPlateText("");
   }
 
-  const [location, setLocation] = useState("");
-  const [brand, setBrand] = useState("");
-  const [model, setModel] = useState("");
-  const [generation, setGeneration] = useState("");
-  const [trim, setTrim] = useState("");
-  const [color, setColor] = useState("");
-  const [badge, setBadge] = useState("");
-  const [companyId, setCompanyId] = useState<string | null>(null);
-  const [tags, setTags] = useState<string[]>([]);
+  const [location, setLocation]       = useState("");
+  const [brand, setBrand]             = useState("");
+  const [model, setModel]             = useState("");
+  const [generation, setGeneration]   = useState("");
+  const [trim, setTrim]               = useState("");
+  const [color, setColor]             = useState("");
+  const [badge, setBadge]             = useState("");
+  const [companyId, setCompanyId]     = useState<string | null>(null);
+  const [tags, setTags]               = useState<string[]>([]);
 
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [fileError, setFileError] = useState("");
-  const [status, setStatus] = useState<"idle"|"uploading"|"saving"|"done"|"error">("idle");
+  const [file, setFile]               = useState<File | null>(null);
+  const [preview, setPreview]         = useState<string | null>(null);
+  const [isDragging, setIsDragging]   = useState(false);
+  const [fileError, setFileError]     = useState("");
+  const [status, setStatus]           = useState<"idle"|"uploading"|"saving"|"done"|"error">("idle");
   useEffect(() => {
     if (status === "uploading") window.scrollTo({ top: 0, behavior: "smooth" });
   }, [status]);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [errorMsg, setErrorMsg]       = useState("");
   const [milestoneData, setMilestoneData] = useState<{ uploadCount: number; streak: { current: number; isNewDay: boolean } } | null>(null);
   const redirectCountry = "/c/bosnia";
 
@@ -84,22 +90,27 @@ export default function BosniaUploadPage() {
 
   const catMeta = BOSNIA_CATEGORIES.find((c) => c.id === category);
 
+  const pat = BOSNIA_PATTERNS[category]?.[variant] ?? BOSNIA_PATTERNS[category]?.[0];
+  const livePlate = pat ? padPlate(plateText.trim(), pat) : (plateText.trim() || catMeta?.example || "A12-E-345");
   const canSubmit =
     !!file && !fileError &&
-    plateText.trim().length >= 2 &&
+    plateText.trim().length >= 1 && (!BOSNIA_PATTERNS[category] || plateComplete) &&
     location.trim().length >= 2 &&
-    !locationWarning && status === "idle";
+    !locationWarning &&
+    status === "idle";
 
   function handleFileSelect(f: File | null) {
     setFileError("");
     if (!f) { setFile(null); setPreview(null); return; }
     const err = validateFile(f);
     if (err) { setFileError(err); setFile(null); setPreview(null); return; }
-    setFile(f); setPreview(URL.createObjectURL(f));
+    setFile(f);
+    setPreview(URL.createObjectURL(f));
   }
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault(); setIsDragging(false);
-    const d = e.dataTransfer.files[0]; if (d) handleFileSelect(d);
+    const dropped = e.dataTransfer.files[0];
+    if (dropped) handleFileSelect(dropped);
   }, []);
 
   const { startUpload } = useUploadThing("plateImageUploader");
@@ -109,15 +120,18 @@ export default function BosniaUploadPage() {
     setMultiSpotWarning(null); setStatus("uploading"); setErrorMsg("");
     try {
       const uploaded = await startUpload([file]);
-      if (!uploaded?.[0]?.ufsUrl) throw new Error("Image upload failed — please try again.");
+      if (!uploaded || !uploaded[0]?.ufsUrl) throw new Error("Image upload failed — please try again.");
       const imageUrl = uploaded[0].ufsUrl;
       setStatus("saving");
+      const composedType = `${category}__${format}`;
       const res = await fetch("/api/uploads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          country: "bosnia", plateText: plateText.trim().toUpperCase(),
-          plateType: format, imageUrl, location: locationOf(location), description: location.trim() || null,
+          country: "bosnia",
+          plateText: plateText.trim().toUpperCase(),
+          plateType: composedType,
+          imageUrl, location: locationOf(location), description: location.trim() || null,
           brand: brand.trim(), model: model.trim(), generation: generation.trim(),
           trim: trim.trim(), color: color.trim(), badge: badge.trim(),
           tags, companyId,
@@ -146,11 +160,16 @@ export default function BosniaUploadPage() {
     if (!canSubmit || !file) return;
     setErrorMsg("");
     try {
-      const r = await fetch(`/api/uploads/check?plateText=${encodeURIComponent(plateText.trim())}&country=bosnia`);
-      if (r.ok) { const d = await r.json(); if (d.exists) { setMultiSpotWarning(d.spot); return; } }
+      const checkRes = await fetch(`/api/uploads/check?plateText=${encodeURIComponent(plateText.trim())}&country=bosnia`);
+      if (checkRes.ok) {
+        const d = await checkRes.json();
+        if (d.exists) { setMultiSpotWarning(d.spot); return; }
+      }
     } catch { /* proceed */ }
     await doUpload();
   }
+
+  const composedType = `${category}__${format}`;
 
   return (
     <>
@@ -164,13 +183,13 @@ export default function BosniaUploadPage() {
             <span>›</span>
             <span className="text-zinc-300">Bosnia &amp; Herzegovina 🇧🇦</span>
           </div>
-          <h1 className="mt-2 text-2xl font-black">Upload — Bosnia &amp; Herzegovina</h1>
-          <p className="mt-1 text-sm text-zinc-400">Regular, diplomatic, dealer, export &amp; old-format plates.</p>
+          <h1 className="mt-2 text-2xl font-black">Upload — Bosnia & Herzegovina</h1>
+          <p className="mt-1 text-sm text-zinc-400">Regular, taxi, testing &amp; portable, agricultural, diplomatic and old-format plates.</p>
         </div>
 
         {status === "done" && (
           <div className="mt-6 rounded-2xl border border-emerald-800 bg-emerald-950/40 px-5 py-4 text-sm text-emerald-300">
-            Uploaded! Redirecting to the Bosnia gallery…
+            Uploaded! Redirecting to the Bosnia &amp; Herzegovina gallery…
           </div>
         )}
         {status === "error" && (
@@ -205,17 +224,20 @@ export default function BosniaUploadPage() {
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-zinc-200">Plate category</span>
-                <span className="text-[10px] text-zinc-600 italic">auto-detected from plate text</span>
+                <span className="text-[10px] text-zinc-600 italic">pick one — the plate format fills in for you</span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {BOSNIA_CATEGORIES.map((c) => (
                   <button key={c.id} type="button" onClick={() => handleCategoryChange(c.id as BosniacategoryId)}
-                    className={`rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${
+                    className={`flex flex-col items-center gap-2 rounded-xl border px-3 py-3 text-center text-sm transition-all ${
                       category === c.id
                         ? "border-indigo-600 bg-indigo-950/50 text-indigo-200"
                         : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
                     }`}>
-                    {c.label}
+                    <span className="block h-[44px] w-full overflow-hidden text-center leading-[44px]">
+                      <PlateBadge country="bosnia" text={c.example} plateType={`${c.id}__${BOSNIA_FORMATS_FOR[c.id as BosniacategoryId][0]}`} size="md" />
+                    </span>
+                    <span>{c.label}</span>
                   </button>
                 ))}
               </div>
@@ -231,45 +253,14 @@ export default function BosniaUploadPage() {
             {/* ── Main fields card ── */}
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-5">
 
-              {/* Photo */}
-              <div>
-                <span className="block text-sm text-zinc-300 mb-2">Photo <span className="text-zinc-600 text-xs">(JPG or PNG, max 8 MB)</span></span>
-                <label
-                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                  onDragLeave={() => setIsDragging(false)}
-                  onDrop={onDrop}
-                  className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden ${
-                    isDragging ? "border-zinc-400 bg-zinc-800/60" : fileError ? "border-red-800 bg-red-950/20" : "border-zinc-700 bg-zinc-950/40 hover:border-zinc-500"
-                  }`}
-                  style={{ minHeight: preview ? "auto" : "150px" }}
-                >
-                  {preview ? (
-                    <div className="relative w-full group">
-                      <ZoomImage src={preview} alt="Preview" className="rounded-xl" />
-                      <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/0 group-hover:bg-zinc-950/50 transition-colors rounded-xl pointer-events-none">
-                        <span className="opacity-0 group-hover:opacity-100 text-xs text-zinc-200 transition-opacity">Click to change</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="py-8 text-center px-4">
-                      <div className="text-2xl mb-2">📷</div>
-                      <div className="text-sm text-zinc-400">Drag &amp; drop or <span className="text-zinc-200 underline">browse</span></div>
-                    </div>
-                  )}
-                  <input type="file" accept="image/jpeg,image/png" className="sr-only" onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)} />
-                </label>
-                {fileError && <p className="mt-1.5 text-xs text-red-400">{fileError}</p>}
-                <OcrHint file={file} onSuggest={setPlateText} />
-              </div>
-
               {/* Plate input */}
               <div className="grid gap-1.5">
                 <span className="text-sm text-zinc-300">Plate text</span>
                 <BosniaPlateInput
                   category={category} format={format}
-                  onCategoryDetected={handleCategoryDetected}
                   onFormatChange={setFormat}
                   onChange={setPlateText}
+                  variant={variant} onVariantChange={setVariant} onComplete={setPlateComplete}
                 />
               </div>
 
@@ -301,7 +292,7 @@ export default function BosniaUploadPage() {
                 </button>
                 {status === "idle" && (
                   <span className="text-xs text-zinc-500">
-                    {!file ? "Add a photo" : plateText.trim().length < 2 ? "Enter plate text" : location.trim().length < 2 ? "Add where you saw it" : "Ready"}
+                    {!file ? "Add a photo" : plateText.trim().length < 1 ? "Enter plate text" : location.trim().length < 2 ? "Add where you saw it" : "Ready"}
                   </span>
                 )}
               </div>
@@ -309,36 +300,62 @@ export default function BosniaUploadPage() {
           </form>
 
           {/* ── Sidebar ── */}
-          <aside className="space-y-4">
+          <aside className="space-y-4 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:self-start lg:overflow-y-auto">
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
+              <div>
+                <span className="block text-sm text-zinc-300 mb-2">Photo <span className="text-zinc-600 text-xs">(JPG or PNG, max 8 MB)</span></span>
+                <label
+                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={onDrop}
+                  className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden ${
+                    isDragging ? "border-zinc-400 bg-zinc-800/60" : fileError ? "border-red-800 bg-red-950/20" : "border-zinc-700 bg-zinc-950/40 hover:border-zinc-500"
+                  }`}
+                  style={{ minHeight: preview ? "auto" : "150px" }}
+                >
+                  {preview ? (
+                    <div className="relative w-full group">
+                      <ZoomImage src={preview} alt="Preview" className="rounded-xl" />
+                      <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/0 group-hover:bg-zinc-950/50 transition-colors rounded-xl pointer-events-none">
+                        <span className="opacity-0 group-hover:opacity-100 text-xs text-zinc-200 transition-opacity">Click to change</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-8 text-center px-4">
+                      <div className="text-2xl mb-2">📷</div>
+                      <div className="text-sm text-zinc-400">Drag &amp; drop or <span className="text-zinc-200 underline">browse</span></div>
+                    </div>
+                  )}
+                  <input type="file" accept="image/jpeg,image/png" className="sr-only" onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)} />
+                </label>
+                {fileError && <p className="mt-1.5 text-xs text-red-400">{fileError}</p>}
+                <OcrHint file={file} onSuggest={setPlateText} />
+              </div>
+            </div>
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5">
               <div className="text-xs uppercase tracking-wider text-zinc-500 mb-3">Live preview</div>
-              <div className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-5 text-center">
-                <div className="font-mono text-xl font-bold tracking-widest text-zinc-100">
-                  {plateText.trim() || catMeta?.example || "A12-E-345"}
+              <div className="rounded-xl border border-zinc-700 bg-zinc-950/40 px-4 py-5 text-center text-zinc-300">
+                <div className="flex justify-center">
+                  <PlateBadge country="bosnia" text={livePlate} plateType={composedType} size="lg" />
                 </div>
-                <div className="mt-2 text-xs text-zinc-500">
-                  {catMeta?.label} · Bosnia &amp; Herzegovina 🇧🇦
-                </div>
-                <div className="mt-1 text-[10px] text-zinc-600">{BA_FORMAT_LABELS[format]}</div>
+                <div className="mt-2 text-xs opacity-70">{catMeta?.label} · Bosnia &amp; Herzegovina 🇧🇦</div>
+                <div className="mt-1 text-[10px] opacity-50">{BA_FORMAT_LABELS[format]}</div>
               </div>
             </div>
 
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/20 p-5">
               <div className="text-sm font-medium text-zinc-200 mb-1">📋 Stored as</div>
-              <p className="text-xs text-indigo-400 font-mono">{format}</p>
+              <p className="text-xs text-indigo-400 font-mono">{composedType}</p>
               <p className="mt-1 text-xs text-zinc-500 leading-relaxed">{BA_FORMAT_LABELS[format] ?? format}</p>
             </div>
+
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/20 p-5">
-              <div className="text-xs uppercase tracking-wider text-zinc-500 mb-3">Plate formats</div>
-              <div className="space-y-2">
-                {BOSNIA_CATEGORIES.map((c) => (
-                  <div key={c.id} className={`flex justify-between items-center rounded-xl px-3 py-2 text-xs transition-colors ${c.id === category ? "bg-zinc-800 text-zinc-100" : "text-zinc-500"}`}>
-                    <span>{c.label}</span>
-                    <span className="font-mono">{c.example}</span>
-                  </div>
-                ))}
-              </div>
+              <div className="text-sm font-medium text-zinc-200 mb-2">📍 Location rule</div>
+              <p className="text-sm text-zinc-400 leading-relaxed">
+                City + country required — e.g. <span className="text-zinc-300">Sarajevo, Bosnia &amp; Herzegovina</span>.
+              </p>
             </div>
+
           </aside>
         </div>
       </div>

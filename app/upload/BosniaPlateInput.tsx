@@ -2,163 +2,88 @@
 
 import { useState, useEffect } from "react";
 import {
-  BOSNIA_FORMATS_FOR, BA_FORMAT_LABELS,
-  BOSNIA_CATEGORIES, detectBosniaCategory,
+  BOSNIA_FORMATS_FOR, BA_FORMAT_LABELS, BOSNIA_CATEGORIES, BOSNIA_PATTERNS, bosniaDiplomaticOwner,
   type BosniacategoryId,
 } from "@/app/lib/bosniaData";
+import { maskBelgiumPlate as maskPlate, patternExample } from "@/app/lib/belgiumData";
 
 interface Props {
   category: BosniacategoryId;
   format: string;
-  onCategoryDetected: (c: BosniacategoryId) => void;
   onFormatChange: (fmt: string) => void;
   onChange: (plateText: string) => void;
+  /** Which of the category's patterns is selected (TT- or MT- for testing / portable plates). */
+  variant: number;
+  onVariantChange: (i: number) => void;
+  /** Whether the text fills the whole pattern. */
+  onComplete: (complete: boolean) => void;
 }
 
-const IN  = "rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono tracking-widest text-zinc-100 text-center uppercase outline-none focus:border-zinc-600 placeholder:text-zinc-700 placeholder:tracking-normal placeholder:font-sans placeholder:normal-case placeholder:text-center";
-const SEL = "rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-600";
+const IN = "w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono tracking-widest text-zinc-100 text-center uppercase outline-none focus:border-zinc-600 placeholder:text-zinc-700 placeholder:tracking-normal placeholder:font-sans placeholder:normal-case placeholder:text-center";
+const SEL = "w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-600";
 
-function Dash() {
-  return <span className="text-zinc-500 font-mono text-lg font-bold select-none">-</span>;
-}
-
-export default function BosniaPlateInput({ category, format, onCategoryDetected, onFormatChange, onChange }: Props) {
-  const [s1, setS1] = useState("");
-  const [s2, setS2] = useState("");
-  const [s3, setS3] = useState("");
-  const [prov, setProv] = useState<"TT" | "MT">("TT");
-
-  useEffect(() => { setS1(""); setS2(""); setS3(""); }, [category]);
-
+/** Plate number input: pick the layout, then type — dashes and fixed letters fill in for you. */
+export default function BosniaPlateInput({ category, format, onFormatChange, onChange, variant, onVariantChange, onComplete }: Props) {
+  const [text, setText] = useState("");
+  const patterns = BOSNIA_PATTERNS[category] ?? [];
+  const pattern = patterns[Math.min(variant, patterns.length - 1)] ?? null;
   const formats = BOSNIA_FORMATS_FOR[category];
   const catMeta = BOSNIA_CATEGORIES.find((c) => c.id === category);
 
-  function emit(a: string, b: string, c: string, pr: "TT" | "MT") {
-    let text = "";
-    if (category === "regular") {
-      text = a && b && c ? `${a}-${b}-${c}` : [a, b, c].filter(Boolean).join("-");
-    } else if (category === "taxi") {
-      text = b ? `TA-${b}` : "TA-";
-    } else if (category === "provisional") {
-      text = b ? `${pr}-${b}` : `${pr}-`;
-    } else {
-      text = a && b && c ? `${a}-${b}-${c}` : [a, b, c].filter(Boolean).join("-");
-    }
-    onChange(text);
-  }
+  // Reset (and pre-fill the fixed characters) when the category or pattern changes
+  useEffect(() => {
+    const start = pattern ? maskPlate("", pattern) : "";
+    setText(start);
+    onChange(start);
+    onComplete(pattern ? start.length === pattern.length : false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, pattern]);
 
-  function handleS1(v: string) {
-    let s = "";
-    if (category === "regular") {
-      const cleaned = v.toUpperCase().replace(/[^A-Z0-9]/g, "");
-      const letter = cleaned[0]?.replace(/[^A-Z]/g, "") ?? "";
-      const digits = cleaned.slice(1).replace(/[^0-9]/g, "").slice(0, 2);
-      s = letter + digits;
-    } else {
-      s = v.replace(/[^0-9]/g, "").slice(0, 3);
-    }
-    setS1(s);
-    emit(s, s2, s3, prov);
-    if (category !== "taxi" && category !== "provisional") {
-      const det = detectBosniaCategory(s);
-      if (det && det !== category) onCategoryDetected(det);
-    }
-  }
-
-  function handleS2(v: string) {
-    let s = "";
-    if (category === "regular" || category === "year-1998") {
-      s = v.replace(/[^A-Za-z]/g, "").toUpperCase().slice(0, 1);
-    } else {
-      s = v.replace(/[^0-9]/g, "").slice(0, 6);
-    }
-    setS2(s);
-    emit(s1, s, s3, prov);
-  }
-
-  function handleS3(v: string) {
-    const s = v.replace(/[^0-9]/g, "").slice(0, 3);
-    setS3(s);
-    emit(s1, s2, s, prov);
-  }
-
-  function handleProv(v: "TT" | "MT") {
-    setProv(v);
-    emit(s1, s2, s3, v);
+  function handle(v: string) {
+    if (!pattern) return;
+    // Backspace over a fixed character removes it together with what is typed before it
+    let raw = v;
+    if (v.length < text.length) while (raw && !("X#".includes(pattern[raw.length - 1] ?? "X"))) raw = raw.slice(0, -1);
+    const masked = maskPlate(raw, pattern);
+    setText(masked);
+    onChange(masked);
+    onComplete(masked.length === pattern.length);
   }
 
   return (
     <div className="space-y-3">
-      {/* Layout format — only shown if more than one option */}
-      {formats.length > 1 && (
-        <div>
-          <p className="text-xs text-zinc-500 mb-1.5">Plate layout</p>
-          <select value={format} onChange={(e) => onFormatChange(e.target.value)} className={SEL + " w-full"}>
-            {formats.map((f) => (
-              <option key={f} value={f}>{BA_FORMAT_LABELS[f]}</option>
-            ))}
-          </select>
-        </div>
-      )}
+      <div>
+        <p className="text-xs text-zinc-500 mb-1.5">Plate layout</p>
+        <select value={format} onChange={(e) => onFormatChange(e.target.value)} className={SEL}>
+          {formats.map((f) => <option key={f} value={f}>{BA_FORMAT_LABELS[f]}</option>)}
+        </select>
+      </div>
 
-      {/* Plate text */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
           <p className="text-xs text-zinc-500">Plate text</p>
-          <span className="text-[10px] text-zinc-600 italic">type detects category</span>
+          <span className="text-[10px] text-zinc-600 italic">dashes and fixed letters fill in for you</span>
         </div>
-
-        {/* Regular: A12-E-345 */}
-        {category === "regular" && (
-          <div className="flex items-center gap-1.5">
-            <input value={s1} onChange={(e) => handleS1(e.target.value)}
-              placeholder="A12" maxLength={3} className={IN + " w-16"} />
-            <Dash />
-            <input value={s2} onChange={(e) => handleS2(e.target.value)}
-              placeholder="E" maxLength={1} className={IN + " w-12"} />
-            <Dash />
-            <input value={s3} onChange={(e) => handleS3(e.target.value)}
-              placeholder="345" maxLength={3} inputMode="numeric" className={IN + " w-16"} />
+        {patterns.length > 1 && (
+          <div className="mb-2 flex gap-2">
+            {patterns.map((p, i) => (
+              <button key={p} type="button" onClick={() => onVariantChange(i)}
+                className={`flex-1 rounded-lg border px-2 py-1.5 font-mono text-xs tracking-widest transition-colors ${
+                  i === Math.min(variant, patterns.length - 1) ? "border-indigo-500 bg-indigo-600/10 text-indigo-200" : "border-zinc-800 text-zinc-500 hover:border-zinc-600"
+                }`}>{patternExample(p)}</button>
+            ))}
           </div>
         )}
-
-        {/* Taxi: TA-123456 */}
-        {category === "taxi" && (
-          <div className="flex items-center gap-1.5">
-            <span className="rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm font-mono text-zinc-400 select-none">TA</span>
-            <Dash />
-            <input value={s2} onChange={(e) => handleS2(e.target.value)}
-              placeholder="123456" maxLength={6} inputMode="numeric" className={IN + " flex-1"} />
-          </div>
-        )}
-
-        {/* Provisional: TT/MT-123456 */}
-        {category === "provisional" && (
-          <div className="flex items-center gap-1.5">
-            <select value={prov} onChange={(e) => handleProv(e.target.value as "TT" | "MT")} className={SEL + " w-20"}>
-              <option value="TT">TT</option>
-              <option value="MT">MT</option>
-            </select>
-            <Dash />
-            <input value={s2} onChange={(e) => handleS2(e.target.value)}
-              placeholder="123456" maxLength={6} inputMode="numeric" className={IN + " flex-1"} />
-          </div>
-        )}
-
-        {/* 1998: 123-A-456 */}
-        {category === "year-1998" && (
-          <div className="flex items-center gap-1.5">
-            <input value={s1} onChange={(e) => handleS1(e.target.value)}
-              placeholder="123" maxLength={3} inputMode="numeric" className={IN + " w-16"} />
-            <Dash />
-            <input value={s2} onChange={(e) => handleS2(e.target.value)}
-              placeholder="A" maxLength={1} className={IN + " w-12"} />
-            <Dash />
-            <input value={s3} onChange={(e) => handleS3(e.target.value)}
-              placeholder="456" maxLength={3} inputMode="numeric" className={IN + " w-16"} />
-          </div>
-        )}
-
+        <input value={text} onChange={(e) => handle(e.target.value)}
+          placeholder={pattern ? patternExample(pattern) : (catMeta?.example ?? "A12-E-345")}
+          maxLength={pattern ? pattern.length : 14}
+          className={IN} autoComplete="off" spellCheck={false} />
+        {category === "diplomatic" && (() => {
+          const owner = bosniaDiplomaticOwner(text);
+          return owner
+            ? <p className="mt-1.5 text-xs text-emerald-300">Detected: {owner}</p>
+            : <p className="mt-1.5 text-xs text-zinc-600">Type the code — the country or organisation is detected for you.</p>;
+        })()}
         {catMeta?.hint && <p className="mt-1.5 text-xs text-zinc-600">{catMeta.hint}</p>}
       </div>
     </div>

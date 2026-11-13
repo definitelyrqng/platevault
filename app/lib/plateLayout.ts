@@ -6,6 +6,7 @@
  */
 import { AL_CAP_HEIGHT, AL_WIDTHS } from "./albaniaFontMetrics";
 import { BELGIUM_CATEGORIES, parseBelgiumPlateType } from "./belgiumData";
+import { parseBosniaPlateType } from "./bosniaData";
 import { AT_CAP_HEIGHT, AT_WIDTHS } from "./austriaFontMetrics";
 import { AT47_CAP_HEIGHT, AT47_WIDTHS } from "./austria1947FontMetrics";
 import { BA_CAP_HEIGHT, BA_WIDTHS } from "./bosniaFontMetrics";
@@ -78,6 +79,8 @@ export type PlateArt = {
   seal?: string;
   /** Fixed-shape seal image (width ÷ height); its height is rowH × sealH. */
   sealAspect?: number;
+  /** Upper limit for the spacing fillWidth adds, in em. */
+  maxTrack?: number;
   /** Spread the characters so the text fills the whole width of its row (all rows share the tightest spacing). */
   fillWidth?: boolean;
   /** Extra space after every character, in em (default 0). */
@@ -189,8 +192,11 @@ export const PLATE_ART: Record<string, PlateArt> = {
     split: "whole",
   },
   // ── Bosnia: current plates (euroband, BiH). Same artwork for every category; FE-Schrift lettering. ──
-  "bosnia:single-euroband": { src: "/plates/bosnia/standard-single.png", w: 1920, h: 458, rows: [{ y0: 66, y1: 384, x0: 228, x1: 1852, slots: 1 }], split: "whole", fill: 0.86 },
-  "bosnia:two-line-euroband": { src: "/plates/bosnia/standard-two.png", w: 1024, h: 578, rows: [{ y0: 36, y1: 286, x0: 180, x1: 996, slots: 1 }, { y0: 293, y1: 543, x0: 34, x1: 990, slots: 1 }], split: "ba-two-eu", fill: 0.78, fillWidth: true },
+  "bosnia:single-euroband": { src: "/plates/bosnia/standard-single.png", w: 1920, h: 458, rows: [{ y0: 66, y1: 384, x0: 228, x1: 1852, slots: 1 }], split: "whole", fill: 0.86, fillWidth: true, maxTrack: 0.12 },
+  // diplomatic: blue plate, no euroband, gold lettering, centred
+  "bosnia:diplomatic-single": { src: "/plates/bosnia/diplomatic-single.png", w: 1920, h: 458, rows: [{ y0: 66, y1: 384, x0: 80, x1: 1840, slots: 1 }], split: "whole", fill: 0.86, fillWidth: true, maxTrack: 0.12, textColor: "#f39a2f" },
+  "bosnia:diplomatic-two": { src: "/plates/bosnia/diplomatic-two.png", w: 1024, h: 578, rows: [{ y0: 36, y1: 286, x0: 40, x1: 984, slots: 1 }, { y0: 293, y1: 543, x0: 40, x1: 984, slots: 1 }], split: "ba-two", fill: 0.84, fillWidth: true, maxTrack: 0.07, textColor: "#f39a2f" },
+  "bosnia:two-line-euroband": { src: "/plates/bosnia/standard-two.png", w: 1024, h: 578, rows: [{ y0: 36, y1: 286, x0: 180, x1: 996, slots: 1 }, { y0: 293, y1: 543, x0: 34, x1: 990, slots: 1 }], split: "ba-two-eu", fill: 0.84, fillWidth: true, maxTrack: 0.07 },
   // ── Bosnia: standard no-euroband plates (white, black frame). Black lettering in the Bosnian font. ──
   "bosnia:single-no-euroband": { src: "/plates/bosnia/y1998-single.png", w: 1024, h: 196, rows: [{ y0: 10, y1: 186, x0: 46, x1: 978, slots: 1 }], split: "whole", font: "ba", fill: 0.88, fillWidth: true },
   "bosnia:two-line-no-euroband": { src: "/plates/bosnia/y1998-two.png", w: 512, h: 256, rows: [{ y0: 8, y1: 134, x0: 26, x1: 486, slots: 1, align: "left" }, { y0: 122, y1: 248, x0: 26, x1: 486, slots: 1, align: "left" }], split: "ba-two", font: "ba", fill: 0.9, fillWidth: true },
@@ -280,6 +286,16 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
     // electric vehicles and green-lettered mopeds: same plate, green characters
     const green = /^at-electric/.test(plateType ?? "") || /moped-green$/.test(plateType ?? "");
     return art && green && !art.textColor ? { ...art, textColor: "#0b7a3b" } : art;
+  }
+  if (key === "bosnia") {
+    const { category, format } = parseBosniaPlateType(plateType);
+    if (category === "diplomatic") return PLATE_ART[format.startsWith("two") ? "bosnia:diplomatic-two" : "bosnia:diplomatic-single"] ?? null;
+    const art = PLATE_ART[`bosnia:${format}`] ?? null;
+    if (!art || !art.src.includes("standard-")) return art;
+    // testing (TT) and portable (MT) plates: red frame and lettering; agricultural plates: green
+    if (category === "provisional") return { ...art, src: art.src.replace(".png", "-red.png"), textColor: "#d9231c" };
+    if (category === "agricultural") return { ...art, src: art.src.replace(".png", "-green.png"), textColor: "#267d32" };
+    return art;
   }
   if (key === "belgium") {
     const { category, format } = parseBelgiumPlateType(plateType);
@@ -506,7 +522,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
     if (art.fillWidth) {
       const ts = lines.filter((l) => !l.mode && l.texts.length === 1 && [...l.texts[0]].length > 1)
         .map((l) => (l.avail - l.ems[0] * fontSize) / (([...l.texts[0]].length - 1) * fontSize));
-      if (ts.length) fillTrack = Math.max(0, Math.min(...ts));
+      if (ts.length) fillTrack = Math.max(0, Math.min(art.maxTrack ?? Infinity, ...ts));
     }
 
     const runs: TextRun[] = [];
