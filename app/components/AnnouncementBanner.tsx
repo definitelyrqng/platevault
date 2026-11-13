@@ -36,8 +36,8 @@ export default function AnnouncementBanner({ enabled, label, text, link, linkTex
 
   return (
     <div className="relative z-50 border-b border-zinc-800/80 bg-zinc-900">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2 sm:px-6">
-        <p className="min-w-0 truncate text-[13px] text-zinc-400">
+      <div className="relative mx-auto flex max-w-6xl items-center justify-center px-12 py-2 sm:px-14">
+        <p className="min-w-0 text-center text-[13px] leading-snug text-zinc-400">
           {label.trim() && (
             <span className="mr-2 rounded bg-indigo-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">{label}</span>
           )}
@@ -51,7 +51,7 @@ export default function AnnouncementBanner({ enabled, label, text, link, linkTex
         <button
           onClick={dismiss}
           aria-label="Dismiss announcement"
-          className="shrink-0 rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-200"
+          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-200 sm:right-5"
         >
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
             <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
