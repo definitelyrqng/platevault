@@ -1,35 +1,52 @@
 "use client";
 import { useState, useEffect } from "react";
+import type { Announcement } from "@/app/lib/announcement";
 
-// Bump the version string to show the banner again after dismiss
-const BANNER_KEY = "pv-banner-v3";
-
-export default function AnnouncementBanner() {
+/**
+ * The "What's new" bar. Settings come from the admin panel (Site tab).
+ * A visitor sees it until they dismiss it, or — when a duration is set — for that many days
+ * after the first time they saw it (remembered in this browser only; no cookie is set).
+ */
+export default function AnnouncementBanner({ enabled, label, text, link, linkText, days, version }: Announcement) {
   const [visible, setVisible] = useState(false);
+  const dismissedKey = `pv-banner-v${version}`;
+  const firstKey = `pv-banner-first-v${version}`;
 
   useEffect(() => {
+    if (!enabled) { setVisible(false); return; }
     try {
-      if (!localStorage.getItem(BANNER_KEY)) setVisible(true);
-    } catch {}
-  }, []);
+      if (localStorage.getItem(dismissedKey)) return;
+      if (days > 0) {
+        const first = Number(localStorage.getItem(firstKey)) || Date.now();
+        localStorage.setItem(firstKey, String(first));
+        if (Date.now() - first > days * 86_400_000) return;
+      }
+      setVisible(true);
+    } catch {
+      setVisible(true);
+    }
+  }, [enabled, days, dismissedKey, firstKey]);
 
   function dismiss() {
-    try { localStorage.setItem(BANNER_KEY, "1"); } catch {}
+    try { localStorage.setItem(dismissedKey, "1"); } catch {}
     setVisible(false);
   }
 
-  if (!visible) return null;
+  if (!enabled || !visible || !text.trim()) return null;
 
   return (
     <div className="relative z-50 border-b border-zinc-800/80 bg-zinc-900">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2 sm:px-6">
         <p className="min-w-0 truncate text-[13px] text-zinc-400">
-          <span className="mr-2 rounded bg-indigo-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">New</span>
-          <span className="hidden sm:inline">Weekly challenges, direct messages, road trips, collection export &amp; Germany plates are live.</span>
-          <span className="sm:hidden">Challenges, DMs, road trips &amp; more.</span>
-          <a href="/challenges" className="ml-2 font-medium text-zinc-200 underline-offset-2 hover:text-white hover:underline">
-            Try now →
-          </a>
+          {label.trim() && (
+            <span className="mr-2 rounded bg-indigo-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">{label}</span>
+          )}
+          <span>{text}</span>
+          {link.trim() && linkText.trim() && (
+            <a href={link} className="ml-2 font-medium text-zinc-200 underline-offset-2 hover:text-white hover:underline">
+              {linkText}
+            </a>
+          )}
         </p>
         <button
           onClick={dismiss}

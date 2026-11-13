@@ -404,6 +404,16 @@ model SiteSettings {
   id                String   @id @default("singleton")
   maintenanceMode   Boolean  @default(false)
   maintenanceMsg    String   @default("We're doing some technical work. Browsing is available but uploads are paused. Back soon!") @db.VarChar(500)
+
+  // "What's new" banner
+  announcementEnabled  Boolean @default(true)
+  announcementLabel    String  @default("New") @db.VarChar(20)
+  announcementText     String  @default("Weekly challenges, direct messages, road trips, collection export & Germany plates are live.") @db.VarChar(300)
+  announcementLink     String  @default("/challenges") @db.VarChar(200)
+  announcementLinkText String  @default("Try now →") @db.VarChar(40)
+  announcementDays     Int     @default(14)
+  announcementVersion  Int     @default(1)
+
   updatedAt         DateTime @updatedAt
 }
 

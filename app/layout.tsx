@@ -8,6 +8,7 @@ import MaintenanceBanner from "./components/MaintenanceBanner";
 import NavProgress from "./components/NavProgress";
 import { statusInfo } from "./status-config";
 import { getMaintenanceSettings } from "@/app/lib/maintenance";
+import { getAnnouncement } from "@/app/lib/announcement";
 import { getSessionUser, getUnreadCount } from "@/app/lib/session";
 import { AuthProvider } from "./components/AuthProvider";
 
@@ -47,7 +48,7 @@ const FOOTER_LINKS = [
 ];
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [{ maintenanceMode }, me] = await Promise.all([getMaintenanceSettings(), getSessionUser()]);
+  const [{ maintenanceMode }, me, announcement] = await Promise.all([getMaintenanceSettings(), getSessionUser(), getAnnouncement()]);
   const unread = me ? await getUnreadCount(me.id) : 0;
   const info = statusInfo[maintenanceMode ? "maintenance" : "online"];
   return (
@@ -63,7 +64,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <ThemeProvider>
           <AuthProvider user={me} unread={unread}>
           <MaintenanceBanner />
-          <AnnouncementBanner />
+          <AnnouncementBanner {...announcement} />
           <NavProgress />
           <SidebarGate />
           <div className="min-h-[70vh]">{children}</div>

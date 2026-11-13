@@ -4,6 +4,8 @@ import { prisma } from "@/app/lib/prisma";
 import { getMaintenanceSettings } from "@/app/lib/maintenance";
 import { getCountryMeta } from "@/app/lib/countries";
 import MaintenanceToggle from "./MaintenanceToggle";
+import AnnouncementSettings from "./AnnouncementSettings";
+import { getAnnouncement } from "@/app/lib/announcement";
 import HiddenSpotActions from "./HiddenSpotActions";
 import UserAdminPanel from "@/app/u/[id]/UserAdminPanel";
 import PlateBadge from "@/app/components/PlateBadge";
@@ -231,12 +233,15 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   }
 
   if (tab === "site" && isSuper) {
-    const { maintenanceMode, maintenanceMsg } = await getMaintenanceSettings();
+    const [{ maintenanceMode, maintenanceMsg }, announcement] = await Promise.all([getMaintenanceSettings(), getAnnouncement()]);
     body = (
-      <section className="max-w-2xl space-y-3">
-        <h2 className="text-sm font-semibold text-zinc-200">Maintenance mode</h2>
-        <MaintenanceToggle initialMode={maintenanceMode} initialMsg={maintenanceMsg} />
-      </section>
+      <div className="space-y-10">
+        <section className="max-w-2xl space-y-3">
+          <h2 className="text-sm font-semibold text-zinc-200">Maintenance mode</h2>
+          <MaintenanceToggle initialMode={maintenanceMode} initialMsg={maintenanceMsg} />
+        </section>
+        <AnnouncementSettings initial={announcement} />
+      </div>
     );
   }
 

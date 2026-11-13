@@ -50,8 +50,13 @@ export default async function CatalogPage() {
   return (
     <main className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6">
       <header className="border-b border-zinc-800/60 pb-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-400">Vehicle catalog</p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight text-white sm:text-4xl">Browse by make</h1>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-400">Vehicle catalog</p>
+            <h1 className="mt-1 text-3xl font-bold tracking-tight text-white sm:text-4xl">Browse by make</h1>
+          </div>
+          {isSuperAdmin && <AddBrandButton />}
+        </div>
         <p className="mt-2 text-sm tabular-nums text-zinc-400">
           {brands.length} brands · {totalModels} models · {totalGens} generations · {totalSpots.toLocaleString()} spots
         </p>
@@ -130,7 +135,6 @@ export default async function CatalogPage() {
             Nothing in the catalog yet. <a href="/upload" className="text-indigo-300 hover:underline">Upload the first spot →</a>
           </p>
         )}
-        {isSuperAdmin && <div className="pt-2"><AddBrandButton /></div>}
       </div>
     </main>
   );

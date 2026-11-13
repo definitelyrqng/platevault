@@ -52,16 +52,27 @@ export function AddBrandButton() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
-    setBusy(true);
-    await fetch("/api/catalog", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.trim() }),
-    });
+    setBusy(true); setErr("");
+    try {
+      const res = await fetch("/api/catalog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim() }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setErr(res.status === 403 ? "Only the super admin can add makes." : (d.error ?? "Could not add it."));
+        setBusy(false);
+        return;
+      }
+    } catch {
+      setErr("Network error — try again."); setBusy(false); return;
+    }
     setBusy(false);
     setName("");
     setOpen(false);
@@ -92,6 +103,7 @@ export function AddBrandButton() {
       <button type="button" onClick={() => setOpen(false)} className="rounded-lg px-3 py-2 text-sm text-zinc-500 hover:text-zinc-300">
         Cancel
       </button>
+      {err && <span className="text-xs text-red-400">{err}</span>}
     </form>
   );
 }
