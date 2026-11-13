@@ -52,9 +52,9 @@ export const BULGARIA_CATEGORIES: {
 }[] = [
   { id: "standard",   label: "Standard",         example: "A 1234 BC",   hint: "Region code · 4 digits · 2 letters" },
   { id: "motorcycle", label: "Motorcycle",        example: "PB 1234 BC",  hint: "Region code · 4 digits · 2 letters (moto format)" },
-  { id: "military",   label: "Military",          example: "BA 1234567",  hint: "BA prefix · 7-digit serial" },
+  { id: "military",   label: "Military",          example: "BA 509 096",  hint: "BA prefix · 6 digits, flag instead of the EU stars" },
   { id: "vanity",     label: "Vanity",            example: "A BATMAN",    hint: "Region code · custom letters (no fixed length)" },
-  { id: "temporary",  label: "Temporary",         example: "1234567 24",  hint: "7-digit serial · 2-digit year" },
+  { id: "temporary",  label: "Temporary",         example: "201 M 091 19", hint: "3 digits · letter · 3 digits, red end block with the year" },
   { id: "diplomatic", label: "Diplomatic",        example: "01 DM 42 01", hint: "Full diplomatic plate text" },
   { id: "foreign",    label: "Foreign Registered",example: "XH 1234 24", hint: "XH · 4 digits · 2-digit year" },
 ];
@@ -88,4 +88,29 @@ export function detectBulgariaCategory(raw: string): BulgariacategoryId | null {
   // If it looks like region + 4 digits + 2 letters
   if (/^[A-Z]{1,2} \d{4} [A-Z]{2}$/.test(t)) return "standard";
   return null;
+}
+
+/**
+ * Plate patterns per category: "X" = any letter, "#" = any digit, anything else is fixed
+ * and filled in for the user. A one-letter and a two-letter region (C / CA, B / BH …) are two variants.
+ */
+export const BULGARIA_PATTERNS: Partial<Record<BulgariacategoryId, string[]>> = {
+  standard: ["X #### XX", "XX #### XX"],
+  motorcycle: ["X #### XX", "XX #### XX"],
+  military: ["BA ### ###"],
+  temporary: ["### X ### ##"],
+};
+
+/**
+ * Stored Bulgarian plate types are "<category>__<format>" (e.g. "military__single-flag").
+ * Older spots store only the format ("single-euroband").
+ */
+export function parseBulgariaPlateType(t?: string | null): { category: BulgariacategoryId | null; format: string } {
+  const raw = t ?? "";
+  const i = raw.indexOf("__");
+  if (i > 0) {
+    const cat = BULGARIA_CATEGORIES.find((c) => c.id === raw.slice(0, i));
+    if (cat) return { category: cat.id, format: raw.slice(i + 2) };
+  }
+  return { category: null, format: raw };
 }

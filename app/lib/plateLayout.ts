@@ -7,6 +7,7 @@
 import { AL_CAP_HEIGHT, AL_WIDTHS } from "./albaniaFontMetrics";
 import { BELGIUM_CATEGORIES, parseBelgiumPlateType } from "./belgiumData";
 import { parseBosniaPlateType } from "./bosniaData";
+import { parseBulgariaPlateType } from "./bulgariaData";
 import { AT_CAP_HEIGHT, AT_WIDTHS } from "./austriaFontMetrics";
 import { AT47_CAP_HEIGHT, AT47_WIDTHS } from "./austria1947FontMetrics";
 import { BA_CAP_HEIGHT, BA_WIDTHS } from "./bosniaFontMetrics";
@@ -67,7 +68,7 @@ export type ArtRow = {
  *  - "al-moto":    letters | digits                    ("AB 123" → AB | 123)
  *  - "al-trailer-two": letters | "R" + digits          ("AB R 456" → AB | R 456)
  */
-export type SplitRule = "ba-two-eu" | "ba-two" | "be-seal" | "be-two" | "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
+export type SplitRule = "bg-year" | "ba-two-eu" | "ba-two" | "be-seal" | "be-two" | "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
 
 export type PlateArt = {
   src: string;          // path under /public
@@ -192,6 +193,8 @@ export const PLATE_ART: Record<string, PlateArt> = {
     split: "whole",
   },
   // ── Bulgaria: standard plate (euroband, black frame). FE-Schrift for now — the real lettering has its own shapes. ──
+  "bulgaria:single-flag": { src: "/plates/bulgaria/military-single.png", w: 1000, h: 224, rows: [{ y0: 22, y1: 204, x0: 124, x1: 964, slots: 1 }], split: "whole", fill: 0.82 },
+  "bulgaria:temporary": { src: "/plates/bulgaria/temporary-single.png", w: 1000, h: 224, rows: [{ y0: 22, y1: 204, x0: 124, x1: 826, slots: 1 }, { y0: 122, y1: 200, x0: 850, x1: 968, slots: 1, own: true }], split: "bg-year", fill: 0.82 },
   "bulgaria:single-euroband": { src: "/plates/bulgaria/standard-single.png", w: 1000, h: 224, rows: [{ y0: 22, y1: 204, x0: 124, x1: 964, slots: 1 }], split: "whole", fill: 0.82 },
   // ── Bosnia: current plates (euroband, BiH). Same artwork for every category; FE-Schrift lettering. ──
   "bosnia:single-euroband": { src: "/plates/bosnia/standard-single.png", w: 1920, h: 458, rows: [{ y0: 66, y1: 384, x0: 252, x1: 1806, slots: 1 }], split: "whole", fill: 0.86, fillWidth: true, maxTrack: 0.12 },
@@ -288,6 +291,12 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
     // electric vehicles and green-lettered mopeds: same plate, green characters
     const green = /^at-electric/.test(plateType ?? "") || /moped-green$/.test(plateType ?? "");
     return art && green && !art.textColor ? { ...art, textColor: "#0b7a3b" } : art;
+  }
+  if (key === "bulgaria") {
+    const { category, format } = parseBulgariaPlateType(plateType);
+    if (category === "temporary") return PLATE_ART["bulgaria:temporary"] ?? null;
+    if (category === "military" || format === "single-flag") return PLATE_ART["bulgaria:single-flag"] ?? null;
+    return PLATE_ART[`bulgaria:${format}`] ?? null;
   }
   if (key === "bosnia") {
     const { category, format } = parseBosniaPlateType(plateType);
@@ -393,6 +402,11 @@ function splitText(rule: SplitRule, text: string): string[] | null {
     if (rule === "be-seal") return [g[1], g[2]];
     const parts = g[2].match(/^([A-Z]+)-?(\d+)$/);
     return parts ? [`${g[1]}-${parts[1]}`, parts[2]] : null;
+  }
+  if (rule === "bg-year") {                                                             // 201 M 091 19 → 201 M 091 | 19  (year in the red block)
+    const t = text.trim().split(" ");
+    if (t.length < 2 || !/^[0-9]{2}$/.test(t[t.length - 1])) return null;
+    return [t.slice(0, -1).join(" "), t[t.length - 1]];
   }
   if (rule === "ba-two-eu") {                                                           // K98-M-599 → K98 | -M-599
     const m = text.trim().match(/^([^-]+)(-.+)$/);
