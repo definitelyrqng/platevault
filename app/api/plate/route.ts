@@ -3,7 +3,7 @@ import path from "node:path";
 import sharp from "sharp";
 import opentype from "opentype.js";
 import {
-  plateLayout, runStartX, CAP_TOP, CAP_BOTTOM, CONDENSE, STROKE, UMLAUT_BASE, ACCENT, AL_SIDE_BEARING, AL_SPACE, AT_SIDE_BEARING, AT_SPACE, AT47_SIDE_BEARING, AT47_SPACE, BA_SIDE_BEARING, BA_SPACE, BG_SIDE_BEARING, BG_SPACE, glyphKeys47, type TextRun, type PlateFont,
+  plateLayout, runStartX, CAP_TOP as CAP_TOP_FE, CAP_BOTTOM as CAP_BOTTOM_FE, CONDENSE, STROKE, UMLAUT_BASE, ACCENT, AL_SIDE_BEARING, AL_SPACE, AT_SIDE_BEARING, AT_SPACE, AT47_SIDE_BEARING, AT47_SPACE, BA_SIDE_BEARING, BA_SPACE, BG_SIDE_BEARING, BG_SPACE, glyphKeys47, type TextRun, type PlateFont,
 } from "@/app/lib/plateLayout";
 import albaniaFont from "@/app/lib/albaniaFont.json";
 import austriaFont from "@/app/lib/austriaFont.json";
@@ -30,6 +30,15 @@ function getFont() {
   return fontPromise;
 }
 
+let ddPromise: Promise<opentype.Font> | null = null;
+/** D-DIN (SIL OFL, Datto Inc.) — the Croatian plate lettering. */
+function getDD() {
+  ddPromise ??= readFile(path.join(process.cwd(), "assets/fonts/D-DIN.ttf")).then((buf) =>
+    opentype.parse(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength)),
+  );
+  return ddPromise;
+}
+
 const artCache = new Map<string, Promise<string>>();
 function getArtDataUri(src: string) {
   let p = artCache.get(src);
@@ -45,6 +54,7 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 /** SVG for one run of text: glyph outlines, umlauts synthesised (font has none). */
 function runSvg(font: opentype.Font, run: TextRun, color = "#111") {
   const { text, fontSize, centerY } = run;
+  const CAP_TOP = run.capTop ?? CAP_TOP_FE, CAP_BOTTOM = run.capBottom ?? CAP_BOTTOM_FE;
   const cond = run.condense ?? CONDENSE;
   const track = (run.tracking ?? 0) * fontSize / cond;       // drawn inside the condensing transform
   const scale = fontSize / font.unitsPerEm;
@@ -53,7 +63,8 @@ function runSvg(font: opentype.Font, run: TextRun, color = "#111") {
   let x = 0;
 
   for (const ch of text) {
-    const acc = ACCENT[ch];
+    const native = ACCENT[ch] && font.charToGlyph(ch).index > 0;     // the font has Š / Ž itself
+    const acc = native ? undefined : ACCENT[ch];
     const base = acc ? acc[0] : UMLAUT_BASE[ch];
     const glyph = font.charToGlyph(base ?? ch);
     const gp = glyph.getPath(x, 0, fontSize);
@@ -92,6 +103,15 @@ function runSvg(font: opentype.Font, run: TextRun, color = "#111") {
   const width = x * cond;
   const startX = runStartX(run, width);
   const baseline = centerY - ((CAP_TOP + CAP_BOTTOM) / 2) * fontSize;
+  if (run.thin !== undefined && run.thin < 0) {                  // extra weight: a stroke of -thin em in the lettering colour
+    const sw = (-run.thin * fontSize).toFixed(2);
+    return `<g transform="translate(${startX.toFixed(2)} ${baseline.toFixed(2)}) scale(${cond} 1)" fill="${color}" stroke="${color}" stroke-width="${sw}" stroke-linejoin="round">`
+      + `<path d="${out.toPathData(2)}"/>${dots.join("")}</g>`;
+  }
+  if (run.thin === 0) {                                          // exact outlines, no extra weight
+    return `<g transform="translate(${startX.toFixed(2)} ${baseline.toFixed(2)}) scale(${cond} 1)" fill="${color}">`
+      + `<path d="${out.toPathData(2)}"/>${dots.join("")}</g>`;
+  }
   // lighter lettering: the outline is eroded by painting the edge in the plate colour (white)
   if (run.thin && run.thin > 0) {
     const sw = (2 * run.thin * fontSize).toFixed(2);
@@ -111,7 +131,7 @@ function runSvgTraced(run: TextRun, color: string, which: "al" | "at" | "at47" |
     capHeight: number;
     glyphs: Record<string, { w: number; dx: number; dy: number; d: string }>;
   };
-  const capPx = fontSize * (CAP_BOTTOM - CAP_TOP);   // same capital height as FE plates
+  const capPx = fontSize * (CAP_BOTTOM_FE - CAP_TOP_FE);   // same capital height as FE plates
   const scale = capPx / capHeight;
   const track = (run.tracking ?? 0) * fontSize / scale;      // extra space after each character, in glyph-sheet px
   const paths: string[] = [];
@@ -169,8 +189,11 @@ export async function GET(req: Request) {
   }
 
   const color = layout.art?.textColor ?? "#111";
-  const runs = layout.runs.map((r) => layout.font !== "fe"
-    ? runSvgTraced(r, color, layout.font as Exclude<PlateFont, "fe">)
+  const dd = layout.font === "dd" ? await getDD() : null;
+  const runs = layout.runs.map((r) => layout.font === "dd"
+    ? runSvg(dd!, r, color)
+    : layout.font !== "fe"
+    ? runSvgTraced(r, color, layout.font as Exclude<PlateFont, "fe" | "dd">)
     : runSvg(font, r, color)).join("");
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${h}" viewBox="0 0 ${width} ${h}">`
     + `<title>${esc(layout.printed)}</title>${background}${seals}${runs}</svg>`;
