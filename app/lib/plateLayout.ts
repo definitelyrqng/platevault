@@ -196,6 +196,8 @@ export const PLATE_ART: Record<string, PlateArt> = {
     rows: [{ y0: 23, y1: 334, x0: 205, x1: 1545, slots: 1 }],
     split: "whole",
   },
+  // ── Croatia: euroband plate; the coat of arms sits between the region (2 letters) and the digits. FE-Schrift for now — the real font is still to be built. ──
+  "croatia:single-line-euroband": { src: "/plates/croatia/standard-single.png", w: 1106, h: 262, rows: [{ y0: 58, y1: 204, x0: 168, x1: 1084, slots: 2, seal: true, gap: 0.2 }], split: "seal", seal: "/plates/croatia/seal.png", sealAspect: 200 / 250, sealH: 0.82, fill: 0.84 },
   // ── Bulgaria: standard plate (euroband, black frame). FE-Schrift for now — the real lettering has its own shapes. ──
   // two rows: letters (region + final letters) above, digits below, both right of the small euroband
   "bulgaria:two-line-euroband": { src: "/plates/bulgaria/standard-two.png", w: 1024, h: 660, rows: [{ y0: 42, y1: 300, x0: 196, x1: 1000, slots: 1 }, { y0: 347, y1: 605, x0: 196, x1: 1000, slots: 1 }], font: "bg", split: "bg-two", fill: 0.92 },
@@ -467,7 +469,7 @@ function splitText(rule: SplitRule, text: string): string[] | null {
     return m ? [m[1], m[2]] : null;
   }
   if (rule === "seal") {
-    const m = text.match(/^([A-Z]{1,3})\s?(.+)$/);          // "AB 195 IF" → AB | 195 IF
+    const m = text.match(/^([A-ZČĆĐŠŽ]{1,3})\s?(.+)$/);     // "AB 195 IF" → AB | 195 IF
     return m ? [m[1], m[2].trim()] : null;
   }
   if (rule === "al-moto") {
