@@ -69,10 +69,10 @@ export const BG_FORMAT_LABELS: Record<string, string> = {
 };
 
 export const BULGARIA_FORMATS_FOR: Record<BulgariacategoryId, string[]> = {
-  standard:   ["single-euroband", "two-line-euroband"],
-  motorcycle: ["two-line", "two-line-euroband"],
+  standard:   ["single-euroband", "two-line-euroband", "single-flag", "two-line-flag"],
+  motorcycle: ["two-line-euroband", "two-line-flag"],
   military:   ["single-flag", "two-line-flag"],
-  vanity:     ["single-euroband", "two-line-euroband"],
+  vanity:     ["single-euroband", "two-line-euroband", "single-flag", "two-line-flag"],
   temporary:  ["single"],
   diplomatic: ["single"],
   foreign:    ["single"],

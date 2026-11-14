@@ -73,7 +73,8 @@ export function plateTypeLabel(country: string, type: string | null | undefined)
     const { category, format } = parseBulgariaPlateType(type);
     if (category) {
       const base = BULGARIA_CATEGORIES.find((c) => c.id === category)?.label ?? category;
-      return /two-line/.test(format) ? `${base} · Two-line` : base;
+      const flag = /flag/.test(format) && category !== "military";      // military plates always have the flag
+      return base + (flag ? " · Flag" : "") + (/two-line/.test(format) ? " · Two-line" : "");
     }
   }
   if (country.toLowerCase() === "bosnia") {
