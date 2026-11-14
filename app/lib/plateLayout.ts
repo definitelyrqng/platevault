@@ -428,6 +428,7 @@ function splitText(rule: SplitRule, text: string): string[] | null {
   }
   if (rule === "bg-two") {                                                              // CA 1936 CT → CACT | 1936  (letters above, digits below)
     const t = text.trim().split(" ");
+    if (t.length === 2) return [t[0], t[1]];                       // vanity: region above, the custom text below
     if (t.length !== 3) return null;
     return [t[0] + t[2], t[1]];
   }

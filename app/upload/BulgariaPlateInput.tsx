@@ -32,7 +32,7 @@ export default function BulgariaPlateInput({ category, format, onFormatChange, o
 
   // Reset (and pre-fill the fixed characters) when the category or pattern changes
   useEffect(() => {
-    const start = pattern ? maskPlate("", pattern) : "";
+    const start = pattern ? maskPlate("", pattern) : category === "military" ? "BA " : "";
     setText(start);
     onChange(start);
     onComplete(pattern ? start.length === pattern.length : false);   // free-text categories become complete once something is typed
@@ -40,8 +40,16 @@ export default function BulgariaPlateInput({ category, format, onFormatChange, o
   }, [category, pattern]);
 
   function handle(v: string) {
+    if (category === "military") {                   // BA + up to 7 digits, grouped in threes from the right: BA 119 305
+      const digits = v.toUpperCase().replace(/^BA/, "").replace(/[^0-9]/g, "").slice(0, 7);
+      const grouped = digits.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+      const out = "BA " + grouped;
+      setText(out); onChange(out); onComplete(digits.length >= 3);
+      return;
+    }
     if (!pattern) {                                  // no fixed pattern: free text
-      const upper = v.toUpperCase();
+      let upper = v.toUpperCase();
+      if (category === "vanity") upper = upper.replace(/[^ABEKMHOPCTYX0-9 ]/g, "");     // the only characters Bulgarian plates use
       setText(upper); onChange(upper); onComplete(upper.trim().length > 0);
       return;
     }
@@ -66,7 +74,7 @@ export default function BulgariaPlateInput({ category, format, onFormatChange, o
       <div>
         <div className="flex items-center justify-between mb-1.5">
           <p className="text-xs text-zinc-500">Plate text</p>
-          <span className="text-[10px] text-zinc-600 italic">{pattern ? "spaces and fixed letters fill in for you" : "type the plate as it is"}</span>
+          <span className="text-[10px] text-zinc-600 italic">{pattern ? "spaces and fixed letters fill in for you" : category === "military" ? "BA is filled in — type the digits" : "type the plate as it is"}</span>
         </div>
         {patterns.length > 1 && (
           <div className="mb-2 flex gap-2">
@@ -80,7 +88,7 @@ export default function BulgariaPlateInput({ category, format, onFormatChange, o
         )}
         <input value={text} onChange={(e) => handle(e.target.value)}
           placeholder={pattern ? patternExample(pattern) : (catMeta?.example ?? "C 5096 MK")}
-          maxLength={pattern ? pattern.length : 14}
+          maxLength={pattern ? pattern.length : category === "military" ? 12 : 14}
           className={IN} autoComplete="off" spellCheck={false} />
         {catMeta?.hint && <p className="mt-1.5 text-xs text-zinc-600">{catMeta.hint}</p>}
       </div>
