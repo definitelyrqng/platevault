@@ -3,7 +3,7 @@ import path from "node:path";
 import sharp from "sharp";
 import opentype from "opentype.js";
 import {
-  plateLayout, runStartX, CAP_TOP, CAP_BOTTOM, CONDENSE, STROKE, UMLAUT_BASE, AL_SIDE_BEARING, AL_SPACE, AT_SIDE_BEARING, AT_SPACE, AT47_SIDE_BEARING, AT47_SPACE, BA_SIDE_BEARING, BA_SPACE, BG_SIDE_BEARING, BG_SPACE, glyphKeys47, type TextRun, type PlateFont,
+  plateLayout, runStartX, CAP_TOP, CAP_BOTTOM, CONDENSE, STROKE, UMLAUT_BASE, ACCENT, AL_SIDE_BEARING, AL_SPACE, AT_SIDE_BEARING, AT_SPACE, AT47_SIDE_BEARING, AT47_SPACE, BA_SIDE_BEARING, BA_SPACE, BG_SIDE_BEARING, BG_SPACE, glyphKeys47, type TextRun, type PlateFont,
 } from "@/app/lib/plateLayout";
 import albaniaFont from "@/app/lib/albaniaFont.json";
 import austriaFont from "@/app/lib/austriaFont.json";
@@ -45,17 +45,23 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 /** SVG for one run of text: glyph outlines, umlauts synthesised (font has none). */
 function runSvg(font: opentype.Font, run: TextRun, color = "#111") {
   const { text, fontSize, centerY } = run;
-  const track = (run.tracking ?? 0) * fontSize / CONDENSE;   // drawn inside the condensing transform
+  const cond = run.condense ?? CONDENSE;
+  const track = (run.tracking ?? 0) * fontSize / cond;       // drawn inside the condensing transform
   const scale = fontSize / font.unitsPerEm;
   const out = new opentype.Path();
   const dots: string[] = [];
   let x = 0;
 
   for (const ch of text) {
-    const base = UMLAUT_BASE[ch];
+    const acc = ACCENT[ch];
+    const base = acc ? acc[0] : UMLAUT_BASE[ch];
     const glyph = font.charToGlyph(base ?? ch);
     const gp = glyph.getPath(x, 0, fontSize);
-    if (base) {
+    if (acc && acc[1] === "bar") {
+      // Đ: a bar across the stem, left of it
+      const by = (CAP_TOP + (CAP_BOTTOM - CAP_TOP) * 0.5) * fontSize, bh = 0.06 * fontSize;
+      dots.push(`<rect x="${(x - 0.03 * fontSize).toFixed(2)}" y="${(by - bh / 2).toFixed(2)}" width="${(0.3 * fontSize).toFixed(2)}" height="${bh.toFixed(2)}"/>`);
+    } else if (base) {
       // squash the letter towards its foot and put two dots above it
       const foot = CAP_BOTTOM * fontSize;
       const sq = (y?: number) => (y === undefined ? y : foot + (y - foot) * 0.8);
@@ -68,18 +74,32 @@ function runSvg(font: opentype.Font, run: TextRun, color = "#111") {
       const cx = x + (glyph.advanceWidth ?? 0) * scale / 2;
       const cy = (CAP_TOP + 0.055) * fontSize;
       const r = 0.066 * fontSize;
-      dots.push(`<circle cx="${(cx - 0.17 * fontSize).toFixed(2)}" cy="${cy.toFixed(2)}" r="${r.toFixed(2)}"/>`,
-                `<circle cx="${(cx + 0.17 * fontSize).toFixed(2)}" cy="${cy.toFixed(2)}" r="${r.toFixed(2)}"/>`);
+      if (acc && acc[1] === "caron") {                    // Č Š Ž: a small V above
+        const f = fontSize, top = (CAP_TOP - 0.005) * f, tip = (CAP_TOP + 0.085) * f, w = 0.17 * f, t = 0.06 * f;
+        dots.push(`<polygon points="${(cx - w).toFixed(2)},${top.toFixed(2)} ${(cx - w + t).toFixed(2)},${top.toFixed(2)} ${cx.toFixed(2)},${(tip - t * 0.6).toFixed(2)} ${(cx + w - t).toFixed(2)},${top.toFixed(2)} ${(cx + w).toFixed(2)},${top.toFixed(2)} ${cx.toFixed(2)},${tip.toFixed(2)}"/>`);
+      } else if (acc && acc[1] === "acute") {             // Ć: a slanted stroke
+        const f = fontSize, top = (CAP_TOP - 0.005) * f, bot = (CAP_TOP + 0.085) * f, t = 0.06 * f;
+        dots.push(`<polygon points="${(cx - 0.02 * f).toFixed(2)},${bot.toFixed(2)} ${(cx + 0.09 * f).toFixed(2)},${top.toFixed(2)} ${(cx + 0.09 * f + t).toFixed(2)},${top.toFixed(2)} ${(cx - 0.02 * f + t).toFixed(2)},${bot.toFixed(2)}"/>`);
+      } else {
+        dots.push(`<circle cx="${(cx - 0.17 * fontSize).toFixed(2)}" cy="${cy.toFixed(2)}" r="${r.toFixed(2)}"/>`,
+                  `<circle cx="${(cx + 0.17 * fontSize).toFixed(2)}" cy="${cy.toFixed(2)}" r="${r.toFixed(2)}"/>`);
+      }
     }
     out.extend(gp);
     x += (glyph.advanceWidth ?? 0) * scale + track;
   }
 
-  const width = x * CONDENSE;
+  const width = x * cond;
   const startX = runStartX(run, width);
   const baseline = centerY - ((CAP_TOP + CAP_BOTTOM) / 2) * fontSize;
+  // lighter lettering: the outline is eroded by painting the edge in the plate colour (white)
+  if (run.thin && run.thin > 0) {
+    const sw = (2 * run.thin * fontSize).toFixed(2);
+    return `<g transform="translate(${startX.toFixed(2)} ${baseline.toFixed(2)}) scale(${cond} 1)" fill="${color}" stroke="#ffffff" stroke-width="${sw}" stroke-linejoin="round">`
+      + `<path d="${out.toPathData(2)}"/>${dots.join("")}</g>`;
+  }
   const sw = (STROKE * fontSize).toFixed(2);
-  return `<g transform="translate(${startX.toFixed(2)} ${baseline.toFixed(2)}) scale(${CONDENSE} 1)" fill="${color}" stroke="${color}" stroke-width="${sw}" stroke-linejoin="round">`
+  return `<g transform="translate(${startX.toFixed(2)} ${baseline.toFixed(2)}) scale(${cond} 1)" fill="${color}" stroke="${color}" stroke-width="${sw}" stroke-linejoin="round">`
     + `<path d="${out.toPathData(2)}"/>${dots.join("")}</g>`;
 }
 

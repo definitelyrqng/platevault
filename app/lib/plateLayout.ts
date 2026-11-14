@@ -84,6 +84,10 @@ export type PlateArt = {
   seal?: string;
   /** Fixed-shape seal image (width ÷ height); its height is rowH × sealH. */
   sealAspect?: number;
+  /** Horizontal squeeze of FE-Schrift for this artwork (default CONDENSE). */
+  condense?: number;
+  /** Make FE-Schrift lighter: erode the outline by this many em (default: the usual extra weight). */
+  thin?: number;
   /** Upper limit for the spacing fillWidth adds, in em. */
   maxTrack?: number;
   /** Spread the characters so the text fills the whole width of its row (all rows share the tightest spacing). */
@@ -197,7 +201,7 @@ export const PLATE_ART: Record<string, PlateArt> = {
     split: "whole",
   },
   // ── Croatia: euroband plate; the coat of arms sits between the region (2 letters) and the digits. FE-Schrift for now — the real font is still to be built. ──
-  "croatia:single-line-euroband": { src: "/plates/croatia/standard-single.png", w: 1106, h: 262, rows: [{ y0: 58, y1: 204, x0: 168, x1: 1084, slots: 2, seal: true, gap: 0.2 }], split: "seal", seal: "/plates/croatia/seal.png", sealAspect: 200 / 250, sealH: 0.82, fill: 0.84 },
+  "croatia:single-line-euroband": { src: "/plates/croatia/standard-single.png", w: 1106, h: 262, rows: [{ y0: 40, y1: 222, x0: 168, x1: 1084, slots: 2, seal: true, gap: 0.14 }], split: "seal", seal: "/plates/croatia/seal.png", sealAspect: 200 / 250, sealH: 0.6, fill: 0.85, condense: 0.93, thin: 0.009 },
   // ── Bulgaria: standard plate (euroband, black frame). FE-Schrift for now — the real lettering has its own shapes. ──
   // two rows: letters (region + final letters) above, digits below, both right of the small euroband
   "bulgaria:two-line-euroband": { src: "/plates/bulgaria/standard-two.png", w: 1024, h: 660, rows: [{ y0: 42, y1: 300, x0: 196, x1: 1000, slots: 1 }, { y0: 347, y1: 605, x0: 196, x1: 1000, slots: 1 }], font: "bg", split: "bg-two", fill: 0.92 },
@@ -360,9 +364,13 @@ const ADVANCE: Record<string, number> = {
 };
 /** Letters the font lacks, drawn as base letter + dots. */
 export const UMLAUT_BASE: Record<string, string> = { "Ä": "A", "Ö": "O", "Ü": "U" };
+/** Croatian letters the plate font lacks: base letter + a drawn mark (caron, acute, or the bar of Đ). */
+export const ACCENT: Record<string, [string, "caron" | "acute" | "bar"]> = {
+  "Č": ["C", "caron"], "Ć": ["C", "acute"], "Š": ["S", "caron"], "Ž": ["Z", "caron"], "Đ": ["D", "bar"],
+};
 
 export function charAdvanceEm(ch: string) {
-  return (ADVANCE[UMLAUT_BASE[ch] ?? ch] ?? 640) / 1000;
+  return (ADVANCE[UMLAUT_BASE[ch] ?? ACCENT[ch]?.[0] ?? ch] ?? 640) / 1000;
 }
 export function textAdvanceEm(s: string) {
   let w = 0;
@@ -376,7 +384,7 @@ const AL_PX_TO_EM = (CAP_BOTTOM - CAP_TOP) / AL_CAP_HEIGHT;
 const AT_PX_TO_EM = (CAP_BOTTOM - CAP_TOP) / AT_CAP_HEIGHT;
 
 /** Rendered width of a text run in em, for the given lettering (condensing included). */
-export function textWidthEm(s: string, font: PlateFont) {
+export function textWidthEm(s: string, font: PlateFont, condense: number = CONDENSE) {
   if (font === "bg") {
     let px = 0;
     for (const ch of s) px += ch in BG_WIDTHS ? BG_WIDTHS[ch] + 2 * BG_SIDE_BEARING : BG_SPACE;
@@ -402,7 +410,7 @@ export function textWidthEm(s: string, font: PlateFont) {
     for (const ch of s) px += ch in AL_WIDTHS ? AL_WIDTHS[ch] + 2 * AL_SIDE_BEARING : AL_SPACE;
     return px * AL_PX_TO_EM;
   }
-  return textAdvanceEm(s) * CONDENSE;
+  return textAdvanceEm(s) * condense;
 }
 
 /** Normalise stored plate text into how it is printed on the plate. */
@@ -499,6 +507,8 @@ export type TextRun = {
   fontSize: number;
   centerY: number;     // vertical centre of the capitals
   tracking?: number;   // extra space after each character, em
+  condense?: number;   // FE-Schrift squeeze
+  thin?: number;       // FE-Schrift lightening, em
 };
 
 /** Left edge of a run of the given width inside its slot. */
@@ -560,7 +570,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
       const sealD = !mode ? 0 : stateSrc ? sealH * sealAspect(stateSrc) : art.sealAspect ? sealH * art.sealAspect : rowH * SEAL_DIAMETER;
       const gap = mode ? rowH * (row.gap ?? SEAL_GAP) : 0;
       const gaps = mode === "between" ? 2 : mode === "left" || mode === "right" ? 1 : 0;   // gaps touching the seal
-      const ems = texts.map((t) => textWidthEm(t, font) + (art.tracking ?? 0) * [...t].length);
+      const ems = texts.map((t) => textWidthEm(t, font, art.condense) + (art.tracking ?? 0) * [...t].length);
       return { row, texts, rowH, mode, sealD, sealH, gap, gaps, ems, avail: (row.x1 - row.x0) * s };
     });
     const fit = (l: (typeof lines)[number]) => Math.min((l.rowH * (art.fill ?? 0.72)) / capH, (l.avail - l.sealD - l.gaps * l.gap) / Math.max(l.ems.reduce((x, y) => x + y, 0), 0.5));
@@ -592,7 +602,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
       }
       l.texts.forEach((text, i) => {
         // Belgian lettering has no slashed zero: use the plain O
-        runs.push({ text: key === "belgium" ? text.replace(/0/g, "O") : text, x0: x, x1: x + widths[i], align: "left", fontSize: fs, centerY, tracking: (art.tracking ?? 0) + fillTrack });
+        runs.push({ text: key === "belgium" ? text.replace(/0/g, "O") : text, x0: x, x1: x + widths[i], align: "left", fontSize: fs, centerY, tracking: (art.tracking ?? 0) + fillTrack, condense: art.condense, thin: art.thin });
         x += widths[i];
         if (l.mode === "right" && i === l.texts.length - 1) {                 // text then ●
           seals.push({ cx: x + l.gap + l.sealD / 2, cy: centerY, d: l.sealD, h: l.sealH || undefined, src: stateSrc ?? undefined });

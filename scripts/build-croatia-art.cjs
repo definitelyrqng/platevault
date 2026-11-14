@@ -20,7 +20,7 @@ function plateSvg() {
   const stars = Array.from({ length: 12 }, (_, i) => { const a = (i / 12) * Math.PI * 2 - Math.PI / 2; return star(87 + 41 * Math.cos(a), 92 + 41 * Math.sin(a), 8.5); }).join("");
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
     <defs>
-      <linearGradient id="face" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f1f1f1"/></linearGradient>
+      <linearGradient id="face" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#fcfcfc"/></linearGradient>
       <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8b8bc"/><stop offset="1" stop-color="#7d7d82"/></linearGradient>
       <clipPath id="inner"><rect x="4" y="4" width="${W - 8}" height="${H - 8}" rx="20"/></clipPath>
     </defs>
