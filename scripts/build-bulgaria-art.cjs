@@ -40,5 +40,15 @@ const save = (data, W, H, name) => sharp(data, { raw: { width: W, height: H, cha
     <rect x="838" y="15" width="140" height="${std.H - 34}" fill="#ee2a2a"/>
     <rect x="862" y="${Math.round(std.H * 0.47)}" width="90" height="6" fill="#1b1816"/></svg>`;
   await sharp(base).composite([{ input: Buffer.from(svg) }]).png().toFile(path.join(OUT, "temporary-single.png"));
+
+  // diplomatic: the whole writable area is red, with a white dash above the year
+  const rsvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${std.W}" height="${std.H}">
+    <rect x="102" y="15" width="877" height="${std.H - 34}" fill="#d62d2b"/>
+    <rect x="862" y="${Math.round(std.H * 0.47)}" width="90" height="6" fill="#f6f6f6"/></svg>`;
+  await sharp(base).composite([{ input: Buffer.from(rsvg) }]).png().toFile(path.join(OUT, "diplomatic-single.png"));
+
+  // foreign citizens: blue plate, same layout (expiry year under the dash)
+  const bsvg = rsvg.replace("#d62d2b", "#1a76d8");
+  await sharp(base).composite([{ input: Buffer.from(bsvg) }]).png().toFile(path.join(OUT, "foreign-single.png"));
   console.log("ok");
 })();

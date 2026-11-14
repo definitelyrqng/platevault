@@ -55,8 +55,8 @@ export const BULGARIA_CATEGORIES: {
   { id: "military",   label: "Military",          example: "BA 509 096",  hint: "Always starts with BA, then up to 7 digits (grouped in threes) — flag instead of the EU stars" },
   { id: "vanity",     label: "Vanity",            example: "CB TOPEX",    hint: "Region code · custom letters (only A B E K M H O P C T Y X exist on Bulgarian plates)" },
   { id: "temporary",  label: "Temporary",         example: "201 M 091 19", hint: "3 digits · letter · 3 digits, red end block with the year" },
-  { id: "diplomatic", label: "Diplomatic",        example: "01 DM 42 01", hint: "Full diplomatic plate text" },
-  { id: "foreign",    label: "Foreign Registered",example: "XH 1234 24", hint: "XH · 4 digits · 2-digit year" },
+  { id: "diplomatic", label: "Diplomatic",        example: "C 1103 16", hint: "Red plate, white lettering — region code, 4 digits, year" },
+  { id: "foreign",    label: "Foreign citizens",  example: "XH 2064 25", hint: "Blue plate, white lettering — XH, 4 digits, expiry year under the dash" },
 ];
 
 export const BG_FORMAT_LABELS: Record<string, string> = {
@@ -98,6 +98,8 @@ export const BULGARIA_PATTERNS: Partial<Record<BulgariacategoryId, string[]>> = 
   standard: ["X #### XX", "XX #### XX"],
   motorcycle: ["X #### XX", "XX #### X"],
   temporary: ["### X ### ##"],
+  diplomatic: ["X #### ##", "XX #### ##"],
+  foreign: ["XH #### ##", "XX #### ##"],
 };
 
 /**

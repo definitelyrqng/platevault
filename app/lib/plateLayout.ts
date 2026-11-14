@@ -203,6 +203,10 @@ export const PLATE_ART: Record<string, PlateArt> = {
   // motorcycle: small square plate, region + two letters above, four digits below (the digits run under the band)
   "bulgaria:moto-euroband": { src: "/plates/bulgaria/moto-euroband.png", w: 1024, h: 740, rows: [{ y0: 52, y1: 332, x0: 214, x1: 996, slots: 1 }, { y0: 410, y1: 690, x0: 60, x1: 996, slots: 1 }], font: "bg", split: "bg-moto", fill: 0.92 },
   "bulgaria:moto-flag": { src: "/plates/bulgaria/moto-flag.png", w: 1024, h: 740, rows: [{ y0: 52, y1: 332, x0: 214, x1: 996, slots: 1 }, { y0: 410, y1: 690, x0: 60, x1: 996, slots: 1 }], font: "bg", split: "bg-moto", fill: 0.92 },
+  // diplomatic: red plate, white lettering, year at the right end under a dash
+  "bulgaria:diplomatic": { src: "/plates/bulgaria/diplomatic-single.png", w: 1000, h: 224, rows: [{ y0: 22, y1: 204, x0: 124, x1: 826, slots: 1 }, { y0: 122, y1: 200, x0: 850, x1: 968, slots: 1, own: true }], font: "bg", split: "bg-year", fill: 0.82, textColor: "#f6f6f6" },
+  // foreign citizens: blue plate, white lettering, expiry year under the dash
+  "bulgaria:foreign": { src: "/plates/bulgaria/foreign-single.png", w: 1000, h: 224, rows: [{ y0: 22, y1: 204, x0: 124, x1: 826, slots: 1 }, { y0: 122, y1: 200, x0: 850, x1: 968, slots: 1, own: true }], font: "bg", split: "bg-year", fill: 0.82, textColor: "#f6f6f6" },
   "bulgaria:single-flag": { src: "/plates/bulgaria/military-single.png", w: 1000, h: 224, rows: [{ y0: 22, y1: 204, x0: 124, x1: 964, slots: 1 }], font: "bg", split: "whole", fill: 0.82 },
   "bulgaria:temporary": { src: "/plates/bulgaria/temporary-single.png", w: 1000, h: 224, rows: [{ y0: 22, y1: 204, x0: 124, x1: 826, slots: 1 }, { y0: 122, y1: 200, x0: 850, x1: 968, slots: 1, own: true }], font: "bg", split: "bg-year", fill: 0.82 },
   "bulgaria:single-euroband": { src: "/plates/bulgaria/standard-single.png", w: 1000, h: 224, rows: [{ y0: 22, y1: 204, x0: 124, x1: 964, slots: 1 }], font: "bg", split: "whole", fill: 0.82 },
@@ -305,6 +309,8 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
   if (key === "bulgaria") {
     const { category, format } = parseBulgariaPlateType(plateType);
     if (category === "temporary") return PLATE_ART["bulgaria:temporary"] ?? null;
+    if (category === "diplomatic") return PLATE_ART["bulgaria:diplomatic"] ?? null;
+    if (category === "foreign") return PLATE_ART["bulgaria:foreign"] ?? null;
     if (category === "motorcycle") return PLATE_ART[format.includes("flag") ? "bulgaria:moto-flag" : "bulgaria:moto-euroband"] ?? null;
     if (category === "military" && format.startsWith("two")) return PLATE_ART["bulgaria:two-line-flag"] ?? null;
     if (category === "military" || format === "single-flag") return PLATE_ART["bulgaria:single-flag"] ?? null;
