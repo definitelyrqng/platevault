@@ -96,7 +96,7 @@ export function detectBulgariaCategory(raw: string): BulgariacategoryId | null {
  */
 export const BULGARIA_PATTERNS: Partial<Record<BulgariacategoryId, string[]>> = {
   standard: ["X #### XX", "XX #### XX"],
-  motorcycle: ["X #### XX", "XX #### XX"],
+  motorcycle: ["X #### XX", "XX #### X"],
   military: ["BA ### ###"],
   temporary: ["### X ### ##"],
 };

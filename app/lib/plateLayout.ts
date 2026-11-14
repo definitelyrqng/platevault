@@ -72,7 +72,7 @@ export type ArtRow = {
  *  - "al-moto":    letters | digits                    ("AB 123" → AB | 123)
  *  - "al-trailer-two": letters | "R" + digits          ("AB R 456" → AB | R 456)
  */
-export type SplitRule = "bg-two" | "bg-year" | "ba-two-eu" | "ba-two" | "be-seal" | "be-two" | "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
+export type SplitRule = "bg-moto" | "bg-two" | "bg-year" | "ba-two-eu" | "ba-two" | "be-seal" | "be-two" | "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
 
 export type PlateArt = {
   src: string;          // path under /public
@@ -200,6 +200,9 @@ export const PLATE_ART: Record<string, PlateArt> = {
   // two rows: letters (region + final letters) above, digits below, both right of the small euroband
   "bulgaria:two-line-euroband": { src: "/plates/bulgaria/standard-two.png", w: 1024, h: 660, rows: [{ y0: 42, y1: 300, x0: 196, x1: 1000, slots: 1 }, { y0: 347, y1: 605, x0: 196, x1: 1000, slots: 1 }], font: "bg", split: "bg-two", fill: 0.92 },
   "bulgaria:two-line-flag": { src: "/plates/bulgaria/flag-two.png", w: 1024, h: 660, rows: [{ y0: 42, y1: 300, x0: 196, x1: 1000, slots: 1 }, { y0: 347, y1: 605, x0: 196, x1: 1000, slots: 1 }], font: "bg", split: "bg-two", fill: 0.92 },
+  // motorcycle: small square plate, region + two letters above, four digits below (the digits run under the band)
+  "bulgaria:moto-euroband": { src: "/plates/bulgaria/moto-euroband.png", w: 1024, h: 740, rows: [{ y0: 52, y1: 332, x0: 214, x1: 996, slots: 1 }, { y0: 410, y1: 690, x0: 60, x1: 996, slots: 1 }], font: "bg", split: "bg-moto", fill: 0.92 },
+  "bulgaria:moto-flag": { src: "/plates/bulgaria/moto-flag.png", w: 1024, h: 740, rows: [{ y0: 52, y1: 332, x0: 214, x1: 996, slots: 1 }, { y0: 410, y1: 690, x0: 60, x1: 996, slots: 1 }], font: "bg", split: "bg-moto", fill: 0.92 },
   "bulgaria:single-flag": { src: "/plates/bulgaria/military-single.png", w: 1000, h: 224, rows: [{ y0: 22, y1: 204, x0: 124, x1: 964, slots: 1 }], font: "bg", split: "whole", fill: 0.82 },
   "bulgaria:temporary": { src: "/plates/bulgaria/temporary-single.png", w: 1000, h: 224, rows: [{ y0: 22, y1: 204, x0: 124, x1: 826, slots: 1 }, { y0: 122, y1: 200, x0: 850, x1: 968, slots: 1, own: true }], font: "bg", split: "bg-year", fill: 0.82 },
   "bulgaria:single-euroband": { src: "/plates/bulgaria/standard-single.png", w: 1000, h: 224, rows: [{ y0: 22, y1: 204, x0: 124, x1: 964, slots: 1 }], font: "bg", split: "whole", fill: 0.82 },
@@ -302,6 +305,7 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
   if (key === "bulgaria") {
     const { category, format } = parseBulgariaPlateType(plateType);
     if (category === "temporary") return PLATE_ART["bulgaria:temporary"] ?? null;
+    if (category === "motorcycle") return PLATE_ART[format.includes("flag") ? "bulgaria:moto-flag" : "bulgaria:moto-euroband"] ?? null;
     if (category === "military" && format.startsWith("two")) return PLATE_ART["bulgaria:two-line-flag"] ?? null;
     if (category === "military" || format === "single-flag") return PLATE_ART["bulgaria:single-flag"] ?? null;
     if (format === "two-line") return PLATE_ART["bulgaria:two-line-euroband"] ?? null;     // older spots
@@ -416,6 +420,11 @@ function splitText(rule: SplitRule, text: string): string[] | null {
     if (rule === "be-seal") return [g[1], g[2]];
     const parts = g[2].match(/^([A-Z]+)-?(\d+)$/);
     return parts ? [`${g[1]}-${parts[1]}`, parts[2]] : null;
+  }
+  if (rule === "bg-moto") {                                                             // C 9669 EP → "C EP" | 9669  (motorcycle: three letters, a gap after the region)
+    const t = text.trim().split(" ");
+    if (t.length !== 3) return null;
+    return [`${t[0]} ${t[2]}`, t[1]];
   }
   if (rule === "bg-two") {                                                              // CA 1936 CT → CACT | 1936  (letters above, digits below)
     const t = text.trim().split(" ");

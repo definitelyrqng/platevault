@@ -14,5 +14,14 @@ const OUT = path.join(__dirname, "../public/plates/bulgaria");
     const b = await sharp(await band(src)).resize(BW, BH, { kernel: "lanczos3" }).toBuffer();
     await sharp(frame).composite([{ input: b, left: f, top: f }]).png().toFile(path.join(OUT, out));
   }
+  // motorcycle plates: a smaller, squarer plate
+  const MW = 1024, MH = 740, MBW = 170, MBH = 300;
+  const mframe = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${MW}" height="${MH}">
+    <rect width="${MW}" height="${MH}" rx="46" fill="#1b1816"/>
+    <rect x="18" y="18" width="${MW - 36}" height="${MH - 36}" rx="30" fill="#fff"/></svg>`);
+  for (const [src, out] of [["standard-single.png", "moto-euroband.png"], ["military-single.png", "moto-flag.png"]]) {
+    const b = await sharp(await band(src)).resize(MBW, MBH, { kernel: "lanczos3" }).toBuffer();
+    await sharp(mframe).composite([{ input: b, left: 18, top: 18 }]).png().toFile(path.join(OUT, out));
+  }
   console.log("ok");
 })();
