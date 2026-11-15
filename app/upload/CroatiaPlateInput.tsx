@@ -97,7 +97,7 @@ export default function CroatiaPlateInput({ category, format, onFormatChange, on
             <select value={region} onChange={(e) => setRegion(e.target.value)} className={SEL + " !w-auto"} aria-label="Region">
               {CROATIA_REGIONS.map((r) => <option key={r.code} value={r.code}>{r.code} — {r.city}</option>)}
             </select>
-            <input value={digits} onChange={(e) => setDigits(e.target.value.replace(/D/g, "").slice(0, 4))} inputMode="numeric" placeholder="1234" maxLength={4}
+            <input value={digits} onChange={(e) => setDigits(e.target.value.replace(/\D/g, "").slice(0, 4))} inputMode="numeric" placeholder="1234" maxLength={4}
               className={IN + " !w-24"} aria-label="Digits" autoComplete="off" />
             <select value={l1} onChange={(e) => setL1(e.target.value)} className={SEL + " !w-auto"} aria-label="First letter">
               {HR_LETTERS.map((c) => <option key={c} value={c}>{c}</option>)}
