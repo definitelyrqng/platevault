@@ -205,9 +205,14 @@ export const PLATE_ART: Record<string, PlateArt> = {
     split: "whole",
   },
   // ── Croatia: the supplied plate photo with the lettering removed; the coat of arms is part of the artwork (region on its left, digits on its right). D-DIN lettering. ──
+  // two-row car plate: region on top (left of the coat of arms), number below
+  "croatia:two-line-euroband": { src: "/plates/croatia/two-euroband.png", w: 1024, h: 700, rows: [{ y0: 76, y1: 326, x0: 220, x1: 790, slots: 1 }, { y0: 346, y1: 626, x0: 50, x1: 974, slots: 1 }], split: "at-two", font: "dd", fill: 0.92, condense: 0.9, tracking: 0.03, thin: -0.02 },
+  "croatia:two-line": { src: "/plates/croatia/two.png", w: 1024, h: 700, rows: [{ y0: 76, y1: 326, x0: 40, x1: 790, slots: 1 }, { y0: 346, y1: 626, x0: 50, x1: 974, slots: 1 }], split: "at-two", font: "dd", fill: 0.92, condense: 0.9, tracking: 0.03, thin: -0.02 },
   // motorcycle: square plate, three rows (region / digits / letters), coat of arms top right
   "croatia:triple-row-euroband": { src: "/plates/croatia/moto-euroband.png", w: 1024, h: 1044, rows: [{ y0: 86, y1: 366, x0: 255, x1: 675, slots: 1 }, { y0: 382, y1: 662, x0: 150, x1: 880, slots: 1 }, { y0: 681, y1: 961, x0: 330, x1: 700, slots: 1 }], split: "hr-three", font: "dd", fill: 0.93, condense: 0.9, tracking: 0.03, thin: -0.02 },
   "croatia:triple-row": { src: "/plates/croatia/moto.png", w: 1024, h: 1044, rows: [{ y0: 86, y1: 366, x0: 200, x1: 690, slots: 1 }, { y0: 382, y1: 662, x0: 120, x1: 904, slots: 1 }, { y0: 681, y1: 961, x0: 300, x1: 724, slots: 1 }], split: "hr-three", font: "dd", fill: 0.93, condense: 0.9, tracking: 0.03, thin: -0.02 },
+  // police: white, no euroband, blue lettering, coat of arms in the middle (digits either side)
+  "croatia:police": { src: "/plates/croatia/police-single.png", w: 1659, h: 393, rows: [{ y0: 74, y1: 321, x0: 90, x1: 730, slots: 1, align: "right" }, { y0: 74, y1: 321, x0: 930, x1: 1570, slots: 1, align: "left" }], split: "seal", font: "dd", fill: 0.9, condense: 0.9, tracking: 0.03, thin: -0.02, textColor: "#1f3f9a" },
   // diplomatic: light blue, gold lettering, middle dots, no euroband
   "croatia:diplomatic": { src: "/plates/croatia/diplomatic-single.png", w: 1659, h: 393, rows: [{ y0: 62, y1: 332, x0: 120, x1: 1540, slots: 1 }], split: "whole", font: "dd", fill: 0.82, condense: 0.9, tracking: 0.06, thin: -0.02, textColor: "#f3b02a", dots: true },
   // military (yellow, black lettering) and export (green, yellow lettering): never with a euroband
@@ -331,7 +336,7 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
     if (category === "diplomatic") return PLATE_ART["croatia:diplomatic"] ?? null;
     if (category === "military") return PLATE_ART["croatia:military"] ?? null;
     if (category === "export") return PLATE_ART["croatia:export"] ?? null;
-    if (category === "police") return PLATE_ART["croatia:single-line"] ? { ...PLATE_ART["croatia:single-line"], textColor: "#1f3f9a" } : null;   // police: white, no euroband, blue lettering
+    if (category === "police") return PLATE_ART["croatia:police"] ?? null;
     const art = PLATE_ART[`croatia:${format}`] ?? null;
     if (art && category === "foreign") return { ...art, textColor: "#1f7a3d" };            // foreign citizens: green lettering
     if (art && category === "exceptional") return { ...art, textColor: "#c8202f" };       // exceptional vehicles: red lettering
@@ -607,7 +612,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
       const sealD = !mode ? 0 : stateSrc ? sealH * sealAspect(stateSrc) : art.sealAspect ? sealH * art.sealAspect : rowH * SEAL_DIAMETER;
       const gap = mode ? rowH * (row.gap ?? SEAL_GAP) : 0;
       const gaps = mode === "between" ? 2 : mode === "left" || mode === "right" ? 1 : 0;   // gaps touching the seal
-      const ems = texts.map((t) => textWidthEm(t, font, art.condense ?? (font === "dd" ? 1 : CONDENSE)) + (art.tracking ?? 0) * [...t].length);
+      const ems = texts.map((t) => textWidthEm(art.dots ? t.replace(/-/g, "·") : t, font, art.condense ?? (font === "dd" ? 1 : CONDENSE)) + (art.tracking ?? 0) * [...t].length);
       return { row, texts, rowH, mode, sealD, sealH, gap, gaps, ems, avail: (row.x1 - row.x0) * s };
     });
     const fit = (l: (typeof lines)[number]) => Math.min((l.rowH * (art.fill ?? 0.72)) / capHF, (l.avail - l.sealD - l.gaps * l.gap) / Math.max(l.ems.reduce((x, y) => x + y, 0), 0.5));

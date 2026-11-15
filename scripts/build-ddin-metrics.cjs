@@ -15,7 +15,7 @@ const em = f.unitsPerEm;
 const H = f.charToGlyph("H");
 const bb = H.getBoundingBox();
 const cap = bb.y2 / em;
-const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-. ŠŽ";
+const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-. ŠŽ·";
 const adv = {};
 for (const ch of chars) adv[ch] = Math.round((f.charToGlyph(ch).advanceWidth / em) * 1000) / 1000;
 fs.writeFileSync(path.join(ROOT, "app/lib/ddinMetrics.ts"),
