@@ -1,6 +1,7 @@
 import { BELGIUM_CATEGORIES, parseBelgiumPlateType } from "./belgiumData";
 import { BOSNIA_CATEGORIES, parseBosniaPlateType } from "./bosniaData";
 import { BULGARIA_CATEGORIES, parseBulgariaPlateType } from "./bulgariaData";
+import { CROATIA_CATEGORIES, parseCroatiaPlateType } from "./croatiaData";
 /**
  * Short, human-friendly plate type names for badges, filter chips and links.
  *
@@ -69,6 +70,13 @@ const COUNTRY_PREFIX = /^(de|at|al|be|ba|bg|hr|cz)-/i;
 
 export function plateTypeLabel(country: string, type: string | null | undefined): string | null {
   if (!type) return null;
+  if (country.toLowerCase() === "croatia") {
+    const { category, format } = parseCroatiaPlateType(type);
+    if (category) {
+      const base = CROATIA_CATEGORIES.find((c) => c.id === category)?.label ?? category;
+      return base + (/euroband/.test(format) ? "" : " · No euroband") + (/two-line/.test(format) ? " · Two-line" : "") + (/triple/.test(format) ? " · Triple row" : "");
+    }
+  }
   if (country.toLowerCase() === "bulgaria") {
     const { category, format } = parseBulgariaPlateType(type);
     if (category) {

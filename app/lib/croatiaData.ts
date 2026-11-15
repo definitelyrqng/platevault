@@ -94,3 +94,17 @@ export const HR_FORMAT_LABELS: Record<string, string> = {
   "triple-row-euroband":   "Triple row · with euroband",
   "triple-row":            "Triple row · no euroband",
 };
+
+/**
+ * Stored Croatian plate types are "<category>__<format>" (e.g. "foreign__single-line").
+ * Older spots store only the format ("single-line-euroband").
+ */
+export function parseCroatiaPlateType(t?: string | null): { category: CroatiacategoryId | null; format: string } {
+  const raw = t ?? "";
+  const i = raw.indexOf("__");
+  if (i > 0) {
+    const cat = CROATIA_CATEGORIES.find((c) => c.id === raw.slice(0, i));
+    if (cat) return { category: cat.id, format: raw.slice(i + 2) };
+  }
+  return { category: null, format: raw };
+}

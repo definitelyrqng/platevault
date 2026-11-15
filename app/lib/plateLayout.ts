@@ -8,6 +8,7 @@ import { AL_CAP_HEIGHT, AL_WIDTHS } from "./albaniaFontMetrics";
 import { BELGIUM_CATEGORIES, parseBelgiumPlateType } from "./belgiumData";
 import { parseBosniaPlateType } from "./bosniaData";
 import { parseBulgariaPlateType } from "./bulgariaData";
+import { parseCroatiaPlateType } from "./croatiaData";
 import { AT_CAP_HEIGHT, AT_WIDTHS } from "./austriaFontMetrics";
 import { AT47_CAP_HEIGHT, AT47_WIDTHS } from "./austria1947FontMetrics";
 import { BA_CAP_HEIGHT, BA_WIDTHS } from "./bosniaFontMetrics";
@@ -202,6 +203,8 @@ export const PLATE_ART: Record<string, PlateArt> = {
     split: "whole",
   },
   // ── Croatia: the supplied plate photo with the lettering removed; the coat of arms is part of the artwork (region on its left, digits on its right). D-DIN lettering. ──
+  // no euroband: the same plate, region centred on the left of the coat of arms
+  "croatia:single-line": { src: "/plates/croatia/standard-single-noband.png", w: 1659, h: 393, rows: [{ y0: 74, y1: 321, x0: 90, x1: 524, slots: 1 }, { y0: 74, y1: 321, x0: 714, x1: 1600, slots: 1, align: "left" }], split: "seal", font: "dd", fill: 0.9, condense: 0.9, tracking: 0.03, thin: -0.02 },
   "croatia:single-line-euroband": { src: "/plates/croatia/standard-single.png", w: 1659, h: 393, rows: [{ y0: 74, y1: 321, x0: 216, x1: 516, slots: 1 }, { y0: 74, y1: 321, x0: 714, x1: 1600, slots: 1, align: "left" }], split: "seal", font: "dd", fill: 0.9, condense: 0.9, tracking: 0.03, thin: -0.02 },
   // ── Bulgaria: standard plate (euroband, black frame). FE-Schrift for now — the real lettering has its own shapes. ──
   // two rows: letters (region + final letters) above, digits below, both right of the small euroband
@@ -312,6 +315,11 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
     // electric vehicles and green-lettered mopeds: same plate, green characters
     const green = /^at-electric/.test(plateType ?? "") || /moped-green$/.test(plateType ?? "");
     return art && green && !art.textColor ? { ...art, textColor: "#0b7a3b" } : art;
+  }
+  if (key === "croatia") {
+    const { category, format } = parseCroatiaPlateType(plateType);
+    const art = PLATE_ART[`croatia:${format}`] ?? null;
+    return art && category === "foreign" ? { ...art, textColor: "#1f7a3d" } : art;       // foreign citizens: green lettering
   }
   if (key === "bulgaria") {
     const { category, format } = parseBulgariaPlateType(plateType);

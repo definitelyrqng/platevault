@@ -30,5 +30,14 @@ const ROOT = path.join(__dirname, "..");
   while (st.length) { const k = st.pop(), x = k % BW, y = (k / BW) | 0; push(x + 1, y); push(x - 1, y); push(x, y + 1); push(x, y - 1); }
   for (let k = 0; k < BW * BH; k++) if (seen[k]) d[k * 4 + 3] = 0;
   await sharp(d, { raw: { width: BW, height: BH, channels: 4 } }).png().toFile(path.join(ROOT, "public/plates/croatia/standard-single.png"));
+
+  // 3) the same plate without the euroband: the band area gets a copy of the plain face next to it (stripes continue to the rim)
+  const nb = Buffer.from(d);
+  const BX0 = 49, BX1 = 197, SX = 215, Y_FROM = 40, Y_TO = 352;
+  for (let y = Y_FROM; y <= Y_TO; y++) for (let x = BX0; x <= BX1; x++) {
+    const from = (y * BW + (SX + (x - BX0))) * 4, to = (y * BW + x) * 4;
+    nb[to] = nb[from]; nb[to + 1] = nb[from + 1]; nb[to + 2] = nb[from + 2]; nb[to + 3] = 255;
+  }
+  await sharp(nb, { raw: { width: BW, height: BH, channels: 4 } }).png().toFile(path.join(ROOT, "public/plates/croatia/standard-single-noband.png"));
   console.log("ok", BW, BH);
 })();
