@@ -90,6 +90,8 @@ export type PlateArt = {
   condense?: number;
   /** Make FE-Schrift lighter: erode the outline by this many em (default: the usual extra weight). */
   thin?: number;
+  /** Print dashes as middle dots (Croatian diplomatic plates). */
+  dots?: boolean;
   /** Upper limit for the spacing fillWidth adds, in em. */
   maxTrack?: number;
   /** Spread the characters so the text fills the whole width of its row (all rows share the tightest spacing). */
@@ -206,6 +208,11 @@ export const PLATE_ART: Record<string, PlateArt> = {
   // motorcycle: square plate, three rows (region / digits / letters), coat of arms top right
   "croatia:triple-row-euroband": { src: "/plates/croatia/moto-euroband.png", w: 1024, h: 1044, rows: [{ y0: 86, y1: 366, x0: 255, x1: 675, slots: 1 }, { y0: 382, y1: 662, x0: 150, x1: 880, slots: 1 }, { y0: 681, y1: 961, x0: 330, x1: 700, slots: 1 }], split: "hr-three", font: "dd", fill: 0.93, condense: 0.9, tracking: 0.03, thin: -0.02 },
   "croatia:triple-row": { src: "/plates/croatia/moto.png", w: 1024, h: 1044, rows: [{ y0: 86, y1: 366, x0: 200, x1: 690, slots: 1 }, { y0: 382, y1: 662, x0: 120, x1: 904, slots: 1 }, { y0: 681, y1: 961, x0: 300, x1: 724, slots: 1 }], split: "hr-three", font: "dd", fill: 0.93, condense: 0.9, tracking: 0.03, thin: -0.02 },
+  // diplomatic: light blue, gold lettering, middle dots, no euroband
+  "croatia:diplomatic": { src: "/plates/croatia/diplomatic-single.png", w: 1659, h: 393, rows: [{ y0: 62, y1: 332, x0: 120, x1: 1540, slots: 1 }], split: "whole", font: "dd", fill: 0.82, condense: 0.9, tracking: 0.06, thin: -0.02, textColor: "#f3b02a", dots: true },
+  // military (yellow, black lettering) and export (green, yellow lettering): never with a euroband
+  "croatia:military": { src: "/plates/croatia/military-single.png", w: 1659, h: 393, rows: [{ y0: 74, y1: 321, x0: 90, x1: 524, slots: 1 }, { y0: 74, y1: 321, x0: 714, x1: 1600, slots: 1, align: "left" }], split: "seal", font: "dd", fill: 0.9, condense: 0.9, tracking: 0.03, thin: -0.02 },
+  "croatia:export": { src: "/plates/croatia/export-single.png", w: 1659, h: 393, rows: [{ y0: 74, y1: 321, x0: 90, x1: 524, slots: 1 }, { y0: 74, y1: 321, x0: 714, x1: 1600, slots: 1, align: "left" }], split: "seal", font: "dd", fill: 0.9, condense: 0.9, tracking: 0.03, thin: -0.02, textColor: "#f5d928" },
   // no euroband: the same plate, region centred on the left of the coat of arms
   "croatia:single-line": { src: "/plates/croatia/standard-single-noband.png", w: 1659, h: 393, rows: [{ y0: 74, y1: 321, x0: 90, x1: 524, slots: 1 }, { y0: 74, y1: 321, x0: 714, x1: 1600, slots: 1, align: "left" }], split: "seal", font: "dd", fill: 0.9, condense: 0.9, tracking: 0.03, thin: -0.02 },
   "croatia:single-line-euroband": { src: "/plates/croatia/standard-single.png", w: 1659, h: 393, rows: [{ y0: 74, y1: 321, x0: 216, x1: 516, slots: 1 }, { y0: 74, y1: 321, x0: 714, x1: 1600, slots: 1, align: "left" }], split: "seal", font: "dd", fill: 0.9, condense: 0.9, tracking: 0.03, thin: -0.02 },
@@ -321,6 +328,10 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
   }
   if (key === "croatia") {
     const { category, format } = parseCroatiaPlateType(plateType);
+    if (category === "diplomatic") return PLATE_ART["croatia:diplomatic"] ?? null;
+    if (category === "military") return PLATE_ART["croatia:military"] ?? null;
+    if (category === "export") return PLATE_ART["croatia:export"] ?? null;
+    if (category === "police") return PLATE_ART["croatia:single-line"] ? { ...PLATE_ART["croatia:single-line"], textColor: "#1f3f9a" } : null;   // police: white, no euroband, blue lettering
     const art = PLATE_ART[`croatia:${format}`] ?? null;
     if (art && category === "foreign") return { ...art, textColor: "#1f7a3d" };            // foreign citizens: green lettering
     if (art && category === "exceptional") return { ...art, textColor: "#c8202f" };       // exceptional vehicles: red lettering
@@ -500,7 +511,7 @@ function splitText(rule: SplitRule, text: string): string[] | null {
     return m ? [m[1], m[2]] : null;
   }
   if (rule === "seal") {
-    const m = text.match(/^([A-ZČĆĐŠŽ]{1,3})\s?(.+)$/);     // "AB 195 IF" → AB | 195 IF
+    const m = text.match(/^([A-ZČĆĐŠŽ]{1,3}|\d{3})\s?(.+)$/);     // "AB 195 IF" → AB | 195 IF
     return m ? [m[1], m[2].trim()] : null;
   }
   if (rule === "al-moto") {
@@ -628,7 +639,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
       }
       l.texts.forEach((text, i) => {
         // Belgian lettering has no slashed zero: use the plain O
-        runs.push({ text: key === "belgium" ? text.replace(/0/g, "O") : text, x0: x, x1: x + widths[i], align: "left", fontSize: fs, centerY, tracking: (art.tracking ?? 0) + fillTrack, condense: art.condense ?? (font === "dd" ? 1 : undefined), thin: art.thin, ...(font === "dd" ? { capTop: -DD_CAP_HEIGHT, capBottom: 0 } : {}) });
+        runs.push({ text: key === "belgium" ? text.replace(/0/g, "O") : art.dots ? text.replace(/-/g, "·") : text, x0: x, x1: x + widths[i], align: "left", fontSize: fs, centerY, tracking: (art.tracking ?? 0) + fillTrack, condense: art.condense ?? (font === "dd" ? 1 : undefined), thin: art.thin, ...(font === "dd" ? { capTop: -DD_CAP_HEIGHT, capBottom: 0 } : {}) });
         x += widths[i];
         if (l.mode === "right" && i === l.texts.length - 1) {                 // text then ●
           seals.push({ cx: x + l.gap + l.sealD / 2, cy: centerY, d: l.sealD, h: l.sealH || undefined, src: stateSrc ?? undefined });

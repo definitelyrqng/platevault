@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import {
-  CROATIA_FORMATS_FOR, HR_FORMAT_LABELS, CROATIA_CATEGORIES, CROATIA_PATTERNS,
+  CROATIA_FORMATS_FOR, HR_FORMAT_LABELS, CROATIA_CATEGORIES, CROATIA_PATTERNS, croatiaDiplomaticOwner,
   type CroatiacategoryId,
 } from "@/app/lib/croatiaData";
 import { maskBelgiumPlate as maskPlate, patternExample } from "@/app/lib/belgiumData";
@@ -82,6 +82,12 @@ export default function CroatiaPlateInput({ category, format, onFormatChange, on
           placeholder={pattern ? patternExample(pattern) : (catMeta?.example ?? "ZG 543-AA")}
           maxLength={pattern ? pattern.length : 14}
           className={IN} autoComplete="off" spellCheck={false} />
+        {category === "diplomatic" && (() => {
+          const owner = croatiaDiplomaticOwner(text);
+          return owner
+            ? <p className="mt-1.5 text-xs text-emerald-300">Detected: {owner}</p>
+            : <p className="mt-1.5 text-xs text-zinc-600">Type the code — the country or organisation is detected for you.</p>;
+        })()}
         {catMeta?.hint && <p className="mt-1.5 text-xs text-zinc-600">{catMeta.hint}</p>}
       </div>
     </div>

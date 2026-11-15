@@ -39,5 +39,17 @@ const ROOT = path.join(__dirname, "..");
     nb[to] = nb[from]; nb[to + 1] = nb[from + 1]; nb[to + 2] = nb[from + 2]; nb[to + 3] = 255;
   }
   await sharp(nb, { raw: { width: BW, height: BH, channels: 4 } }).png().toFile(path.join(ROOT, "public/plates/croatia/standard-single-noband.png"));
+  // 4) military (yellow) and export (green) plates: the white face of the no-euroband plate is tinted
+  async function tint(name, rgb) {
+    const t = Buffer.from(nb);
+    for (let i = 0; i < t.length; i += 4) {
+      if (t[i + 3] === 0) continue;
+      const r = t[i], g = t[i + 1], b = t[i + 2], mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+      if (mn > 150 && mx - mn < 40) { const k = (r + g + b) / 3 / 255; t[i] = Math.round(rgb[0] * k); t[i + 1] = Math.round(rgb[1] * k); t[i + 2] = Math.round(rgb[2] * k); }
+    }
+    await sharp(t, { raw: { width: BW, height: BH, channels: 4 } }).png().toFile(path.join(ROOT, "public/plates/croatia", name));
+  }
+  await tint("military-single.png", [247, 218, 40]);
+  await tint("export-single.png", [92, 190, 150]);
   console.log("ok", BW, BH);
 })();

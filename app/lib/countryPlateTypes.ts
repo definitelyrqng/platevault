@@ -12,7 +12,7 @@ export function catalogPlateTypes(country: string): { type: string; sample: stri
     case "bosnia":
       return BOSNIA_CATEGORIES.flatMap((c) => BOSNIA_FORMATS_FOR[c.id].map((f) => ({ type: `${c.id}__${f}`, sample: c.example })));
     case "croatia":     // the types that have artwork so far
-      return CROATIA_CATEGORIES.filter((c) => ["regular", "foreign", "exceptional", "motorcycle", "vanity", "dealer", "oldtimer"].includes(c.id))
+      return CROATIA_CATEGORIES.filter((c) => ["regular", "foreign", "exceptional", "motorcycle", "vanity", "dealer", "oldtimer", "military", "export", "police", "diplomatic"].includes(c.id))
         .flatMap((c) => (c.id === "motorcycle" ? ["triple-row-euroband", "triple-row"] : ["single-line-euroband", "single-line"])
           .map((f) => ({ type: `${c.id}__${f}`, sample: c.id === "motorcycle" ? "ZG 9619 GU" : c.example })));
     case "bulgaria":
