@@ -66,8 +66,8 @@ export const CROATIA_CATEGORIES: {
   { id: "exceptional", label: "Exceptional",       example: "ZG 1234 AB",  hint: "Red text — exceptional/special purpose vehicles",           emoji: "🔴" },
   { id: "motorcycle",  label: "Motorcycle",        example: "ZG 1234 AB",  hint: "White background, single-line, two-line or triple-row",     emoji: "🏍️" },
   { id: "vanity",      label: "Vanity",            example: "ZD EROSS-8", hint: "Custom text plate — region, then up to 7 characters",                    emoji: "✨" },
-  { id: "dealer",      label: "Dealer",            example: "ZG PP 1234",  hint: "Dealer transit plates — PP is fixed",                       emoji: "⬜" },
-  { id: "oldtimer",    label: "Oldtimer",          example: "ZG PV 1234",  hint: "Historic vehicle plates — PV is fixed",                     emoji: "🏛️" },
+  { id: "dealer",      label: "Dealer",            example: "OS PP-144",   hint: "Region, then PP (always there) and the number",                       emoji: "⬜" },
+  { id: "oldtimer",    label: "Oldtimer",          example: "ZG PV-144",   hint: "Region, then PV (always there) and the number",                     emoji: "🏛️" },
   { id: "military",    label: "Military",          example: "HV 1234 AB",  hint: "Croatian Armed Forces — HV prefix, yellow plate",           emoji: "🟡" },
   { id: "export",      label: "Export",            example: "RH 1234 AB",  hint: "Export plates — RH prefix, green plate with yellow text",   emoji: "🟩" },
   { id: "police",      label: "Police",            example: "123 456",     hint: "Police vehicle plates — two 3-digit groups",                emoji: "🔵" },
@@ -110,4 +110,7 @@ export function parseCroatiaPlateType(t?: string | null): { category: Croatiacat
 }
 
 /** Croatian plates are typed freely (region letters incl. Č Ć Đ Š Ž, digits, dash, letters); no fixed pattern. */
-export const CROATIA_PATTERNS: Partial<Record<CroatiacategoryId, string[]>> = {};
+export const CROATIA_PATTERNS: Partial<Record<CroatiacategoryId, string[]>> = {
+  dealer: ["XX PP-####"],      // PP is always there; 1–4 digits
+  oldtimer: ["XX PV-####"],    // PV is always there; 1–4 digits
+};

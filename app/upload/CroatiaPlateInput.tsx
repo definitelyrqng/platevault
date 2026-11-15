@@ -35,7 +35,7 @@ export default function CroatiaPlateInput({ category, format, onFormatChange, on
     const start = pattern ? maskPlate("", pattern) : "";
     setText(start);
     onChange(start);
-    onComplete(pattern ? start.length === pattern.length : false);   // free-text categories become complete once something is typed
+    onComplete(false);   // free-text categories become complete once something is typed
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, pattern]);
 
@@ -51,7 +51,7 @@ export default function CroatiaPlateInput({ category, format, onFormatChange, on
     const masked = maskPlate(raw, pattern);
     setText(masked);
     onChange(masked);
-    onComplete(masked.length === pattern.length);
+    onComplete(masked.length >= pattern.length - 3);      // the number may have 1–4 digits
   }
 
   return (
