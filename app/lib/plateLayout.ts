@@ -74,7 +74,7 @@ export type ArtRow = {
  *  - "al-moto":    letters | digits                    ("AB 123" → AB | 123)
  *  - "al-trailer-two": letters | "R" + digits          ("AB R 456" → AB | R 456)
  */
-export type SplitRule = "bg-moto" | "bg-two" | "bg-year" | "ba-two-eu" | "ba-two" | "be-seal" | "be-two" | "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
+export type SplitRule = "hr-three" | "bg-moto" | "bg-two" | "bg-year" | "ba-two-eu" | "ba-two" | "be-seal" | "be-two" | "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
 
 export type PlateArt = {
   src: string;          // path under /public
@@ -203,6 +203,9 @@ export const PLATE_ART: Record<string, PlateArt> = {
     split: "whole",
   },
   // ── Croatia: the supplied plate photo with the lettering removed; the coat of arms is part of the artwork (region on its left, digits on its right). D-DIN lettering. ──
+  // motorcycle: square plate, three rows (region / digits / letters), coat of arms top right
+  "croatia:triple-row-euroband": { src: "/plates/croatia/moto-euroband.png", w: 1024, h: 1044, rows: [{ y0: 86, y1: 366, x0: 255, x1: 675, slots: 1 }, { y0: 382, y1: 662, x0: 150, x1: 880, slots: 1 }, { y0: 681, y1: 961, x0: 330, x1: 700, slots: 1 }], split: "hr-three", font: "dd", fill: 0.93, condense: 0.9, tracking: 0.03, thin: -0.02 },
+  "croatia:triple-row": { src: "/plates/croatia/moto.png", w: 1024, h: 1044, rows: [{ y0: 86, y1: 366, x0: 200, x1: 690, slots: 1 }, { y0: 382, y1: 662, x0: 120, x1: 904, slots: 1 }, { y0: 681, y1: 961, x0: 300, x1: 724, slots: 1 }], split: "hr-three", font: "dd", fill: 0.93, condense: 0.9, tracking: 0.03, thin: -0.02 },
   // no euroband: the same plate, region centred on the left of the coat of arms
   "croatia:single-line": { src: "/plates/croatia/standard-single-noband.png", w: 1659, h: 393, rows: [{ y0: 74, y1: 321, x0: 90, x1: 524, slots: 1 }, { y0: 74, y1: 321, x0: 714, x1: 1600, slots: 1, align: "left" }], split: "seal", font: "dd", fill: 0.9, condense: 0.9, tracking: 0.03, thin: -0.02 },
   "croatia:single-line-euroband": { src: "/plates/croatia/standard-single.png", w: 1659, h: 393, rows: [{ y0: 74, y1: 321, x0: 216, x1: 516, slots: 1 }, { y0: 74, y1: 321, x0: 714, x1: 1600, slots: 1, align: "left" }], split: "seal", font: "dd", fill: 0.9, condense: 0.9, tracking: 0.03, thin: -0.02 },
@@ -319,7 +322,9 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
   if (key === "croatia") {
     const { category, format } = parseCroatiaPlateType(plateType);
     const art = PLATE_ART[`croatia:${format}`] ?? null;
-    return art && category === "foreign" ? { ...art, textColor: "#1f7a3d" } : art;       // foreign citizens: green lettering
+    if (art && category === "foreign") return { ...art, textColor: "#1f7a3d" };            // foreign citizens: green lettering
+    if (art && category === "exceptional") return { ...art, textColor: "#c8202f" };       // exceptional vehicles: red lettering
+    return art;
   }
   if (key === "bulgaria") {
     const { category, format } = parseBulgariaPlateType(plateType);
@@ -450,6 +455,10 @@ function splitText(rule: SplitRule, text: string): string[] | null {
     if (rule === "be-seal") return [g[1], g[2]];
     const parts = g[2].match(/^([A-Z]+)-?(\d+)$/);
     return parts ? [`${g[1]}-${parts[1]}`, parts[2]] : null;
+  }
+  if (rule === "hr-three") {                                                            // ZG 9619 GU → ZG | 9619 | GU  (motorcycle: region, digits, letters)
+    const t = text.trim().split(" ");
+    return t.length === 3 ? t : null;
   }
   if (rule === "bg-moto") {                                                             // C 9669 EP → "C EP" | 9669  (motorcycle: three letters, a gap after the region)
     const t = text.trim().split(" ");
