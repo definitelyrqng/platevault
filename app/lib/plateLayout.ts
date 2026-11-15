@@ -201,8 +201,8 @@ export const PLATE_ART: Record<string, PlateArt> = {
     rows: [{ y0: 23, y1: 334, x0: 205, x1: 1545, slots: 1 }],
     split: "whole",
   },
-  // ── Croatia: euroband plate; the coat of arms sits between the region (2 letters) and the digits. FE-Schrift for now — the real font is still to be built. ──
-  "croatia:single-line-euroband": { src: "/plates/croatia/standard-single.png", w: 1106, h: 262, rows: [{ y0: 40, y1: 222, x0: 168, x1: 1084, slots: 2, seal: true, gap: 0.14 }], split: "seal", seal: "/plates/croatia/seal.png", sealAspect: 200 / 250, sealH: 0.6, fill: 0.85, font: "dd", condense: 0.9, tracking: 0.03, thin: -0.034 },
+  // ── Croatia: the supplied plate photo with the lettering removed; the coat of arms is part of the artwork (region on its left, digits on its right). D-DIN lettering. ──
+  "croatia:single-line-euroband": { src: "/plates/croatia/standard-single.png", w: 1659, h: 393, rows: [{ y0: 74, y1: 321, x0: 216, x1: 516, slots: 1 }, { y0: 74, y1: 321, x0: 714, x1: 1600, slots: 1, align: "left" }], split: "seal", font: "dd", fill: 0.9, condense: 0.9, tracking: 0.03, thin: -0.02 },
   // ── Bulgaria: standard plate (euroband, black frame). FE-Schrift for now — the real lettering has its own shapes. ──
   // two rows: letters (region + final letters) above, digits below, both right of the small euroband
   "bulgaria:two-line-euroband": { src: "/plates/bulgaria/standard-two.png", w: 1024, h: 660, rows: [{ y0: 42, y1: 300, x0: 196, x1: 1000, slots: 1 }, { y0: 347, y1: 605, x0: 196, x1: 1000, slots: 1 }], font: "bg", split: "bg-two", fill: 0.92 },
