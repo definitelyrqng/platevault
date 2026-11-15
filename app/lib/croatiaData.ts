@@ -65,7 +65,7 @@ export const CROATIA_CATEGORIES: {
   { id: "foreign",     label: "Foreign Citizens",  example: "ZG 1234 AB",  hint: "Green text — foreign registered vehicles & enterprises",    emoji: "🟢" },
   { id: "exceptional", label: "Exceptional",       example: "ZG 1234 AB",  hint: "Red text — exceptional/special purpose vehicles",           emoji: "🔴" },
   { id: "motorcycle",  label: "Motorcycle",        example: "ZG 1234 AB",  hint: "White background, single-line, two-line or triple-row",     emoji: "🏍️" },
-  { id: "vanity",      label: "Vanity",            example: "ZG BIRTHDAY", hint: "Custom text plate — up to 7 characters",                    emoji: "✨" },
+  { id: "vanity",      label: "Vanity",            example: "ZD EROSS-8", hint: "Custom text plate — region, then up to 7 characters",                    emoji: "✨" },
   { id: "dealer",      label: "Dealer",            example: "ZG PP 1234",  hint: "Dealer transit plates — PP is fixed",                       emoji: "⬜" },
   { id: "oldtimer",    label: "Oldtimer",          example: "ZG PV 1234",  hint: "Historic vehicle plates — PV is fixed",                     emoji: "🏛️" },
   { id: "military",    label: "Military",          example: "HV 1234 AB",  hint: "Croatian Armed Forces — HV prefix, yellow plate",           emoji: "🟡" },
@@ -108,3 +108,6 @@ export function parseCroatiaPlateType(t?: string | null): { category: Croatiacat
   }
   return { category: null, format: raw };
 }
+
+/** Croatian plates are typed freely (region letters incl. Č Ć Đ Š Ž, digits, dash, letters); no fixed pattern. */
+export const CROATIA_PATTERNS: Partial<Record<CroatiacategoryId, string[]>> = {};

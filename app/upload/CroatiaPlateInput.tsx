@@ -1,274 +1,89 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { CROATIA_REGIONS, HR_LETTERS, type CroatiacategoryId } from "@/app/lib/croatiaData";
+import { useState, useEffect } from "react";
+import {
+  CROATIA_FORMATS_FOR, HR_FORMAT_LABELS, CROATIA_CATEGORIES, CROATIA_PATTERNS,
+  type CroatiacategoryId,
+} from "@/app/lib/croatiaData";
+import { maskBelgiumPlate as maskPlate, patternExample } from "@/app/lib/belgiumData";
 
 interface Props {
   category: CroatiacategoryId;
-  onChange: (text: string) => void;
+  format: string;
+  onFormatChange: (fmt: string) => void;
+  onChange: (plateText: string) => void;
+  /** Which of the category's patterns is selected (one- or two-letter region). */
+  variant: number;
+  onVariantChange: (i: number) => void;
+  /** Whether the text fills the whole pattern. */
+  onComplete: (complete: boolean) => void;
 }
 
-const inputCls =
-  "rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600 w-full";
-const selectCls =
-  "rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-zinc-600 w-full";
+const IN = "w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono tracking-widest text-zinc-100 text-center uppercase outline-none focus:border-zinc-600 placeholder:text-zinc-700 placeholder:tracking-normal placeholder:font-sans placeholder:normal-case placeholder:text-center";
+const SEL = "w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-600";
 
-function RegionSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  return (
-    <select value={value} onChange={(e) => onChange(e.target.value)} className={selectCls}>
-      <option value="">— Region —</option>
-      {CROATIA_REGIONS.map((r) => (
-        <option key={r.code} value={r.code}>{r.code} — {r.city}</option>
-      ))}
-    </select>
-  );
-}
+/** Plate number input: pick the layout, then type — dashes and fixed letters fill in for you. */
+export default function CroatiaPlateInput({ category, format, onFormatChange, onChange, variant, onVariantChange, onComplete }: Props) {
+  const [text, setText] = useState("");
+  const patterns = CROATIA_PATTERNS[category] ?? [];
+  const pattern = patterns[Math.min(variant, patterns.length - 1)] ?? null;
+  const formats = CROATIA_FORMATS_FOR[category];
+  const catMeta = CROATIA_CATEGORIES.find((c) => c.id === category);
 
-function LetterSelect({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  // Reset (and pre-fill the fixed characters) when the category or pattern changes
+  useEffect(() => {
+    const start = pattern ? maskPlate("", pattern) : "";
+    setText(start);
+    onChange(start);
+    onComplete(pattern ? start.length === pattern.length : false);   // free-text categories become complete once something is typed
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, pattern]);
+
+  function handle(v: string) {
+    if (!pattern) {                                  // no fixed pattern: free text
+      const upper = v.toUpperCase().replace(/[^A-ZČĆĐŠŽ0-9 -]/g, "");
+      setText(upper); onChange(upper); onComplete(upper.replace(/[ -]/g, "").length >= 3);
+      return;
+    }
+    // Backspace over a fixed character removes it together with what is typed before it
+    let raw = v;
+    if (v.length < text.length) while (raw && !("X#".includes(pattern[raw.length - 1] ?? "X"))) raw = raw.slice(0, -1);
+    const masked = maskPlate(raw, pattern);
+    setText(masked);
+    onChange(masked);
+    onComplete(masked.length === pattern.length);
+  }
+
   return (
-    <div>
-      <label className="mb-1 block text-xs text-zinc-400">{label}</label>
-      <select value={value} onChange={(e) => onChange(e.target.value)} className={selectCls}>
-        <option value="">—</option>
-        {HR_LETTERS.map((l) => <option key={l} value={l}>{l}</option>)}
-      </select>
+    <div className="space-y-3">
+      <div>
+        <p className="text-xs text-zinc-500 mb-1.5">Plate layout</p>
+        <select value={format} onChange={(e) => onFormatChange(e.target.value)} className={SEL}>
+          {formats.map((f) => <option key={f} value={f}>{HR_FORMAT_LABELS[f]}</option>)}
+        </select>
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-1.5">
+          <p className="text-xs text-zinc-500">Plate text</p>
+          <span className="text-[10px] text-zinc-600 italic">{pattern ? "spaces and fixed letters fill in for you" : "type it as on the plate, e.g. ZG 543-AA"}</span>
+        </div>
+        {patterns.length > 1 && (
+          <div className="mb-2 flex gap-2">
+            {patterns.map((p, i) => (
+              <button key={p} type="button" onClick={() => onVariantChange(i)}
+                className={`flex-1 rounded-lg border px-2 py-1.5 font-mono text-xs tracking-widest transition-colors ${
+                  i === Math.min(variant, patterns.length - 1) ? "border-indigo-500 bg-indigo-600/10 text-indigo-200" : "border-zinc-800 text-zinc-500 hover:border-zinc-600"
+                }`}>{patternExample(p)}</button>
+            ))}
+          </div>
+        )}
+        <input value={text} onChange={(e) => handle(e.target.value)}
+          placeholder={pattern ? patternExample(pattern) : (catMeta?.example ?? "ZG 543-AA")}
+          maxLength={pattern ? pattern.length : 14}
+          className={IN} autoComplete="off" spellCheck={false} />
+        {catMeta?.hint && <p className="mt-1.5 text-xs text-zinc-600">{catMeta.hint}</p>}
+      </div>
     </div>
   );
-}
-
-export default function CroatiaPlateInput({ category, onChange }: Props) {
-  const [region, setRegion] = useState("");
-  const [digits, setDigits] = useState("");
-  const [l1, setL1] = useState("");
-  const [l2, setL2] = useState("");
-  const [vanity, setVanity] = useState("");
-  const [p1, setP1] = useState("");
-  const [p2, setP2] = useState("");
-
-  useEffect(() => {
-    setRegion(""); setDigits(""); setL1(""); setL2("");
-    setVanity(""); setP1(""); setP2("");
-  }, [category]);
-
-  useEffect(() => {
-    let text = "";
-    const suffix = l1 && l2 ? `${l1}${l2}` : (l1 || l2 || "");
-    switch (category) {
-      case "regular":
-      case "foreign":
-      case "exceptional":
-      case "motorcycle":
-        text = [region, digits, suffix].filter(Boolean).join(" ");
-        break;
-      case "vanity":
-        text = [region, vanity].filter(Boolean).join(" ");
-        break;
-      case "dealer":
-        text = [region, "PP", digits].filter(Boolean).join(" ");
-        break;
-      case "oldtimer":
-        text = [region, "PV", digits].filter(Boolean).join(" ");
-        break;
-      case "military":
-        text = ["HV", digits, suffix].filter(Boolean).join(" ");
-        break;
-      case "export":
-        text = ["RH", digits, suffix].filter(Boolean).join(" ");
-        break;
-      case "police":
-        text = [p1, p2].filter(Boolean).join(" ");
-        break;
-    }
-    onChange(text.toUpperCase());
-  }, [category, region, digits, l1, l2, vanity, p1, p2, onChange]);
-
-  // Regular / Foreign / Exceptional / Motorcycle
-  if (["regular", "foreign", "exceptional", "motorcycle"].includes(category)) {
-    return (
-      <div className="space-y-3">
-        <div>
-          <label className="mb-1 block text-xs text-zinc-400">Region</label>
-          <RegionSelect value={region} onChange={setRegion} />
-        </div>
-        <div className="grid grid-cols-3 gap-3">
-          <div>
-            <label className="mb-1 block text-xs text-zinc-400">Number (4 digits)</label>
-            <input
-              className={inputCls}
-              value={digits}
-              maxLength={4}
-              placeholder="1234"
-              onChange={(e) => setDigits(e.target.value.replace(/\D/g, ""))}
-            />
-          </div>
-          <LetterSelect label="Letter 1" value={l1} onChange={setL1} />
-          <LetterSelect label="Letter 2" value={l2} onChange={setL2} />
-        </div>
-      </div>
-    );
-  }
-
-  // Vanity
-  if (category === "vanity") {
-    return (
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="mb-1 block text-xs text-zinc-400">Region</label>
-          <RegionSelect value={region} onChange={setRegion} />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs text-zinc-400">Custom text (max 7, numbers optional)</label>
-          <input
-            className={inputCls}
-            value={vanity}
-            maxLength={7}
-            placeholder="BIRTHDAY"
-            onChange={(e) => setVanity(e.target.value.toUpperCase())}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  // Dealer
-  if (category === "dealer") {
-    return (
-      <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="mb-1 block text-xs text-zinc-400">Region</label>
-            <RegionSelect value={region} onChange={setRegion} />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs text-zinc-400">Fixed</label>
-            <div className="rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-400 font-mono">PP</div>
-          </div>
-        </div>
-        <div>
-          <label className="mb-1 block text-xs text-zinc-400">Number (4 digits)</label>
-          <input
-            className={inputCls}
-            value={digits}
-            maxLength={4}
-            placeholder="1234"
-            onChange={(e) => setDigits(e.target.value.replace(/\D/g, ""))}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  // Oldtimer
-  if (category === "oldtimer") {
-    return (
-      <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="mb-1 block text-xs text-zinc-400">Region</label>
-            <RegionSelect value={region} onChange={setRegion} />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs text-zinc-400">Fixed</label>
-            <div className="rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-400 font-mono">PV</div>
-          </div>
-        </div>
-        <div>
-          <label className="mb-1 block text-xs text-zinc-400">Number (4 digits)</label>
-          <input
-            className={inputCls}
-            value={digits}
-            maxLength={4}
-            placeholder="1234"
-            onChange={(e) => setDigits(e.target.value.replace(/\D/g, ""))}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  // Military
-  if (category === "military") {
-    return (
-      <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="mb-1 block text-xs text-zinc-400">Prefix</label>
-            <div className="rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-400 font-mono">HV</div>
-          </div>
-          <div>
-            <label className="mb-1 block text-xs text-zinc-400">Number (4 digits)</label>
-            <input
-              className={inputCls}
-              value={digits}
-              maxLength={4}
-              placeholder="1234"
-              onChange={(e) => setDigits(e.target.value.replace(/\D/g, ""))}
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <LetterSelect label="Letter 1" value={l1} onChange={setL1} />
-          <LetterSelect label="Letter 2" value={l2} onChange={setL2} />
-        </div>
-      </div>
-    );
-  }
-
-  // Export
-  if (category === "export") {
-    return (
-      <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="mb-1 block text-xs text-zinc-400">Prefix</label>
-            <div className="rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-400 font-mono">RH</div>
-          </div>
-          <div>
-            <label className="mb-1 block text-xs text-zinc-400">Number (4 digits)</label>
-            <input
-              className={inputCls}
-              value={digits}
-              maxLength={4}
-              placeholder="1234"
-              onChange={(e) => setDigits(e.target.value.replace(/\D/g, ""))}
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <LetterSelect label="Letter 1" value={l1} onChange={setL1} />
-          <LetterSelect label="Letter 2" value={l2} onChange={setL2} />
-        </div>
-      </div>
-    );
-  }
-
-  // Police
-  if (category === "police") {
-    return (
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="mb-1 block text-xs text-zinc-400">Group 1 (3 digits)</label>
-          <input
-            className={inputCls}
-            value={p1}
-            maxLength={3}
-            placeholder="123"
-            onChange={(e) => setP1(e.target.value.replace(/\D/g, ""))}
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs text-zinc-400">Group 2 (3 digits)</label>
-          <input
-            className={inputCls}
-            value={p2}
-            maxLength={3}
-            placeholder="456"
-            onChange={(e) => setP2(e.target.value.replace(/\D/g, ""))}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  return null;
 }
