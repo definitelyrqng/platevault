@@ -88,6 +88,18 @@ async function clean(file, out, white, stickerBoxes) {
     await sharp(path.join(OUT, "single.png")).composite([{ input: Buffer.from(svg) }]).png().toFile(path.join(OUT, "export.png"));
   }
 
+  // foreign citizens: sky-blue plate with yellow lettering (one embossed ring) and a dark-blue one with orange lettering
+  for (const [to, face, frame, ring] of [["foreign-turq.png", [45, 168, 224], [245, 196, 0], true], ["foreign-blue.png", [29, 79, 157], [228, 155, 45], false]]) {
+    const { data, info } = await sharp(path.join(OUT, "single.png")).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] === 0) continue;
+      const lum = (data[i] + data[i + 1] + data[i + 2]) / 3;
+      if (lum > 200) { data[i] = face[0]; data[i + 1] = face[1]; data[i + 2] = face[2]; }
+      else if (lum < 90) { data[i] = frame[0]; data[i + 1] = frame[1]; data[i + 2] = frame[2]; }
+    }
+    const ringSvg = Buffer.from(ring ? '<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="221"><circle cx="494" cy="110" r="30" fill="none" stroke="#f1f1f1" stroke-opacity=".7" stroke-width="3"/></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="221"/>');
+    await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).composite([{ input: ringSvg }]).png().toFile(path.join(OUT, to));
+  }
   // antique / oldtimer plates: green frame and lettering (the plate carries two embossed rings instead of stickers)
   for (const [from, to] of [["single-euro.png", "oldtimer-euro.png"], ["single.png", "oldtimer.png"]]) {
     const { data, info } = await sharp(path.join(OUT, from)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });

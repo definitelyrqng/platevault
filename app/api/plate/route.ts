@@ -39,6 +39,15 @@ function getDD() {
   return ddPromise;
 }
 
+let czPromise: Promise<opentype.Font> | null = null;
+/** DIN 1451 Breitschrift — the Czech plate lettering. */
+function getCZ() {
+  czPromise ??= readFile(path.join(process.cwd(), "assets/fonts/DIN1451-36breit.ttf")).then((buf) =>
+    opentype.parse(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength)),
+  );
+  return czPromise;
+}
+
 const artCache = new Map<string, Promise<string>>();
 function getArtDataUri(src: string) {
   let p = artCache.get(src);
@@ -189,11 +198,11 @@ export async function GET(req: Request) {
   }
 
   const color = layout.art?.textColor ?? "#111";
-  const dd = layout.font === "dd" ? await getDD() : null;
-  const runs = layout.runs.map((r) => layout.font === "dd"
+  const dd = layout.font === "dd" ? await getDD() : layout.font === "cz" ? await getCZ() : null;
+  const runs = layout.runs.map((r) => layout.font === "dd" || layout.font === "cz"
     ? runSvg(dd!, r, color)
     : layout.font !== "fe"
-    ? runSvgTraced(r, color, layout.font as Exclude<PlateFont, "fe" | "dd">)
+    ? runSvgTraced(r, color, layout.font as Exclude<PlateFont, "fe" | "dd" | "cz">)
     : runSvg(font, r, color)).join("");
   let stickers = "";
   if (layout.stickers.length) {

@@ -217,9 +217,9 @@ export const CZECH_CATEGORIES: CzechCategory[] = [
   // Current (2001+)
   { id: "car2001",         label: "Regular Car",          emoji: "⬜", example: "1AY 3165",  hint: "Standard 2001-system white plate",                group: "current"   },
   { id: "moto2001",        label: "Motorcycle",           emoji: "🏍️", example: "3K 0128",   hint: "Two-line motorcycle plate (2001+)",               group: "current"   },
-  { id: "dealer2001",      label: "Dealer",               emoji: "🟩", example: "H 5912",    hint: "Green-text dealer plate (2001+)",                  group: "current"   },
-  { id: "sport2001",       label: "Sportscar",            emoji: "🏎️", example: "11R 0466",  hint: "Region number + R + digits",                      group: "current"   },
-  { id: "oldtimer2001",    label: "Oldtimer",             emoji: "🏛️", example: "02V 1621",  hint: "Region number + V + digits",                      group: "current"   },
+  { id: "dealer2001",      label: "Dealer",               emoji: "🟩", example: "A 7425",    hint: "Green-text dealer plate (2001+)",                  group: "current"   },
+  { id: "sport2001",       label: "Sportscar",            emoji: "🏎️", example: "12R-3456",  hint: "Region number + R + digits",                      group: "current"   },
+  { id: "oldtimer2001",    label: "Oldtimer",             emoji: "🏛️", example: "12V-3456",  hint: "Region number + V + digits",                      group: "current"   },
   { id: "electric",        label: "Electric",             emoji: "⚡", example: "EL1 06AC",  hint: "Always starts with EL + a digit, then 2 digits and 2 letters (EL1 06AC)",                    group: "current"   },
   { id: "vanity",          label: "Vanity",               emoji: "✨", example: "CZECHREP",  hint: "Custom text up to 9 characters",                  group: "current"   },
   { id: "diplomatic",      label: "Diplomatic",           emoji: "🟦", example: "017 CD75", hint: "New system: country code + CD + number (blue, euroband). Old system: three letters + 4 digits (turquoise)", group: "current"   },
@@ -233,7 +233,7 @@ export const CZECH_CATEGORIES: CzechCategory[] = [
   { id: "agricultural1960",label: "Agricultural (1960)",  emoji: "🚜", example: "NBI 47-69", hint: "Yellow agricultural plate (1960 era)",            group: "historical" },
   { id: "trailer1977",     label: "Trailer (1977)",       emoji: "🚛", example: "NBI 47-69", hint: "Trailer plate, same format as 1960 car",          group: "historical" },
   // Special
-  { id: "foreign",         label: "Foreign Citizen",      emoji: "🇪🇺", example: "1AY 3165", hint: "Yellow-on-blue plate for foreign residents",       group: "special"   },
+  { id: "foreign",         label: "Foreign Citizen",      emoji: "🇪🇺", example: "SUJ 22-45", hint: "Blue plate with yellow/orange lettering for foreign citizens — three letters, 2 digits, dash, 2 digits",       group: "special"   },
 ];
 
 // ── Plate format options ─────────────────────────────────────────────────────
@@ -286,6 +286,7 @@ export const CZECH_FORMATS: Record<CzechCategoryId, CzechPlateFormat[]> = {
   vanity:      [{ id: "single", label: "Single-line" }],
   diplomatic:  [{ id: "single-euro", label: "New system (blue, with euroband)" }, { id: "single", label: "Old system (turquoise, no euroband)" }],
   military:    [{ id: "single", label: "Single-line (no euroband)" }],
+  foreign:     [{ id: "turq", label: "Sky blue, yellow lettering" }, { id: "blue", label: "Dark blue, orange lettering" }],
   car1992:     [{ id: "single", label: "Single-line (no euroband)" }],
   export:      [{ id: "single", label: "Single-line" }],
   car1960: [
@@ -318,14 +319,6 @@ export const CZECH_FORMATS: Record<CzechCategoryId, CzechPlateFormat[]> = {
     { id: "trap60",        label: "Two-row trapezoidal" },
     { id: "rect94",        label: "Two-row rectangular (1994)" },
     { id: "rect99",        label: "Two-row rectangular (1999)" },
-  ],
-  foreign: [
-    { id: "single-euro",   label: "Single-line + euroband" },
-    { id: "single",        label: "Single-line" },
-    { id: "two-euro",      label: "Two-line + euroband" },
-    { id: "two",           label: "Two-line" },
-    { id: "us-euro",       label: "US-style + euroband" },
-    { id: "us",            label: "US-style" },
   ],
 };
 
@@ -364,8 +357,7 @@ export function buildCzechPlateText(
 ): string {
   const f = fields;
   switch (category) {
-    case "car2001":
-    case "foreign": {
+    case "car2001": {
       const d1 = f.firstDigit ?? "";
       const rl = f.regionLetter ?? "";
       const opt = f.optionalChar ?? "";
@@ -386,12 +378,12 @@ export function buildCzechPlateText(
     case "sport2001": {
       const rn = f.regionNum ?? "";
       const n4 = f.fourDigits ?? "";
-      return `${rn}R ${n4}`.trim().toUpperCase();
+      return `${rn}R-${n4}`.trim().toUpperCase();
     }
     case "oldtimer2001": {
       const rn = f.regionNum ?? "";
       const n4 = f.fourDigits ?? "";
-      return `${rn}V ${n4}`.trim().toUpperCase();
+      return `${rn}V-${n4}`.trim().toUpperCase();
     }
     case "electric": {
       const ed = f.elDigit ?? "";
@@ -405,6 +397,7 @@ export function buildCzechPlateText(
     }
     case "vanity":
     case "export":
+    case "foreign":
     case "military":
     case "car1992":
       return (f.custom ?? "").toUpperCase().replace(/\s+/g, " ").trim();

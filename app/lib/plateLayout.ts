@@ -14,13 +14,14 @@ import { AT47_CAP_HEIGHT, AT47_WIDTHS } from "./austria1947FontMetrics";
 import { BA_CAP_HEIGHT, BA_WIDTHS } from "./bosniaFontMetrics";
 import { BG_CAP_HEIGHT, BG_WIDTHS } from "./bulgariaFontMetrics";
 import { DD_CAP_HEIGHT, DD_ADVANCE } from "./ddinMetrics";
+import { CZ_CAP_HEIGHT, CZ_ADVANCE } from "./czMetrics";
 
 /**
  * Lettering per country. "fe" = FE-Schrift (default everywhere);
  * "al" = Albanian plate glyphs traced from assets/fonts/albania-glyphs.png
  * (scripts/build-albania-font.cjs). Only used on plates with real artwork.
  */
-export type PlateFont = "fe" | "al" | "at" | "at47" | "ba" | "bg" | "dd";
+export type PlateFont = "fe" | "al" | "at" | "at47" | "ba" | "bg" | "dd" | "cz";
 const COUNTRY_FONT: Record<string, PlateFont> = { albania: "al", austria: "at" };
 export function plateFont(country: string): PlateFont {
   return COUNTRY_FONT[country.toLowerCase()] ?? "fe";
@@ -207,23 +208,26 @@ export const PLATE_ART: Record<string, PlateArt> = {
     split: "whole",
   },
   // ── Czech: standard plate with the two inspection stickers (toggleable). FE-Schrift for now. ──
-  "czech:single-euro": { src: "/plates/czech/single-euro.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 114, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 975, slots: 1, align: "left" }], split: "at-two", fill: 0.9, stickers: [{ src: "/plates/czech/sticker-red.png", x: 452, y: 26, w: 86, h: 86, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 452, y: 112, w: 86, h: 86, bit: 2 }] },
-  "czech:single": { src: "/plates/czech/single.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 40, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 975, slots: 1, align: "left" }], split: "at-two", fill: 0.9, stickers: [{ src: "/plates/czech/sticker-red.png", x: 452, y: 26, w: 86, h: 86, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 452, y: 112, w: 86, h: 86, bit: 2 }] },
+  "czech:single-euro": { src: "/plates/czech/single-euro.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 114, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 975, slots: 1, align: "left" }], split: "at-two", font: "cz", thin: -0.045, condense: 0.86, fill: 0.9, stickers: [{ src: "/plates/czech/sticker-red.png", x: 452, y: 26, w: 86, h: 86, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 452, y: 112, w: 86, h: 86, bit: 2 }] },
+  "czech:single": { src: "/plates/czech/single.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 40, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 975, slots: 1, align: "left" }], split: "at-two", font: "cz", thin: -0.045, condense: 0.86, fill: 0.9, stickers: [{ src: "/plates/czech/sticker-red.png", x: 452, y: 26, w: 86, h: 86, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 452, y: 112, w: 86, h: 86, bit: 2 }] },
   // motorcycle: small plate, region (digit + letter) above, four digits below, one inspection sticker
-  "czech:moto-euro": { src: "/plates/czech/moto-euro.png", w: 328, h: 260, rows: [{ y0: 20, y1: 124, x0: 84, x1: 216, slots: 1, align: "left" }, { y0: 140, y1: 240, x0: 30, x1: 308, slots: 1, align: "left" }], split: "at-two", fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 220, y: 30, w: 82, h: 82, bit: 1 }] },
-  "czech:moto": { src: "/plates/czech/moto.png", w: 328, h: 260, rows: [{ y0: 20, y1: 124, x0: 30, x1: 216, slots: 1, align: "left" }, { y0: 140, y1: 240, x0: 30, x1: 308, slots: 1, align: "left" }], split: "at-two", fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 220, y: 30, w: 82, h: 82, bit: 1 }] },
+  "czech:moto-euro": { src: "/plates/czech/moto-euro.png", w: 328, h: 260, rows: [{ y0: 20, y1: 124, x0: 84, x1: 216, slots: 1, align: "left" }, { y0: 140, y1: 240, x0: 30, x1: 308, slots: 1, align: "left" }], split: "at-two", font: "cz", thin: -0.045, condense: 0.86, fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 220, y: 30, w: 82, h: 82, bit: 1 }] },
+  "czech:moto": { src: "/plates/czech/moto.png", w: 328, h: 260, rows: [{ y0: 20, y1: 124, x0: 30, x1: 216, slots: 1, align: "left" }, { y0: 140, y1: 240, x0: 30, x1: 308, slots: 1, align: "left" }], split: "at-two", font: "cz", thin: -0.045, condense: 0.86, fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 220, y: 30, w: 82, h: 82, bit: 1 }] },
   // US-size plate: region above, number below, stickers in a column at the right
-  "czech:us-euro": { src: "/plates/czech/us-euro.png", w: 1000, h: 497, rows: [{ y0: 44, y1: 232, x0: 170, x1: 780, slots: 1 }, { y0: 262, y1: 456, x0: 140, x1: 780, slots: 1 }], split: "at-two", fill: 0.9, stickers: [{ src: "/plates/czech/sticker-red.png", x: 790, y: 44, w: 104, h: 104, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 790, y: 186, w: 104, h: 104, bit: 2 }] },
-  "czech:us": { src: "/plates/czech/us.png", w: 1000, h: 497, rows: [{ y0: 44, y1: 232, x0: 60, x1: 780, slots: 1 }, { y0: 262, y1: 456, x0: 60, x1: 780, slots: 1 }], split: "at-two", fill: 0.9, stickers: [{ src: "/plates/czech/sticker-red.png", x: 790, y: 44, w: 104, h: 104, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 790, y: 186, w: 104, h: 104, bit: 2 }] },
+  "czech:us-euro": { src: "/plates/czech/us-euro.png", w: 1000, h: 497, rows: [{ y0: 44, y1: 232, x0: 170, x1: 780, slots: 1 }, { y0: 262, y1: 456, x0: 140, x1: 780, slots: 1 }], split: "at-two", font: "cz", thin: -0.045, condense: 0.86, fill: 0.9, stickers: [{ src: "/plates/czech/sticker-red.png", x: 790, y: 44, w: 104, h: 104, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 790, y: 186, w: 104, h: 104, bit: 2 }] },
+  "czech:us": { src: "/plates/czech/us.png", w: 1000, h: 497, rows: [{ y0: 44, y1: 232, x0: 60, x1: 780, slots: 1 }, { y0: 262, y1: 456, x0: 60, x1: 780, slots: 1 }], split: "at-two", font: "cz", thin: -0.045, condense: 0.86, fill: 0.9, stickers: [{ src: "/plates/czech/sticker-red.png", x: 790, y: 44, w: 104, h: 104, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 790, y: 186, w: 104, h: 104, bit: 2 }] },
   // old diplomatic plate: turquoise, yellow lettering
-  "czech:diplomatic-old": { src: "/plates/czech/diplomatic-old.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 40, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 975, slots: 1, align: "left" }], split: "at-two", fill: 0.9, textColor: "#f3b300", stickers: [{ src: "/plates/czech/sticker-red.png", x: 452, y: 26, w: 86, h: 86, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 452, y: 112, w: 86, h: 86, bit: 2 }] },
+  "czech:diplomatic-old": { src: "/plates/czech/diplomatic-old.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 40, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 975, slots: 1, align: "left" }], split: "at-two", font: "cz", thin: -0.045, condense: 0.86, fill: 0.9, textColor: "#f3b300", stickers: [{ src: "/plates/czech/sticker-red.png", x: 452, y: 26, w: 86, h: 86, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 452, y: 112, w: 86, h: 86, bit: 2 }] },
   // export plate: red month grid at the right end
-  "czech:export": { src: "/plates/czech/export.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 40, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 880, slots: 1, align: "left" }], split: "at-two", fill: 0.9, stickers: [{ src: "/plates/czech/sticker-red.png", x: 452, y: 26, w: 86, h: 86, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 452, y: 112, w: 86, h: 86, bit: 2 }] },
+  "czech:export": { src: "/plates/czech/export.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 40, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 880, slots: 1, align: "left" }], split: "at-two", font: "cz", thin: -0.045, condense: 0.86, fill: 0.9, stickers: [{ src: "/plates/czech/sticker-red.png", x: 452, y: 26, w: 86, h: 86, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 452, y: 112, w: 86, h: 86, bit: 2 }] },
   // antique vehicles: green, no stickers
-  "czech:oldtimer-euro": { src: "/plates/czech/oldtimer-euro.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 114, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 975, slots: 1, align: "left" }], split: "at-two", fill: 0.9, textColor: "#1e6e30" },
-  "czech:oldtimer": { src: "/plates/czech/oldtimer.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 40, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 975, slots: 1, align: "left" }], split: "at-two", fill: 0.9, textColor: "#1e6e30" },
-  "czech:two-euro": { src: "/plates/czech/two-euro.png", w: 560, h: 400, rows: [{ y0: 28, y1: 190, x0: 112, x1: 420, slots: 1, align: "left" }, { y0: 212, y1: 378, x0: 112, x1: 520, slots: 1, align: "left" }], split: "at-two", fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 436, y: 22, w: 82, h: 82, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 436, y: 108, w: 82, h: 82, bit: 2 }] },
-  "czech:two": { src: "/plates/czech/two.png", w: 560, h: 400, rows: [{ y0: 28, y1: 190, x0: 40, x1: 420, slots: 1, align: "left" }, { y0: 212, y1: 378, x0: 40, x1: 520, slots: 1, align: "left" }], split: "at-two", fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 436, y: 22, w: 82, h: 82, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 436, y: 108, w: 82, h: 82, bit: 2 }] },
+  "czech:oldtimer-euro": { src: "/plates/czech/oldtimer-euro.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 114, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 975, slots: 1, align: "left" }], split: "at-two", font: "cz", thin: -0.045, condense: 0.86, fill: 0.9, textColor: "#1e6e30" },
+  "czech:oldtimer": { src: "/plates/czech/oldtimer.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 40, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 975, slots: 1, align: "left" }], split: "at-two", font: "cz", thin: -0.045, condense: 0.86, fill: 0.9, textColor: "#1e6e30" },
+  // foreign citizens: sky blue with yellow lettering, or dark blue with orange lettering; no euroband, no stickers
+  "czech:foreign-turq": { src: "/plates/czech/foreign-turq.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 40, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 975, slots: 1, align: "left" }], split: "at-two", font: "cz", thin: -0.045, condense: 0.86, fill: 0.9, textColor: "#f5c400" },
+  "czech:foreign-blue": { src: "/plates/czech/foreign-blue.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 40, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 975, slots: 1, align: "left" }], split: "at-two", font: "cz", thin: -0.045, condense: 0.86, fill: 0.9, textColor: "#e49b2d" },
+  "czech:two-euro": { src: "/plates/czech/two-euro.png", w: 560, h: 400, rows: [{ y0: 28, y1: 190, x0: 112, x1: 420, slots: 1, align: "left" }, { y0: 212, y1: 378, x0: 112, x1: 520, slots: 1, align: "left" }], split: "at-two", font: "cz", thin: -0.045, condense: 0.86, fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 436, y: 22, w: 82, h: 82, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 436, y: 108, w: 82, h: 82, bit: 2 }] },
+  "czech:two": { src: "/plates/czech/two.png", w: 560, h: 400, rows: [{ y0: 28, y1: 190, x0: 40, x1: 420, slots: 1, align: "left" }, { y0: 212, y1: 378, x0: 40, x1: 520, slots: 1, align: "left" }], split: "at-two", font: "cz", thin: -0.045, condense: 0.86, fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 436, y: 22, w: 82, h: 82, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 436, y: 108, w: 82, h: 82, bit: 2 }] },
   // ── Croatia: the supplied plate photo with the lettering removed; the coat of arms is part of the artwork (region on its left, digits on its right). D-DIN lettering. ──
   // two-row car plate: region on top (left of the coat of arms), number below
   "croatia:two-line-euroband": { src: "/plates/croatia/two-euroband.png", w: 1024, h: 700, rows: [{ y0: 76, y1: 326, x0: 220, x1: 790, slots: 1 }, { y0: 346, y1: 626, x0: 50, x1: 974, slots: 1 }], split: "at-two", font: "dd", fill: 0.92, condense: 0.9, tracking: 0.03, thin: -0.02 },
@@ -353,10 +357,14 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
     const t = (plateType ?? "").replace(/-st[0-3]$/, "");
     const mo = t.match(/^cz-moto2001-(?:single|two)(-euro)?$/);
     if (mo) return PLATE_ART[`czech:moto${mo[1] ?? ""}`] ?? null;
-    const old = t.match(/^cz-oldtimer2001-(?:single|two)(-euro)?$/);
+    const old = t.match(/^cz-(?:oldtimer2001|dealer2001)-(?:single|two)(-euro)?$/);      // antique and dealer plates: green
     if (old) return PLATE_ART[`czech:oldtimer${old[1] ?? ""}`] ?? null;
+    const sp = t.match(/^cz-sport2001-(single|two)(-euro)?$/);                          // sportscars: the normal plate with green lettering
+    if (sp) { const a = PLATE_ART[`czech:${sp[1]}${sp[2] ?? ""}`]; return a ? { ...a, textColor: "#1e6e30" } : null; }
     const el = t.match(/^cz-electric-(single|two)(-euro)?$/);          // electric cars: the normal plate, EL + digit + number
     if (el) return PLATE_ART[`czech:${el[1]}${el[2] ?? ""}`] ?? null;
+    const fo = t.match(/^cz-foreign-(turq|blue)$/);
+    if (fo) return PLATE_ART[`czech:foreign-${fo[1]}`] ?? null;
     const us = t.match(/^cz-car2001-us(-euro)?$/);
     if (us) return PLATE_ART[`czech:us${us[1] ?? ""}`] ?? null;
     if (/^cz-(car1992|military)-single$/.test(t)) return PLATE_ART["czech:single"] ?? null;                 // 1992–2001 and military: no euroband
@@ -457,6 +465,11 @@ const AT_PX_TO_EM = (CAP_BOTTOM - CAP_TOP) / AT_CAP_HEIGHT;
 
 /** Rendered width of a text run in em, for the given lettering (condensing included). */
 export function textWidthEm(s: string, font: PlateFont, condense: number = CONDENSE) {
+  if (font === "cz") {                                       // DIN 1451 Breitschrift (Czech plates)
+    let w = 0;
+    for (const ch of s) w += CZ_ADVANCE[ch] ?? CZ_ADVANCE[ACCENT[ch]?.[0] ?? UMLAUT_BASE[ch] ?? ch] ?? 0.6;
+    return w * condense;
+  }
   if (font === "dd") {                                       // D-DIN (Croatian plates)
     let w = 0;
     for (const ch of s) w += DD_ADVANCE[ch] ?? DD_ADVANCE[ACCENT[ch]?.[0] ?? UMLAUT_BASE[ch] ?? ch] ?? 0.55;
@@ -554,7 +567,7 @@ function splitText(rule: SplitRule, text: string): string[] | null {
     return t.length >= 2 ? [t[0], t.slice(1).join(" "), month] : null;
   }
   if (rule === "at-two" || rule === "at-seal") {
-    const m = text.trim().match(/^(\S+)\s+(.+)$/);                                      // "W 12345 A" → W | 12345 A
+    const m = text.trim().match(/^(\S+?)[\s-]+(.+)$/);                                 // "W 12345 A" → W | 12345 A ; "12R-3456" → 12R | 3456
     return m ? [m[1], m[2]] : null;
   }
   if (rule === "seal") {
@@ -626,7 +639,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
 
   if (art) {
     const font = art.font ?? plateFont(key);
-    const capHF = font === "dd" ? DD_CAP_HEIGHT : capH;
+    const capHF = font === "dd" ? DD_CAP_HEIGHT : font === "cz" ? CZ_CAP_HEIGHT : capH;
     const stateSrc = art.stateSeals ? austriaSealFor(printed.split(" ")[0], plateType) : null;
     const s = h / art.h;
     const width = Math.round(art.w * s);
@@ -656,7 +669,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
       const sealD = !mode ? 0 : stateSrc ? sealH * sealAspect(stateSrc) : art.sealAspect ? sealH * art.sealAspect : rowH * SEAL_DIAMETER;
       const gap = mode ? rowH * (row.gap ?? SEAL_GAP) : 0;
       const gaps = mode === "between" ? 2 : mode === "left" || mode === "right" ? 1 : 0;   // gaps touching the seal
-      const ems = texts.map((t) => textWidthEm(art.dots ? t.replace(/-/g, "·") : t, font, art.condense ?? (font === "dd" ? 1 : CONDENSE)) + (art.tracking ?? 0) * [...t].length);
+      const ems = texts.map((t) => textWidthEm(art.dots ? t.replace(/-/g, "·") : t, font, art.condense ?? (font === "dd" || font === "cz" ? 1 : CONDENSE)) + (art.tracking ?? 0) * [...t].length);
       return { row, texts, rowH, mode, sealD, sealH, gap, gaps, ems, avail: (row.x1 - row.x0) * s };
     });
     const fit = (l: (typeof lines)[number]) => Math.min((l.rowH * (art.fill ?? 0.72)) / capHF, (l.avail - l.sealD - l.gaps * l.gap) / Math.max(l.ems.reduce((x, y) => x + y, 0), 0.5));
@@ -688,7 +701,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
       }
       l.texts.forEach((text, i) => {
         // Belgian lettering has no slashed zero: use the plain O
-        runs.push({ text: key === "belgium" ? text.replace(/0/g, "O") : art.dots ? text.replace(/-/g, "·") : text, x0: x, x1: x + widths[i], align: "left", fontSize: fs, centerY, tracking: (art.tracking ?? 0) + fillTrack, condense: art.condense ?? (font === "dd" ? 1 : undefined), thin: art.thin, ...(font === "dd" ? { capTop: -DD_CAP_HEIGHT, capBottom: 0 } : {}) });
+        runs.push({ text: key === "belgium" ? text.replace(/0/g, "O") : art.dots ? text.replace(/-/g, "·") : text, x0: x, x1: x + widths[i], align: "left", fontSize: fs, centerY, tracking: (art.tracking ?? 0) + fillTrack, condense: art.condense ?? (font === "dd" || font === "cz" ? 1 : undefined), thin: art.thin, ...(font === "dd" ? { capTop: -DD_CAP_HEIGHT, capBottom: 0 } : font === "cz" ? { capTop: -CZ_CAP_HEIGHT, capBottom: 0 } : {}) });
         x += widths[i];
         if (l.mode === "right" && i === l.texts.length - 1) {                 // text then ●
           seals.push({ cx: x + l.gap + l.sealD / 2, cy: centerY, d: l.sealD, h: l.sealH || undefined, src: stateSrc ?? undefined });

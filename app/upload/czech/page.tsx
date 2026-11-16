@@ -126,6 +126,8 @@ const DIGITS_0_9 = ["0","1","2","3","4","5","6","7","8","9"];
 const DEALER_LETTERS = ["A","B","C","E","H","J","K","L","M","P","S","T","U","X","Z"];
 const OPT_CHARS = ["", ...Array.from("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), ...Array.from("0123456789")];
 
+const AVAILABLE: CzechCategoryId[] = ["car2001", "moto2001", "dealer2001", "sport2001", "oldtimer2001", "electric", "diplomatic", "military", "export", "car1992", "foreign"];
+
 export default function CzechUploadPage() {
   const router = useRouter();
   const [category, setCategory] = useState<CzechCategoryId>("car2001");
@@ -185,8 +187,8 @@ export default function CzechUploadPage() {
   const plateTypeStored = useMemo(() => baseType + stickerSuffix, [baseType, stickerSuffix]);
   const locationWarning = useMemo(() => { if (!location.trim()) return ""; return locationTooExact(locationOf(location)) ? "Keep it broad — city or area only." : ""; }, [location]);
   const is1960 = ["car1960","moto1960","commercial1960","agricultural1960","trailer1977"].includes(category);
-  const is2001RegionBased = ["car2001","moto2001","dealer2001","sport2001","oldtimer2001","electric","foreign"].includes(category);
-  const isFreeText = ["vanity","export","military","car1992"].includes(category);
+  const is2001RegionBased = ["car2001","moto2001","dealer2001","sport2001","oldtimer2001","electric"].includes(category);
+  const isFreeText = ["vanity","export","military","car1992","foreign"].includes(category);
   const isDiplomatic = category === "diplomatic";
   const canSubmit = !!file && !fileError && plateText.trim().length >= 2 && location.trim().length >= 2 && !locationWarning && status === "idle";
 
@@ -305,34 +307,26 @@ export default function CzechUploadPage() {
             </div>
           )}
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
+          <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
             <form onSubmit={handleSubmit} className="space-y-6">
 
-              {/* Category selector */}
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-4">
-                <span className="text-sm font-medium text-zinc-200">Plate type</span>
-                {[...CZECH_CATEGORY_GROUPS, { id: "special", label: "Special", ids: CZECH_CATEGORIES.filter((c) => c.group === "special").map((c) => c.id) as CzechCategoryId[] }].map((group) => {
-                  const cats = CZECH_CATEGORIES.filter((c) => group.ids.includes(c.id));
-                  if (!cats.length) return null;
-                  return (
-                    <div key={group.id}>
-                      <p className="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-2">{group.label}</p>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        {cats.map((cat) => (
-                          <button key={cat.id} type="button" onClick={() => setCategory(cat.id)}
-                            className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${
-                              category === cat.id ? "border-indigo-600 bg-indigo-950/50 text-indigo-200" : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
-                            }`}>
-                            <span className="text-base shrink-0">{cat.emoji}</span>
-                            <span className="font-medium leading-snug">{cat.label}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
+              {/* Category selector: only plates that have artwork */}
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
+                <span className="text-sm font-medium text-zinc-200">Which plate is it?</span>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {CZECH_CATEGORIES.filter((c) => AVAILABLE.includes(c.id)).map((cat) => (
+                    <button key={cat.id} type="button" onClick={() => setCategory(cat.id)} aria-pressed={category === cat.id}
+                      className={`flex flex-col items-center gap-2 rounded-xl border px-3 py-3 text-center text-sm transition-all ${
+                        category === cat.id ? "border-indigo-600 bg-indigo-950/50 text-indigo-200" : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
+                      }`}>
+                      <span className="block h-[44px] w-full overflow-hidden text-center leading-[44px]">
+                        <PlateBadge country="czech" text={cat.example} plateType={`cz-${cat.id}-${CZECH_FORMATS[cat.id][0]?.id ?? "single"}`} size="md" />
+                      </span>
+                      <span className="font-medium leading-snug">{cat.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-
               {/* Category hint */}
               <div className="rounded-xl border border-zinc-800/60 bg-zinc-900/20 px-4 py-3 text-sm text-zinc-400 leading-relaxed">
                 <span className="mr-2">{selectedCat.emoji}</span>
@@ -342,40 +336,6 @@ export default function CzechUploadPage() {
 
               {/* Main fields */}
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-5">
-                {/* Photo */}
-                <div>
-                  <span className="block text-sm text-zinc-300 mb-2">Photo <span className="text-zinc-600 text-xs">(JPG or PNG, max 8 MB)</span></span>
-                  <label
-                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                    onDragLeave={() => setIsDragging(false)}
-                    onDrop={onDrop}
-                    className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden ${
-                      isDragging ? "border-zinc-400 bg-zinc-800/60" : fileError ? "border-red-800 bg-red-950/20" : "border-zinc-700 bg-zinc-950/40 hover:border-zinc-500"
-                    }`}
-                    style={{ minHeight: preview ? "auto" : "150px" }}>
-                    {preview ? (
-                      <div className="relative w-full group">
-                        <ZoomImage src={preview} alt="Preview" className="rounded-xl" />
-                        <button type="button" onClick={(e) => { e.preventDefault(); handleFileSelect(null); }}
-                          className="absolute top-2 right-2 rounded-lg bg-zinc-900/80 px-2 py-1 text-xs text-zinc-400 opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-400">Remove</button>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center gap-2 p-8 text-center">
-                        <span className="text-2xl">📷</span>
-                        <p className="text-sm text-zinc-400">Drop image here or click to browse</p>
-                      </div>
-                    )}
-                    <input type="file" accept="image/jpeg,image/png" className="sr-only" onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)} />
-                  </label>
-                  {fileError && <p className="mt-1 text-xs text-red-400">{fileError}</p>}
-                  {file && !fileError && (
-                    <div className="mt-2">
-                      <OcrHint file={file} onSuggest={(text: string) => { if (isFreeText) setCustom(text.replace(/\s+/g,"").toUpperCase().slice(0,9)); }} />
-                    </div>
-                  )}
-                </div>
-                <div className="border-t border-zinc-800" />
-
                 {/* Plate fields */}
                 <div>
                   <span className="block text-sm text-zinc-300 mb-3">Plate number</span>
@@ -599,18 +559,45 @@ export default function CzechUploadPage() {
               </button>
             </form>
 
-            {/* Right sidebar */}
-            <div className="space-y-4">
-              <div className={`rounded-2xl border p-6 text-center ${previewBg}`}>
-                {hasStickers ? (
-                  <div className="flex justify-center">
-                    <PlateBadge country="czech" text={plateText.trim() || selectedCat.example} plateType={plateTypeStored} size="xl" />
-                  </div>
-                ) : (
-                <div className={`font-mono text-3xl font-bold tracking-widest ${previewTextColor}`}>
-                  {plateText.trim() || selectedCat.example}
+            {/* Right sidebar: photo + live plate, stays in view while scrolling */}
+            <div className="space-y-4 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:self-start lg:overflow-y-auto">
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
+                <div>
+                  <span className="block text-sm text-zinc-300 mb-2">Photo <span className="text-zinc-600 text-xs">(JPG or PNG, max 8 MB)</span></span>
+                  <label
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={onDrop}
+                    className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden ${
+                      isDragging ? "border-zinc-400 bg-zinc-800/60" : fileError ? "border-red-800 bg-red-950/20" : "border-zinc-700 bg-zinc-950/40 hover:border-zinc-500"
+                    }`}
+                    style={{ minHeight: preview ? "auto" : "150px" }}>
+                    {preview ? (
+                      <div className="relative w-full group">
+                        <ZoomImage src={preview} alt="Preview" className="rounded-xl" />
+                        <button type="button" onClick={(e) => { e.preventDefault(); handleFileSelect(null); }}
+                          className="absolute top-2 right-2 rounded-lg bg-zinc-900/80 px-2 py-1 text-xs text-zinc-400 opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-400">Remove</button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2 p-8 text-center">
+                        <span className="text-2xl">📷</span>
+                        <p className="text-sm text-zinc-400">Drop image here or click to browse</p>
+                      </div>
+                    )}
+                    <input type="file" accept="image/jpeg,image/png" className="sr-only" onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)} />
+                  </label>
+                  {fileError && <p className="mt-1 text-xs text-red-400">{fileError}</p>}
+                  {file && !fileError && (
+                    <div className="mt-2">
+                      <OcrHint file={file} onSuggest={(text: string) => { if (isFreeText) setCustom(text.replace(/\s+/g,"").toUpperCase().slice(0,9)); }} />
+                    </div>
+                  )}
                 </div>
-                )}
+              </div>
+              <div className={`rounded-2xl border p-6 text-center ${previewBg}`}>
+                <div className="flex justify-center">
+                  <PlateBadge country="czech" text={plateText.trim() || selectedCat.example} plateType={plateTypeStored} size="xl" />
+                </div>
                 {hasStickers && (
                   <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs">
                     <button type="button" aria-pressed={stickerTop} onClick={() => setStickerTop((v) => !v)}
