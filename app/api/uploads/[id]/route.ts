@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { normalisePlateText } from "@/app/lib/plateText";
 import { cookies } from "next/headers";
 import { UTApi } from "uploadthing/server";
 import { prisma } from "@/app/lib/prisma";
@@ -58,7 +59,7 @@ export async function PATCH(
 
   // Admin-only: plate identity + country + location
   const newPlateText   = (isAdmin || isOwner) && typeof body.plateText === "string" && body.plateText.trim()
-    ? body.plateText.trim().toUpperCase().slice(0, 32) : undefined;
+    ? normalisePlateText(typeof body.country === "string" && isAdmin ? body.country : before.country, body.plateText).slice(0, 32) : undefined;
   const newPlateType   = (isAdmin || isOwner) && body.plateType !== undefined
     ? (typeof body.plateType === "string" && body.plateType.trim() ? body.plateType.trim().slice(0, 60) : null) : undefined;
   const newPlateRegion = (isAdmin || isOwner) && body.plateRegion !== undefined

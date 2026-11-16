@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
+import { plateTextVariants } from "@/app/lib/plateText";
 
 // GET /api/uploads/check?plateText=XX&country=albania
 // Returns the first non-deleted spot matching that plate+country, or null
@@ -13,7 +14,7 @@ export async function GET(req: Request) {
   }
 
   const spot = await prisma.upload.findFirst({
-    where: { plateText, country, deletedAt: null },
+    where: { plateText: { in: plateTextVariants(country, plateText) }, country, deletedAt: null },
     orderBy: { createdAt: "asc" },
     select: {
       numericId: true,

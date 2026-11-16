@@ -11,6 +11,7 @@ import TimeAgo from "@/app/components/TimeAgo";
 import GenerationLink from "@/app/components/GenerationLink";
 import { codeSlug, platformOf } from "@/app/lib/chassis";
 import EditSpotDetails from "./EditSpotDetails";
+import { plateTextVariants } from "@/app/lib/plateText";
 import { DescriptionText } from "@/app/components/DescriptionInput";
 import PinButton from "@/app/components/PinButton";
 import AddToRoadTripButton from "./AddToRoadTripButton";
@@ -206,7 +207,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
   const [otherSightings, moreFromCountry, moreFromModel, ownerPinned] = await Promise.all([
   // Other sightings of the same plate
   prisma.upload.findMany({
-    where: { plateText: upload.plateText, country: upload.country, deletedAt: null, NOT: { id: upload.id } },
+    where: { plateText: { in: plateTextVariants(upload.country, upload.plateText) }, country: upload.country, deletedAt: null, NOT: { id: upload.id } },
     orderBy: { createdAt: "asc" },
     take: 12,
     select: {

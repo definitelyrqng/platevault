@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { normalisePlateText, plateTextVariants } from "@/app/lib/plateText";
 import { prisma } from "@/app/lib/prisma";
 import { getSessionUserWithBanCheck } from "@/app/lib/banCheck";
 import { logNewUpload } from "@/app/lib/discord";
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     const country   = String(body.country ?? "").trim().toLowerCase();
-    const plateText = String(body.plateText ?? "").trim().toUpperCase();
+    const plateText = normalisePlateText(String(body.country ?? ""), String(body.plateText ?? ""));
     const plateType = optStr(body.plateType, 60);
     const imageUrl  = String(body.imageUrl ?? "").trim();
 
@@ -69,7 +70,7 @@ export async function POST(req: Request) {
     }
 
     const existingSpot = await prisma.upload.findFirst({
-      where: { plateText, country, deletedAt: null },
+      where: { plateText: { in: plateTextVariants(country, plateText) }, country, deletedAt: null },
       orderBy: { createdAt: "asc" },
       select: { id: true, numericId: true, userId: true, plateText: true },
     });
