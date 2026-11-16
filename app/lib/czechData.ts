@@ -279,9 +279,8 @@ export const CZECH_FORMATS: Record<CzechCategoryId, CzechPlateFormat[]> = {
   ],
   electric: [
     { id: "single-euro",   label: "Single-line + euroband" },
-    { id: "single",        label: "Single-line" },
     { id: "two-euro",      label: "Two-line + euroband" },
-    { id: "two",           label: "Two-line" },
+    { id: "us-euro",       label: "US-style + euroband" },
   ],
   vanity:      [{ id: "single", label: "Single-line" }],
   diplomatic:  [{ id: "single-euro", label: "New system (blue, with euroband)" }, { id: "single", label: "Old system (turquoise, no euroband)" }],
@@ -378,12 +377,12 @@ export function buildCzechPlateText(
     case "sport2001": {
       const rn = f.regionNum ?? "";
       const n4 = f.fourDigits ?? "";
-      return `${rn}R-${n4}`.trim().toUpperCase();
+      return (n4 ? `${rn}R-${n4}` : `${rn}R`).toUpperCase();      // the dash only separates the two halves of the plate
     }
     case "oldtimer2001": {
       const rn = f.regionNum ?? "";
       const n4 = f.fourDigits ?? "";
-      return `${rn}V-${n4}`.trim().toUpperCase();
+      return (n4 ? `${rn}V-${n4}` : `${rn}V`).toUpperCase();
     }
     case "electric": {
       const ed = f.elDigit ?? "";

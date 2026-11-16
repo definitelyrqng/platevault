@@ -89,6 +89,22 @@ async function clean(file, out, white, stickerBoxes) {
     await sharp(path.join(OUT, "single.png")).composite([{ input: Buffer.from(svg) }]).png().toFile(path.join(OUT, "export.png"));
   }
 
+  // antique plates, two-row and US-size: green frame, two embossed rings where the stickers would be
+  for (const [from, to, W, H, rings] of [
+    ["two-euro.png", "oldtimer-two-euro.png", 560, 400, [[477, 63, 41], [477, 149, 41]]],
+    ["two.png", "oldtimer-two.png", 560, 400, [[477, 63, 41], [477, 149, 41]]],
+    ["us-euro.png", "oldtimer-us-euro.png", 1000, 497, [[842, 96, 52], [842, 238, 52]]],
+    ["us.png", "oldtimer-us.png", 1000, 497, [[842, 96, 52], [842, 238, 52]]],
+  ]) {
+    const { data, info } = await sharp(path.join(OUT, from)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] === 0) continue;
+      const lum = (data[i] + data[i + 1] + data[i + 2]) / 3, neutral = Math.abs(data[i] - data[i + 1]) < 25 && Math.abs(data[i + 1] - data[i + 2]) < 25;
+      if (neutral && lum < 120) { data[i] = 30; data[i + 1] = 110; data[i + 2] = 48; }
+    }
+    const svg = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${rings.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="#d9d9d9" stroke-width="3"/>`).join("")}</svg>`);
+    await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).composite([{ input: svg }]).png().toFile(path.join(OUT, to));
+  }
   // foreign citizens: sky-blue plate with yellow lettering (one embossed ring) and a dark-blue one with orange lettering
   for (const [to, face, frame, ring] of [["foreign-turq.png", [45, 168, 224], [245, 196, 0], true], ["foreign-blue.png", [29, 79, 157], [228, 155, 45], false]]) {
     const { data, info } = await sharp(path.join(OUT, "single.png")).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
