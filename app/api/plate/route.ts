@@ -3,13 +3,14 @@ import path from "node:path";
 import sharp from "sharp";
 import opentype from "opentype.js";
 import {
-  plateLayout, runStartX, CAP_TOP as CAP_TOP_FE, CAP_BOTTOM as CAP_BOTTOM_FE, CONDENSE, STROKE, UMLAUT_BASE, ACCENT, AL_SIDE_BEARING, AL_SPACE, AT_SIDE_BEARING, AT_SPACE, AT47_SIDE_BEARING, AT47_SPACE, BA_SIDE_BEARING, BA_SPACE, BG_SIDE_BEARING, BG_SPACE, glyphKeys47, type TextRun, type PlateFont,
+  plateLayout, runStartX, CAP_TOP as CAP_TOP_FE, CAP_BOTTOM as CAP_BOTTOM_FE, CONDENSE, STROKE, UMLAUT_BASE, ACCENT, AL_SIDE_BEARING, AL_SPACE, AT_SIDE_BEARING, AT_SPACE, AT47_SIDE_BEARING, AT47_SPACE, BA_SIDE_BEARING, BA_SPACE, BG_SIDE_BEARING, BG_SPACE, CZ_SIDE_BEARING, CZ_SPACE, glyphKeys47, type TextRun, type PlateFont,
 } from "@/app/lib/plateLayout";
 import albaniaFont from "@/app/lib/albaniaFont.json";
 import austriaFont from "@/app/lib/austriaFont.json";
 import austria1947Font from "@/app/lib/austria1947Font.json";
 import bosniaFont from "@/app/lib/bosniaFont.json";
 import bulgariaFont from "@/app/lib/bulgariaFont.json";
+import czechFont from "@/app/lib/czechFont.json";
 
 /**
  * GET /api/plate?c=<country>&t=<plate text>&h=<height px>[&p=<plateType>]
@@ -37,15 +38,6 @@ function getDD() {
     opentype.parse(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength)),
   );
   return ddPromise;
-}
-
-let czPromise: Promise<opentype.Font> | null = null;
-/** DIN 1451 Breitschrift — the Czech plate lettering. */
-function getCZ() {
-  czPromise ??= readFile(path.join(process.cwd(), "assets/fonts/DIN1451-36breit.ttf")).then((buf) =>
-    opentype.parse(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength)),
-  );
-  return czPromise;
 }
 
 const artCache = new Map<string, Promise<string>>();
@@ -133,8 +125,8 @@ function runSvg(font: opentype.Font, run: TextRun, color = "#111") {
 }
 
 /** SVG for one run in the traced Albanian plate lettering (see scripts/build-albania-font.cjs). */
-function runSvgTraced(run: TextRun, color: string, which: "al" | "at" | "at47" | "ba" | "bg") {
-  const [source, bearing, space] = which === "bg" ? [bulgariaFont, BG_SIDE_BEARING, BG_SPACE] : which === "ba" ? [bosniaFont, BA_SIDE_BEARING, BA_SPACE] : which === "at47" ? [austria1947Font, AT47_SIDE_BEARING, AT47_SPACE] : which === "at" ? [austriaFont, AT_SIDE_BEARING, AT_SPACE] : [albaniaFont, AL_SIDE_BEARING, AL_SPACE];
+function runSvgTraced(run: TextRun, color: string, which: "al" | "at" | "at47" | "ba" | "bg" | "cz") {
+  const [source, bearing, space] = which === "cz" ? [czechFont, CZ_SIDE_BEARING, CZ_SPACE] : which === "bg" ? [bulgariaFont, BG_SIDE_BEARING, BG_SPACE] : which === "ba" ? [bosniaFont, BA_SIDE_BEARING, BA_SPACE] : which === "at47" ? [austria1947Font, AT47_SIDE_BEARING, AT47_SPACE] : which === "at" ? [austriaFont, AT_SIDE_BEARING, AT_SPACE] : [albaniaFont, AL_SIDE_BEARING, AL_SPACE];
   const { text, fontSize, centerY } = run;
   const { capHeight, glyphs } = source as {
     capHeight: number;
@@ -198,11 +190,11 @@ export async function GET(req: Request) {
   }
 
   const color = layout.art?.textColor ?? "#111";
-  const dd = layout.font === "dd" ? await getDD() : layout.font === "cz" ? await getCZ() : null;
-  const runs = layout.runs.map((r) => layout.font === "dd" || layout.font === "cz"
+  const dd = layout.font === "dd" ? await getDD() : null;
+  const runs = layout.runs.map((r) => layout.font === "dd"
     ? runSvg(dd!, r, color)
     : layout.font !== "fe"
-    ? runSvgTraced(r, color, layout.font as Exclude<PlateFont, "fe" | "dd" | "cz">)
+    ? runSvgTraced(r, color, layout.font as Exclude<PlateFont, "fe" | "dd">)
     : runSvg(font, r, color)).join("");
   let stickers = "";
   if (layout.stickers.length) {
