@@ -26,6 +26,16 @@ for (cx, cy, x0, y0, x1, y1) in [(1904 - R, 16 + R, 1904 - R, 16, 1904, 16 + R),
                 face.putpixel((x, y), (0, 0, 0, 255))
 face.save(os.path.join(OUT, "single.png"))
 
+# shortened plates: the same plate with a slice cut out of the middle of the white face (lengths in mm as the shops offer them)
+PX_PER_MM = W / 520
+for L in (480, 460, 440, 420, 400, 380, 360, 340):
+    cut = round((520 - L) * PX_PER_MM)
+    c0, c1 = 1000, 1000 + cut
+    short = Image.new("RGBA", (W - cut, H), (0, 0, 0, 0))
+    short.paste(face.crop((0, 0, c0, H)), (0, 0))
+    short.paste(face.crop((c1, 0, W, H)), (c0, 0))
+    short.save(os.path.join(OUT, f"short-{L}.png"))
+
 # seals: sticker (centre 647,112 r67) over seal (centre 647,285 r79)
 def circle_crop(cx, cy, r):
     box = (cx - r, cy - r, cx + r, cy + r)

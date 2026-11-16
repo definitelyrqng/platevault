@@ -170,6 +170,7 @@ export default function GermanyUploadPage() {
   // inspection sticker (HU) on the plate: its year (= colour), or none on front plates
   const [huYear, setHuYear] = useState("25");
   const [frontPlate, setFrontPlate] = useState(false);
+  const [plateMm, setPlateMm] = useState("520");              // plate length in mm (shortened plates for short registrations)
 
   // ── Region-based fields
   const [regionCode, setRegionCode]   = useState("");
@@ -293,8 +294,8 @@ export default function GermanyUploadPage() {
     if (category === "red") return `de-red-${redCode}`;
     if (category === "federal") return `de-federal-${federalSub}`;
     const base = `de-${category}-${plateFormat}`;
-    return HU_TYPES.test(base) ? `${base}-hu${frontPlate ? "0" : huYear}` : base;
-  }, [category, plateFormat, redCode, federalSub, huYear, frontPlate]);
+    return HU_TYPES.test(base) ? `${base}${plateMm !== "520" ? `-w${plateMm}` : ""}-hu${frontPlate ? "0" : huYear}` : base;
+  }, [category, plateFormat, redCode, federalSub, huYear, frontPlate, plateMm]);
   const drawn = HU_TYPES.test(`de-${category}-${plateFormat}`);               // the plate kinds we have artwork for
 
   const plateTypeLabel = PLATE_TYPE_LABELS[plateTypeStored] ?? plateTypeStored;
@@ -609,6 +610,12 @@ export default function GermanyUploadPage() {
                 {/* ── Inspection sticker (HU) ── */}
                 {drawn && (
                   <div>
+                    <label className="mb-3 flex items-center gap-2 text-sm text-zinc-300">
+                      Plate size
+                      <select value={plateMm} onChange={(e) => setPlateMm(e.target.value)} className="rounded-lg border border-zinc-800 bg-zinc-950 px-2 py-1 text-sm text-zinc-100 outline-none focus:border-zinc-600">
+                        {["520", "480", "460", "440", "420", "400", "380", "360", "340"].map((mm) => <option key={mm} value={mm}>{mm} × 110 mm</option>)}
+                      </select>
+                    </label>
                     <span className="block text-sm text-zinc-300 mb-2">Inspection sticker <span className="text-zinc-600 text-xs">(optional)</span></span>
                     <label className="mb-2 flex items-center gap-2 text-xs text-zinc-400">
                       <input type="checkbox" checked={frontPlate} onChange={(e) => setFrontPlate(e.target.checked)} className="accent-indigo-500" />

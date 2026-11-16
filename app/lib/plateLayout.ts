@@ -317,6 +317,13 @@ export const PLATE_ART: Record<string, PlateArt> = {
   "austria:export-two": { src: "/plates/austria/export-two.png", w: 540, h: 400, rows: [{ y0: 22, y1: 195, x0: 40, x1: 500, slots: 1 }, { y0: 200, y1: 376, x0: 40, x1: 365, slots: 1 }], split: "at-two", textColor: "#fff" },
 };
 
+// Germany: shortened plates (480 … 340 mm) — the 520 mm plate with a slice cut from the middle of the face (scripts/build-germany-art.py)
+for (const mm of [480, 460, 440, 420, 400, 380, 360, 340]) {
+  const base = PLATE_ART["germany:single"];
+  const cut = Math.round(((520 - mm) * base.w) / 520);
+  PLATE_ART[`germany:w${mm}`] = { ...base, src: `/plates/germany/short-${mm}.png`, w: base.w - cut, rows: base.rows.map((r) => ({ ...r, x1: r.x1 - cut })) };
+}
+
 /**
  * Austrian plate types are "at-<category>-<format>" (see austriaData.ts); they share a
  * handful of backgrounds. Returns the PLATE_ART key, or null (mopeds → neutral chip).
@@ -403,7 +410,7 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
   }
   if (key === "germany") {
     // single-row plates of the ordinary kinds (E, H, seasonal and exchange plates look the same); the other kinds are not drawn yet
-    return !plateType || /^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)(-single)?(-hu(\d\d|0))?$/.test(plateType) ? PLATE_ART["germany:single"] ?? null : null;
+    return !plateType || /^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)(-single)?(-w\d{3})?(-hu(\d\d|0))?$/.test(plateType) ? PLATE_ART[`germany:${(plateType ?? "").match(/-w(\d{3})/)?.[0].slice(1) ?? "single"}`] ?? PLATE_ART["germany:single"] ?? null : null;
   }
   if (key === "austria") {
     const k = austriaArtKey(plateType);

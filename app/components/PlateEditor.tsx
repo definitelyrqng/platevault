@@ -27,10 +27,13 @@ export default function PlateEditor({ value, onChange, canMove }: {
 }) {
   const options = useMemo(() => plateTypeOptions(value.country), [value.country]);
   const huMatch = value.plateType.match(/^(.*)-hu(\d\d|0)$/);                          // German plates: "-hu24" = inspection sticker of 2024, "-hu0" = none (front plate)
-  const split = splitSticker(huMatch ? huMatch[1] : value.plateType);
+  const wMatch = (huMatch ? huMatch[1] : value.plateType).match(/^(.*?)-w(\d{3})$/);            // German plates: "-w460" = shortened to 460 mm
+  const split = splitSticker(wMatch ? wMatch[1] : huMatch ? huMatch[1] : value.plateType);
   const base = split.base === "cz-vanity-single" ? "cz-vanity-single-euro" : split.base;
   const isDeHu = value.country === "germany" && /^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-single$/.test(base);
-  const huVal = huMatch ? huMatch[2] : "25";      // older vanity spots were saved without the euroband suffix
+  const huVal = huMatch ? huMatch[2] : "25";
+  const mm = wMatch ? wMatch[2] : "520";
+  const deType = (w: string, hu: string) => `${base}${w !== "520" ? `-w${w}` : ""}-hu${hu}`;      // older vanity spots were saved without the euroband suffix
   const mask = split.mask;
   const art = plateArtFor(value.country, base);
   const stickers = art?.stickers ?? [];
@@ -81,15 +84,19 @@ export default function PlateEditor({ value, onChange, canMove }: {
 
       {isDeHu && (
         <div>
+          <span className={LABEL}>Plate size</span>
+          <select className={INPUT + " mb-3"} value={mm} onChange={(e) => onChange({ ...value, plateType: deType(e.target.value, huVal) })}>
+            {["520", "480", "460", "440", "420", "400", "380", "360", "340"].map((w) => <option key={w} value={w}>{w} × 110 mm</option>)}
+          </select>
           <span className={LABEL}>Inspection sticker</span>
           <label className="mb-2 flex items-center gap-2 text-xs text-zinc-400">
-            <input type="checkbox" checked={huVal === "0"} onChange={(e) => onChange({ ...value, plateType: `${base}-hu${e.target.checked ? "0" : "25"}` })} className="accent-indigo-500" />
+            <input type="checkbox" checked={huVal === "0"} onChange={(e) => onChange({ ...value, plateType: deType(mm, e.target.checked ? "0" : "25") })} className="accent-indigo-500" />
             Front plate — no inspection sticker, only the state seal
           </label>
           {huVal !== "0" && (
             <div className="flex flex-wrap gap-1.5 text-xs">
               {["19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31"].map((y) => (
-                <button key={y} type="button" aria-pressed={huVal === y} onClick={() => onChange({ ...value, plateType: `${base}-hu${y}` })}
+                <button key={y} type="button" aria-pressed={huVal === y} onClick={() => onChange({ ...value, plateType: deType(mm, y) })}
                   className={`flex items-center gap-1.5 rounded-lg border px-2 py-1 transition-colors ${huVal === y ? "border-indigo-500 bg-indigo-950/50 text-indigo-200" : "border-zinc-800 text-zinc-400 hover:border-zinc-600"}`}>
                   <span className="inline-block h-3 w-3 rounded-full" style={{ background: ["#1ab0ee", "#f5ef12", "#d85c4c", "#f7a0b8", "#18b082", "#e89000"][((Number(y) - 20) % 6 + 6) % 6] }} />
                   20{y}
