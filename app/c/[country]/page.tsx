@@ -129,7 +129,9 @@ export default async function CountryPage({
   // plate types the upload form offers but nobody has spotted yet
   for (const e of catalogPlateTypes(country) ?? []) {
     const label = plateTypeLabel(country, e.type) ?? e.type;
-    if (!chips.some((c) => c.label === label)) chips.push({ label, types: [e.type], count: 0, sample: e.sample });
+    const have = chips.find((c) => c.label === label);
+    if (have) have.sample = e.sample;                // tiles show our example plate, not somebody's real one
+    else chips.push({ label, types: [e.type], count: 0, sample: e.sample });
   }
   const chipActive = (c: { types: string[] }) =>
     selectedTypes.length > 0 && selectedTypes.every((t) => c.types.includes(t));
