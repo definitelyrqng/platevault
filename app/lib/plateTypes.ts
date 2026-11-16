@@ -2,6 +2,7 @@ import { BELGIUM_CATEGORIES, parseBelgiumPlateType } from "./belgiumData";
 import { BOSNIA_CATEGORIES, parseBosniaPlateType } from "./bosniaData";
 import { BULGARIA_CATEGORIES, parseBulgariaPlateType } from "./bulgariaData";
 import { CROATIA_CATEGORIES, parseCroatiaPlateType } from "./croatiaData";
+import { CZECH_CATEGORIES, CZECH_FORMATS, type CzechCategoryId } from "./czechData";
 /**
  * Short, human-friendly plate type names for badges, filter chips and links.
  *
@@ -70,8 +71,21 @@ const COUNTRY_PREFIX = /^(de|at|al|be|ba|bg|hr|cz)-/i;
 
 export function plateTypeLabel(country: string, type: string | null | undefined): string | null {
   if (!type) return null;
-  // Czech plates may end in "-st0..3" (which inspection stickers are on the plate) — not part of the type
-  if (country.toLowerCase() === "czech") type = type.replace(/-st[0-3]$/, "");
+  // Czech plates: "cz-<category>-<layout>", optionally ending in "-st0..3" (which inspection stickers are on the plate)
+  if (country.toLowerCase() === "czech") {
+    const t = type.replace(/-st[0-3]$/, "");
+    const m = t.match(/^cz-([a-z0-9]+)-(single|two|us|turq|blue)(-euro)?$/);
+    if (m) {
+      const [, catId, layout, euro] = m;
+      if (catId === "testing") return "Testing" + (layout === "two" ? " · Two-line" : "") + (euro ? "" : " · No euroband");
+      const cat = CZECH_CATEGORIES.find((c) => c.id === catId);
+      if (cat) {
+        const hasEuro = (CZECH_FORMATS[cat.id as CzechCategoryId] ?? []).some((f) => f.id.endsWith("-euro"));
+        return cat.label + (layout === "two" ? " · Two-line" : layout === "us" ? " · US-size" : "") + (hasEuro && !euro ? " · No euroband" : "");
+      }
+    }
+    type = t;
+  }
   if (country.toLowerCase() === "croatia") {
     const { category, format } = parseCroatiaPlateType(type);
     if (category) {

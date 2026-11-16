@@ -2,6 +2,7 @@ import { BOSNIA_CATEGORIES, BOSNIA_FORMATS_FOR } from "./bosniaData";
 import { BELGIUM_CATEGORIES, BELGIUM_FORMATS_FOR } from "./belgiumData";
 import { BULGARIA_CATEGORIES, BULGARIA_FORMATS_FOR } from "./bulgariaData";
 import { CROATIA_CATEGORIES } from "./croatiaData";
+import { CZECH_CATEGORIES, CZECH_FORMATS, type CzechCategoryId } from "./czechData";
 
 /**
  * Every plate type a country's upload form offers, with a sample plate text, so the country page
@@ -11,6 +12,13 @@ export function catalogPlateTypes(country: string): { type: string; sample: stri
   switch (country.toLowerCase()) {
     case "bosnia":
       return BOSNIA_CATEGORIES.flatMap((c) => BOSNIA_FORMATS_FOR[c.id].map((f) => ({ type: `${c.id}__${f}`, sample: c.example })));
+    case "czech": {      // the first layout of every type, and all layouts of the regular car
+      const ids: CzechCategoryId[] = ["car2001", "moto2001", "dealer2001", "sport2001", "oldtimer2001", "electric", "vanity", "diplomatic", "military", "export", "car1992", "foreign"];
+      return CZECH_CATEGORIES.filter((c) => ids.includes(c.id)).flatMap((c) => {
+        const fmts = CZECH_FORMATS[c.id] ?? [];
+        return (c.id === "car2001" ? fmts : fmts.slice(0, 1)).map((f) => ({ type: `cz-${c.id}-${f.id}`, sample: c.example }));
+      });
+    }
     case "croatia":     // the types that have artwork so far
       return CROATIA_CATEGORIES.filter((c) => ["regular", "foreign", "exceptional", "motorcycle", "vanity", "dealer", "oldtimer", "military", "export", "police", "diplomatic"].includes(c.id))
         .flatMap((c) => (c.id === "motorcycle" ? ["triple-row-euroband", "triple-row"] : ["regular", "foreign", "exceptional"].includes(c.id) ? ["single-line-euroband", "single-line", "two-line-euroband", "two-line"] : ["single-line-euroband", "single-line"])
