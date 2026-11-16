@@ -43,6 +43,7 @@ export const ALL_TAGS: TagDef[] = [
   { id: "tanker",             label: "Tanker",              group: "Heavy & Work" },
   { id: "food-truck",         label: "Food truck",          group: "Heavy & Work" },
   { id: "tractor",            label: "Tractor",             group: "Heavy & Work" },
+  { id: "adr",                label: "Hazmat truck",        group: "Heavy & Work" },
 
   // Two Wheels & More
   { id: "motorcycle",         label: "Motorcycle",          group: "Two Wheels & More" },
@@ -76,6 +77,7 @@ export const ALL_TAGS: TagDef[] = [
   { id: "tampered-plate",     label: "Altered plate",       group: "Plate Quirks" },
   { id: "reissued-plate",     label: "Re-registered",       group: "Plate Quirks" },
   { id: "remade-plate",       label: "Replica plate",       group: "Plate Quirks" },
+  { id: "repeater",           label: "Repeat number",       group: "Plate Quirks" },
 
   // Rare Finds
   { id: "spyspot",            label: "Spy shot",            group: "Rare Finds" },
