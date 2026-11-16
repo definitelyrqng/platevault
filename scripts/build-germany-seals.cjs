@@ -7,7 +7,7 @@
  * - public/plates/germany/seals/<ST>.png  round state seal (316 px), ST = state code (BW, BY, …)
  *   NW uses the supplied photo of a real seal (assets/germany-seals/nrw.png); the others are drawn
  *   from the state coat of arms (assets/germany-seals/coa/<ST>.png) in the same style.
- * - public/plates/germany/hu/<yy>.png     inspection sticker (HU) for the years 2000–2039, in that year's colour
+ * (the inspection stickers come from scripts/build-germany-hu.py)
  */
 const fs = require("fs");
 const path = require("path");
@@ -15,9 +15,7 @@ const sharp = require("sharp");
 
 const ROOT = path.join(__dirname, "..");
 const SEALS = path.join(ROOT, "public/plates/germany/seals");
-const HU = path.join(ROOT, "public/plates/germany/hu");
 fs.mkdirSync(SEALS, { recursive: true });
-fs.mkdirSync(HU, { recursive: true });
 
 const STATES = {
   BW: "BADEN-WÜRTTEMBERG", BY: "BAYERN", BE: "BERLIN", BB: "BRANDENBURG", HB: "BREMEN", HH: "HAMBURG", HE: "HESSEN",
@@ -74,33 +72,10 @@ async function realSeal(src, code) {
     .resize(S, S).composite([{ input: mask, blend: "dest-in" }]).png().toFile(path.join(SEALS, `${code}.png`));
 }
 
-// year colours repeat every six years (2020 blue, 21 yellow, 22 red, 23 pink, 24 green, 25 orange)
-const COLORS = ["#1ab0ee", "#f5ef12", "#d85c4c", "#f7a0b8", "#18b082", "#e89000"];
-function sticker(yy) {
-  const R = 134, c = R, col = COLORS[(((yy - 20) % 6) + 6) % 6];
-  let g = "";
-  // black month segment at the top
-  const a0 = (-34 * Math.PI) / 180, a1 = (34 * Math.PI) / 180, ri = R * 0.66, ro = R * 0.985;
-  const P = (r, a) => `${(c + r * Math.sin(a)).toFixed(2)} ${(c - r * Math.cos(a)).toFixed(2)}`;
-  g += `<path d="M ${P(ri, a0)} L ${P(ro, a0)} A ${ro} ${ro} 0 0 1 ${P(ro, a1)} L ${P(ri, a1)} A ${ri} ${ri} 0 0 0 ${P(ri, a0)} Z" fill="#000"/>`;
-  for (let m = 0; m < 12; m++) {
-    const a = ((m * 30 + 15) * Math.PI) / 180;                                            // tick between the numbers
-    g += `<line x1="${P(R * 0.34, a).split(" ")[0]}" y1="${P(R * 0.34, a).split(" ")[1]}" x2="${P(R * 0.99, a).split(" ")[0]}" y2="${P(R * 0.99, a).split(" ")[1]}" stroke="#000" stroke-width="3"/>`;
-  }
-  for (let m = 1; m <= 12; m++) {
-    const deg = (m % 12) * 30, a = (deg * Math.PI) / 180, [x, y] = P(R * 0.62, a).split(" ");
-    g += `<text x="${x}" y="${y}" transform="rotate(${deg} ${x} ${y})" font-family="Arial Narrow, Arial, sans-serif" font-weight="bold" font-size="40" text-anchor="middle" dominant-baseline="central" fill="${m === 12 ? "#fff" : "#000"}">${m}</text>`;
-  }
-  g += `<circle cx="${c}" cy="${c}" r="${R * 0.3}" fill="${col}" stroke="#000" stroke-width="3"/>`;
-  g += `<text x="${c}" y="${c}" font-family="Arial, sans-serif" font-weight="bold" font-size="42" text-anchor="middle" dominant-baseline="central" fill="#000">${String(yy).padStart(2, "0")}</text>`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${2 * R}" height="${2 * R}" viewBox="0 0 ${2 * R} ${2 * R}"><circle cx="${c}" cy="${c}" r="${R - 1.5}" fill="${col}" stroke="#000" stroke-width="3"/>${g}</svg>`;
-}
-
 (async () => {
   for (const [code, name] of Object.entries(STATES)) await seal(code, name);
   // fallback for district codes without a state (federal / special codes): a plain seal
   await sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}"><circle cx="${S / 2}" cy="${S / 2}" r="${S / 2 - 1}" fill="#d2d4d8"/><circle cx="${S / 2}" cy="${S / 2}" r="${S / 2 - 7}" fill="#c4c7cc" stroke="#16224f" stroke-width="3"/></svg>`)).png().toFile(path.join(SEALS, "XX.png"));
   await realSeal(path.join(ROOT, "assets/germany-seals/nrw.png"), "NW");
-  for (let y = 0; y < 40; y++) await sharp(Buffer.from(sticker(y))).png().toFile(path.join(HU, `${String(y).padStart(2, "0")}.png`));
-  console.log("seals:", fs.readdirSync(SEALS).length, "stickers:", fs.readdirSync(HU).length);
+  console.log("seals:", fs.readdirSync(SEALS).length);
 })().catch((e) => { console.error(e); process.exit(1); });
