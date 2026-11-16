@@ -49,6 +49,7 @@ export const ALL_TAGS: TagDef[] = [
   { id: "training-vehicle",   label: "Training vehicle",    group: "Special Interest" },
   { id: "archive",            label: "Archive photo",       group: "Special Interest" },
   { id: "taxi",               label: "Taxicab",             group: "Special Interest" },
+  { id: "roofbox",            label: "Roofbox",             group: "Special Interest" },
 
   // Plate-Related
   { id: "tampered-plate",     label: "Tampered plate",      group: "Plate-Related" },
