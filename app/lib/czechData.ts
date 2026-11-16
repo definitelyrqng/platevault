@@ -217,7 +217,7 @@ export const CZECH_CATEGORIES: CzechCategory[] = [
   // Current (2001+)
   { id: "car2001",         label: "Regular Car",          emoji: "⬜", example: "1AY 3165",  hint: "Standard 2001-system white plate",                group: "current"   },
   { id: "moto2001",        label: "Motorcycle",           emoji: "🏍️", example: "3K 0128",   hint: "Two-line motorcycle plate (2001+)",               group: "current"   },
-  { id: "dealer2001",      label: "Dealer",               emoji: "🟩", example: "A 7425",    hint: "Green-text dealer plate (2001+)",                  group: "current"   },
+  { id: "dealer2001",      label: "Dealer",               emoji: "🟩", example: "A 7425",    hint: "Green lettering, any region letter (A, B … ); plates that start with F are testing plates",                  group: "current"   },
   { id: "sport2001",       label: "Sportscar",            emoji: "🏎️", example: "12R-3456",  hint: "Region number + R + digits",                      group: "current"   },
   { id: "oldtimer2001",    label: "Oldtimer",             emoji: "🏛️", example: "12V-3456",  hint: "Region number + V + digits",                      group: "current"   },
   { id: "electric",        label: "Electric",             emoji: "⚡", example: "EL1 06AC",  hint: "Always starts with EL + a digit, then 2 digits and 2 letters (EL1 06AC)",                    group: "current"   },

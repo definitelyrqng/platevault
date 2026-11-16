@@ -229,6 +229,9 @@ export const PLATE_ART: Record<string, PlateArt> = {
   // foreign citizens: sky blue with yellow lettering, or dark blue with orange lettering; no euroband, no stickers
   "czech:foreign-turq": { src: "/plates/czech/foreign-turq.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 40, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 975, slots: 1, align: "left" }], split: "at-two", font: "cz", fill: 0.9, textColor: "#f5c400" },
   "czech:foreign-blue": { src: "/plates/czech/foreign-blue.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 40, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 975, slots: 1, align: "left" }], split: "at-two", font: "cz", fill: 0.9, textColor: "#e49b2d" },
+  // dealer and testing plates: the normal plate, green lettering, no stickers
+  "czech:dealer-euro": { src: "/plates/czech/single-euro.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 114, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 975, slots: 1, align: "left" }], split: "at-two", font: "cz", fill: 0.9, textColor: "#1e6e30" },
+  "czech:dealer": { src: "/plates/czech/single.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 40, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 975, slots: 1, align: "left" }], split: "at-two", font: "cz", fill: 0.9, textColor: "#1e6e30" },
   "czech:two-euro": { src: "/plates/czech/two-euro.png", w: 560, h: 400, rows: [{ y0: 28, y1: 190, x0: 112, x1: 420, slots: 1, align: "left" }, { y0: 212, y1: 378, x0: 112, x1: 520, slots: 1, align: "left" }], split: "at-two", font: "cz", fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 436, y: 22, w: 82, h: 82, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 436, y: 108, w: 82, h: 82, bit: 2 }] },
   "czech:two": { src: "/plates/czech/two.png", w: 560, h: 400, rows: [{ y0: 28, y1: 190, x0: 40, x1: 420, slots: 1, align: "left" }, { y0: 212, y1: 378, x0: 40, x1: 520, slots: 1, align: "left" }], split: "at-two", font: "cz", fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 436, y: 22, w: 82, h: 82, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 436, y: 108, w: 82, h: 82, bit: 2 }] },
   // ── Croatia: the supplied plate photo with the lettering removed; the coat of arms is part of the artwork (region on its left, digits on its right). D-DIN lettering. ──
@@ -360,7 +363,9 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
     const t = (plateType ?? "").replace(/-st[0-3]$/, "");
     const mo = t.match(/^cz-moto2001-(?:single|two)(-euro)?$/);
     if (mo) return PLATE_ART[`czech:moto${mo[1] ?? ""}`] ?? null;
-    const old = t.match(/^cz-(?:oldtimer2001|dealer2001)-(?:single|two)(-euro)?$/);      // antique and dealer plates: green
+    const dl = t.match(/^cz-(?:dealer2001|testing)-(?:single|two)(-euro)?$/);              // dealer and testing (F...) plates: green, no stickers
+    if (dl) return PLATE_ART[`czech:dealer${dl[1] ?? ""}`] ?? null;
+    const old = t.match(/^cz-oldtimer2001-(?:single|two)(-euro)?$/);                    // antique plates: green with two rings
     if (old) return PLATE_ART[`czech:oldtimer${old[1] ?? ""}`] ?? null;
     const sp = t.match(/^cz-sport2001-(single|two)(-euro)?$/);                          // sportscars: the normal plate with green lettering
     if (sp) { const a = PLATE_ART[`czech:${sp[1]}${sp[2] ?? ""}`]; return a ? { ...a, textColor: "#1e6e30" } : null; }

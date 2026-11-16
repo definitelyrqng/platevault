@@ -123,7 +123,7 @@ function RegionPicker1960({ value, onChange }: { value: string; onChange: (v: st
 
 const DIGITS_1_9 = ["1","2","3","4","5","6","7","8","9"];
 const DIGITS_0_9 = ["0","1","2","3","4","5","6","7","8","9"];
-const DEALER_LETTERS = ["A","B","C","E","H","J","K","L","M","P","S","T","U","X","Z"];
+const DEALER_LETTERS = ["A","B","C","E","F","H","J","K","L","M","P","S","T","U","X","Z"];
 const OPT_CHARS = ["", ...Array.from("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), ...Array.from("0123456789")];
 
 const AVAILABLE: CzechCategoryId[] = ["car2001", "moto2001", "dealer2001", "sport2001", "oldtimer2001", "electric", "diplomatic", "military", "export", "car1992", "foreign"];
@@ -180,7 +180,9 @@ export default function CzechUploadPage() {
   const plateText = useMemo(() => buildCzechPlateText(category, { firstDigit, regionLetter, optionalChar, fourDigits, regionNum, dealerLetter, elDigit, diplom1, diplom2, custom, regionCode1960, serialLetter, num1, num2 }),
     [category, firstDigit, regionLetter, optionalChar, fourDigits, regionNum, dealerLetter, elDigit, diplom1, diplom2, custom, regionCode1960, serialLetter, num1, num2]);
 
-  const baseType = category === "moto1960" ? `cz-moto1960-${motoType1960}` : `cz-${category}-${plateFormat}`;
+  // dealer plates that start with F are the testing plates
+  const typeCategory = category === "dealer2001" && dealerLetter === "F" ? "testing" : category;
+  const baseType = category === "moto1960" ? `cz-moto1960-${motoType1960}` : `cz-${typeCategory}-${plateFormat}`;
   const hasStickers = !!plateArtFor("czech", baseType)?.stickers;      // plates that have artwork (and so inspection stickers)
   const twoStickers = hasStickers && category !== "moto2001";
   const stickerSuffix = hasStickers ? `-st${(stickerTop ? 1 : 0) + (twoStickers && stickerBottom ? 2 : 0)}` : "";
@@ -392,7 +394,7 @@ export default function CzechUploadPage() {
                   {category === "dealer2001" && (
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="mb-1 block text-xs text-zinc-500">Region letter</label>
+                        <label className="mb-1 block text-xs text-zinc-500">Region letter <span className="text-zinc-600">(F = testing plate)</span></label>
                         <select value={dealerLetter} onChange={(e) => setDealerLetter(e.target.value)} className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono text-green-400 outline-none focus:border-zinc-600">
                           {DEALER_LETTERS.map((v) => <option key={v} value={v}>{v}</option>)}
                         </select>
