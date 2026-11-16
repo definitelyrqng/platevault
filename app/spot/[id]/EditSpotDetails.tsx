@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import PlateEditor, { type PlateFields } from "@/app/components/PlateEditor";
 
 interface Props {
   uploadId: string;
@@ -12,6 +14,11 @@ interface Props {
     color: string | null;
     badge: string | null;
     description: string | null;
+    country: string;
+    plateType: string | null;
+    plateText: string;
+    plateRegion: string | null;
+    location: string | null;
   };
 }
 
@@ -27,6 +34,9 @@ export default function EditSpotDetails({ uploadId, initial }: Props) {
   const [color, setColor]           = useState(initial.color ?? "");
   const [badge, setBadge]           = useState(initial.badge ?? "");
   const [description, setDescription] = useState(initial.description ?? "");
+  const router = useRouter();
+  const [plate, setPlate] = useState<PlateFields>({ country: initial.country, plateType: initial.plateType ?? "", plateText: initial.plateText, plateRegion: initial.plateRegion ?? "" });
+  const [location, setLocation] = useState(initial.location ?? "");
   const [status, setStatus]         = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [err, setErr]               = useState("");
 
@@ -37,12 +47,12 @@ export default function EditSpotDetails({ uploadId, initial }: Props) {
     const res = await fetch(`/api/uploads/${uploadId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ brand, model, generation, trim, color, badge, description: description.trim() || null }),
+      body: JSON.stringify({ brand, model, generation, trim, color, badge, description: description.trim() || null, plateText: plate.plateText, plateType: plate.plateType, plateRegion: plate.plateRegion, location }),
     });
     const data = await res.json();
     if (!res.ok) { setErr(data.error ?? "Save failed"); setStatus("error"); return; }
     setStatus("saved");
-    setTimeout(() => { setStatus("idle"); setOpen(false); }, 1200);
+    setTimeout(() => { setStatus("idle"); setOpen(false); router.refresh(); }, 900);
   }
 
   return (
@@ -52,11 +62,17 @@ export default function EditSpotDetails({ uploadId, initial }: Props) {
         onClick={() => setOpen((o) => !o)}
         className="text-xs text-zinc-500 hover:text-indigo-300 transition-colors"
       >
-        {open ? "Cancel" : "✏ Edit details"}
+        {open ? "Cancel" : "✏ Edit spot"}
       </button>
 
       {open && (
-        <div className="mt-3 space-y-2">
+        <div className="mt-3 space-y-3">
+          {/* The plate itself (owners cannot move a spot to another country) */}
+          <PlateEditor canMove={false} value={plate} onChange={setPlate} />
+          <div>
+            <label className="mb-1 block text-xs text-zinc-500">Location (city or area)</label>
+            <input className={inputCls} value={location} maxLength={120} placeholder="e.g. Vienna, Austria" onChange={(e) => setLocation(e.target.value)} />
+          </div>
           {/* Description */}
           <div>
             <label className="mb-1 block text-xs text-zinc-500">

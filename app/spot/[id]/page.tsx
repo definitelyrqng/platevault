@@ -568,6 +568,11 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                       color: upload.color,
                       badge: upload.badge,
                       description: upload.description ?? null,
+                      country: upload.country,
+                      plateType: upload.plateType,
+                      plateText: upload.plateText,
+                      plateRegion: upload.plateRegion,
+                      location: upload.location,
                     }}
                   />
                 </div>

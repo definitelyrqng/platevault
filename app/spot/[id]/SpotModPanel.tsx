@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import CompanyPicker from "@/app/components/CompanyPicker";
 import TagPicker from "@/app/components/TagPicker";
 import { COUNTRY_META } from "@/app/lib/countries";
-import { plateTypeLabel } from "@/app/lib/plateTypes";
+import PlateEditor from "@/app/components/PlateEditor";
 
 /**
  * One moderation panel per spot (replaces the old tag editor + two-tab admin box).
@@ -175,19 +175,8 @@ export default function SpotModPanel({ uploadId, role, initial, initialHidden }:
         <div className="space-y-4 border-t border-zinc-800 px-4 py-4">
           {canEdit && (
             <>
-              <div className="grid grid-cols-2 gap-3">
-                <label><span className={LABEL}>Plate</span>
-                  <input className={`${INPUT} font-mono uppercase tracking-wider`} value={f.plateText} maxLength={32} onChange={(e) => set("plateText", e.target.value.toUpperCase())} /></label>
-                <label><span className={LABEL}>Country</span>
-                  <select className={INPUT} value={f.country} onChange={(e) => set("country", e.target.value)}>
-                    {COUNTRIES.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
-                  </select></label>
-                <label><span className={LABEL}>Plate type</span>
-                  <input className={`${INPUT} font-mono text-xs`} value={f.plateType} maxLength={60} onChange={(e) => set("plateType", e.target.value)} />
-                  <span className="mt-1 block text-[11px] text-zinc-500">Shown as: {plateTypeLabel(f.country, f.plateType) ?? "—"}</span></label>
-                <label><span className={LABEL}>Region code</span>
-                  <input className={`${INPUT} font-mono uppercase`} value={f.plateRegion} maxLength={10} onChange={(e) => set("plateRegion", e.target.value.toUpperCase())} /></label>
-              </div>
+              <PlateEditor canMove value={{ country: f.country, plateType: f.plateType, plateText: f.plateText, plateRegion: f.plateRegion }}
+                onChange={(p) => setF((s) => ({ ...s, ...p }))} />
 
               <label className="block"><span className={LABEL}>Location</span>
                 <input className={INPUT} value={f.location} maxLength={120} onChange={(e) => set("location", e.target.value)} placeholder="City or area" /></label>

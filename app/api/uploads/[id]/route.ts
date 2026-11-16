@@ -57,15 +57,15 @@ export async function PATCH(
   const newCompanyId   = typeof body.companyId === "string" && body.companyId.trim() ? body.companyId.trim() : null;
 
   // Admin-only: plate identity + country + location
-  const newPlateText   = isAdmin && typeof body.plateText === "string" && body.plateText.trim()
+  const newPlateText   = (isAdmin || isOwner) && typeof body.plateText === "string" && body.plateText.trim()
     ? body.plateText.trim().toUpperCase().slice(0, 32) : undefined;
-  const newPlateType   = isAdmin && body.plateType !== undefined
+  const newPlateType   = (isAdmin || isOwner) && body.plateType !== undefined
     ? (typeof body.plateType === "string" && body.plateType.trim() ? body.plateType.trim().slice(0, 60) : null) : undefined;
-  const newPlateRegion = isAdmin && body.plateRegion !== undefined
+  const newPlateRegion = (isAdmin || isOwner) && body.plateRegion !== undefined
     ? (typeof body.plateRegion === "string" && body.plateRegion.trim() ? body.plateRegion.trim().slice(0, 10) : null) : undefined;
   const newCountry     = isAdmin && typeof body.country === "string" && body.country.trim()
     ? body.country.trim().toLowerCase().slice(0, 60) : undefined;
-  const newLocation    = isAdmin && body.location !== undefined
+  const newLocation    = (isAdmin || isOwner) && body.location !== undefined
     ? (typeof body.location === "string" && body.location.trim() ? body.location.trim().slice(0, 120) : null) : undefined;
 
   const updateData: Record<string, unknown> = {
