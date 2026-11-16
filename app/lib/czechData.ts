@@ -29,21 +29,22 @@ export interface CzechRegionNum {
   code: string;   // "01"–"14"
   name: string;
 }
+// Region numbers match the single-letter codes: 01 = A (Prague), 02 = B, 03 = C … 14 = Z
 export const CZECH_REGION_NUMS: CzechRegionNum[] = [
-  { code: "01", name: "Prague" },
-  { code: "02", name: "Central Bohemian Region" },
-  { code: "03", name: "South Bohemian Region" },
-  { code: "04", name: "Plzeň Region" },
-  { code: "05", name: "Karlovy Vary Region" },
-  { code: "06", name: "Ústí nad Labem Region" },
-  { code: "07", name: "Liberec Region" },
-  { code: "08", name: "Hradec Králové Region" },
-  { code: "09", name: "Pardubice Region" },
-  { code: "10", name: "Vysočina Region" },
-  { code: "11", name: "South Moravian Region" },
-  { code: "12", name: "Olomouc Region" },
-  { code: "13", name: "Zlín Region" },
-  { code: "14", name: "Moravian-Silesian Region" },
+  { code: "01", name: "Capital City of Prague (A)" },
+  { code: "02", name: "South Moravian Region (B)" },
+  { code: "03", name: "South Bohemian Region (C)" },
+  { code: "04", name: "Pardubice Region (E)" },
+  { code: "05", name: "Hradec Králové Region (H)" },
+  { code: "06", name: "Vysočina Region (J)" },
+  { code: "07", name: "Karlovy Vary Region (K)" },
+  { code: "08", name: "Liberec Region (L)" },
+  { code: "09", name: "Olomouc Region (M)" },
+  { code: "10", name: "Plzeň Region (P)" },
+  { code: "11", name: "Central Bohemian Region (S)" },
+  { code: "12", name: "Moravian-Silesian Region (T)" },
+  { code: "13", name: "Ústí nad Labem Region (U)" },
+  { code: "14", name: "Zlín Region (Z)" },
 ];
 
 // ── 1960-system: two-letter district codes (selec2) ─────────────────────────
