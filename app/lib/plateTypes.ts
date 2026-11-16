@@ -71,6 +71,7 @@ const COUNTRY_PREFIX = /^(de|at|al|be|ba|bg|hr|cz)-/i;
 
 export function plateTypeLabel(country: string, type: string | null | undefined): string | null {
   if (!type) return null;
+  type = type.replace(/-hu(\d\d|0)$/, "");                            // German inspection sticker suffix
   // Czech plates: "cz-<category>-<layout>", optionally ending in "-st0..3" (which inspection stickers are on the plate)
   if (country.toLowerCase() === "czech") {
     const t = type.replace(/-st[0-3]$/, "").replace(/^cz-vanity-single$/, "cz-vanity-single-euro");

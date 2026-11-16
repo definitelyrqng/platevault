@@ -2,6 +2,7 @@ import { catalogPlateTypes } from "./countryPlateTypes";
 import { plateTypeLabel } from "./plateTypes";
 import { CZECH_CATEGORIES, CZECH_FORMATS, type CzechCategoryId } from "./czechData";
 import { AUSTRIA_PLATE_TYPE_LABELS } from "./austriaData";
+import { PLATE_TYPE_LABELS as GERMANY_PLATE_TYPE_LABELS } from "./germanyData";
 
 export type PlateTypeOption = { id: string; label: string; sample: string };
 
@@ -16,6 +17,9 @@ export function plateTypeOptions(country: string): PlateTypeOption[] | null {
   if (c === "czech") {
     return CZECH_CATEGORIES.filter((cat) => CZECH_AVAILABLE.includes(cat.id)).flatMap((cat) =>
       (CZECH_FORMATS[cat.id] ?? []).map((f) => ({ id: `cz-${cat.id}-${f.id}`, label: `${cat.label} · ${f.label}`, sample: cat.example })));
+  }
+  if (c === "germany") {
+    return Object.entries(GERMANY_PLATE_TYPE_LABELS).map(([id, label]) => ({ id, label, sample: "M-AB123" }));
   }
   if (c === "austria") {
     return Object.entries(AUSTRIA_PLATE_TYPE_LABELS)

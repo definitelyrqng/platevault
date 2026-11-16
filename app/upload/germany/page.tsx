@@ -11,6 +11,7 @@ import ZoomImage from "@/app/components/ZoomImage";
 import TagPicker from "@/app/components/TagPicker";
 import MilestonePopup from "@/app/components/MilestonePopup";
 import OcrHint from "@/app/components/OcrHint";
+import PlateBadge from "@/app/components/PlateBadge";
 import DescriptionInput from "@/app/components/DescriptionInput";
 import {
   GERMANY_REGIONS,
@@ -155,12 +156,20 @@ function RegionPicker({
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────────
+/** Plate kinds drawn with the realistic single-row artwork, and the colours of the inspection stickers by year. */
+const HU_TYPES = /^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-single$/;
+const HU_YEARS = ["19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31"];
+const HU_COLORS = ["#1ab0ee", "#f5ef12", "#d85c4c", "#f7a0b8", "#18b082", "#e89000"];
+
 export default function GermanyUploadPage() {
   const router = useRouter();
 
   // ── Category & format
   const [category, setCategory] = useState<GermanyCategoryId>("regular");
   const [plateFormat, setPlateFormat] = useState("single");
+  // inspection sticker (HU) on the plate: its year (= colour), or none on front plates
+  const [huYear, setHuYear] = useState("25");
+  const [frontPlate, setFrontPlate] = useState(false);
 
   // ── Region-based fields
   const [regionCode, setRegionCode]   = useState("");
@@ -283,8 +292,10 @@ export default function GermanyUploadPage() {
   const plateTypeStored = useMemo(() => {
     if (category === "red") return `de-red-${redCode}`;
     if (category === "federal") return `de-federal-${federalSub}`;
-    return `de-${category}-${plateFormat}`;
-  }, [category, plateFormat, redCode, federalSub]);
+    const base = `de-${category}-${plateFormat}`;
+    return HU_TYPES.test(base) ? `${base}-hu${frontPlate ? "0" : huYear}` : base;
+  }, [category, plateFormat, redCode, federalSub, huYear, frontPlate]);
+  const drawn = HU_TYPES.test(`de-${category}-${plateFormat}`);               // the plate kinds we have artwork for
 
   const plateTypeLabel = PLATE_TYPE_LABELS[plateTypeStored] ?? plateTypeStored;
 
@@ -592,6 +603,28 @@ export default function GermanyUploadPage() {
                         </button>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* ── Inspection sticker (HU) ── */}
+                {drawn && (
+                  <div>
+                    <span className="block text-sm text-zinc-300 mb-2">Inspection sticker <span className="text-zinc-600 text-xs">(optional)</span></span>
+                    <label className="mb-2 flex items-center gap-2 text-xs text-zinc-400">
+                      <input type="checkbox" checked={frontPlate} onChange={(e) => setFrontPlate(e.target.checked)} className="accent-indigo-500" />
+                      Front plate — no inspection sticker, only the state seal
+                    </label>
+                    {!frontPlate && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {HU_YEARS.map((y) => (
+                          <button key={y} type="button" onClick={() => setHuYear(y)} aria-pressed={huYear === y}
+                            className={`flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs transition-colors ${huYear === y ? "border-indigo-500 bg-indigo-950/50 text-indigo-200" : "border-zinc-800 text-zinc-400 hover:border-zinc-600"}`}>
+                            <span className="inline-block h-3 w-3 rounded-full" style={{ background: HU_COLORS[((Number(y) - 20) % 6 + 6) % 6] }} />
+                            20{y}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1028,6 +1061,11 @@ export default function GermanyUploadPage() {
               {/* Live preview */}
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5">
                 <div className="text-xs uppercase tracking-wider text-zinc-500 mb-3">Live preview</div>
+                {drawn ? (
+                  <div className="flex justify-center rounded-xl bg-zinc-900/60 px-3 py-5">
+                    <PlateBadge country="germany" text={plateText.trim() || placeholderText} plateType={plateTypeStored} size="xl" />
+                  </div>
+                ) : (
                 <div className={`rounded-xl border px-4 py-5 text-center ${previewBg}`}>
                   {/* EU band for standard plates */}
                   {["regular","electric","oldtimer","seasonal","seasonal-h","transferable"].includes(category) && (
@@ -1051,6 +1089,7 @@ export default function GermanyUploadPage() {
                   </div>
                   <div className="mt-2 text-xs text-zinc-500">Germany 🇩🇪</div>
                 </div>
+                )}
               </div>
 
               {/* Stored as */}
