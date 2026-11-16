@@ -5,7 +5,7 @@ import { getSessionUserWithBanCheck } from "@/app/lib/banCheck";
 import { logNewUpload } from "@/app/lib/discord";
 import { applyWatermark } from "@/app/lib/watermark";
 import { UTApi, UTFile } from "uploadthing/server";
-import { sanitizeTags } from "@/app/lib/tags";
+import { sanitizeTags, withAutoTags } from "@/app/lib/tags";
 import { getMaintenanceSettings } from "@/app/lib/maintenance";
 
 function optStr(val: unknown, max: number): string | null {
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     const plateRegion = optStr(body.plateRegion, 10);
     const badge       = optStr(body.badge, 30);
     const description = optStr(body.description, 1000);
-    const tags        = sanitizeTags(body.tags);
+    const tags        = withAutoTags(sanitizeTags(body.tags), optStr(body.plateType, 60));
     const brand       = optStr(body.brand, 60);
     const model       = optStr(body.model, 60);
     const generation  = optStr(body.generation, 60);

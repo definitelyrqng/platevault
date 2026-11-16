@@ -15,7 +15,7 @@ import { plateTextVariants } from "@/app/lib/plateText";
 import { DescriptionText } from "@/app/components/DescriptionInput";
 import PinButton from "@/app/components/PinButton";
 import AddToRoadTripButton from "./AddToRoadTripButton";
-import { tagById } from "@/app/lib/tags";
+import { tagById, withAutoTags } from "@/app/lib/tags";
 import { getAlbaniaRegion } from "@/app/lib/albaniaRegions";
 import { plateTypeLabel } from "@/app/lib/plateTypes";
 import Flag from "@/app/components/Flag";
@@ -396,9 +396,9 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                     </div>
                   )}
 
-                  {upload.tags.length > 0 && (
+                  {withAutoTags(upload.tags, upload.plateType).length > 0 && (
                     <div className="mt-4 flex flex-wrap justify-center gap-1.5">
-                      {upload.tags.map((tag) => {
+                      {withAutoTags(upload.tags, upload.plateType).map((tag) => {
                         const def = tagById(tag);
                         if (!def) return null;
                         return (
@@ -600,7 +600,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                   color: upload.color ?? "",
                   badge: upload.badge ?? "",
                   companyId: upload.companyId,
-                  tags: upload.tags,
+                  tags: withAutoTags(upload.tags, upload.plateType),
                 }}
               />
             )}

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
-import { sanitizeTags } from "@/app/lib/tags";
+import { sanitizeTags, withAutoTags } from "@/app/lib/tags";
 
 async function getSessionUser() {
   const cookieStore = await cookies();
@@ -30,11 +30,12 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
-  const tags = sanitizeTags(body.tags);
+  const rawTags = sanitizeTags(body.tags);
 
-  const upload = await prisma.upload.findUnique({ where: { id }, select: { id: true } });
+  const upload = await prisma.upload.findUnique({ where: { id }, select: { id: true, plateType: true } });
   if (!upload) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  const tags = withAutoTags(rawTags, upload.plateType);
   await prisma.upload.update({ where: { id }, data: { tags } });
   return NextResponse.json({ ok: true, tags });
 }

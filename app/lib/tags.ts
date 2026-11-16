@@ -87,3 +87,13 @@ export function sanitizeTags(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
   return [...new Set((raw as unknown[]).filter((t): t is string => typeof t === "string" && TAG_IDS.has(t)))];
 }
+
+/** Plate types that are electric-vehicle plates (Czech EL…, German E suffix, Austrian electric, …). */
+export function isElectricPlateType(plateType?: string | null) {
+  return /electric/i.test(plateType ?? "");
+}
+
+/** The tags a spot always has because of its plate type — currently "electric" for electric plates. */
+export function withAutoTags(tags: string[], plateType?: string | null): string[] {
+  return isElectricPlateType(plateType) && !tags.includes("electric") ? [...tags, "electric"] : tags;
+}

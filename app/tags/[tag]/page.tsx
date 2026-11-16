@@ -12,7 +12,7 @@ export default async function TagPage({ params }: { params: Promise<{ tag: strin
   if (!tagDef) return notFound();
 
   const spots = await prisma.upload.findMany({
-    where: { tags: { has: tag }, deletedAt: null, hidden: false },
+    where: { OR: [{ tags: { has: tag } }, ...(tag === "electric" ? [{ plateType: { contains: "electric", mode: "insensitive" as const } }] : [])], deletedAt: null, hidden: false },
     orderBy: { createdAt: "desc" },
     take: 96,
     select: {

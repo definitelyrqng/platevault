@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isElectricPlateType, withAutoTags } from "@/app/lib/tags";
 import { normalisePlateText } from "@/app/lib/plateText";
 import { cookies } from "next/headers";
 import { UTApi } from "uploadthing/server";
@@ -36,7 +37,7 @@ export async function PATCH(
   const before = await prisma.upload.findUnique({
     where: { id },
     select: {
-      numericId: true, plateText: true, plateType: true, plateRegion: true, country: true, location: true,
+      numericId: true, tags: true, plateText: true, plateType: true, plateRegion: true, country: true, location: true,
       userId: true, brand: true, model: true, generation: true, trim: true, color: true, badge: true,
       user: { select: { username: true } },
     },
@@ -75,7 +76,7 @@ export async function PATCH(
     description: newDescription, companyId: newCompanyId,
   };
   if (newPlateText   !== undefined) updateData.plateText   = newPlateText;
-  if (newPlateType   !== undefined) updateData.plateType   = newPlateType;
+  if (newPlateType   !== undefined) { updateData.plateType = newPlateType; if (isElectricPlateType(newPlateType)) updateData.tags = withAutoTags(before.tags, newPlateType); }
   if (newPlateRegion !== undefined) updateData.plateRegion = newPlateRegion;
   if (newCountry     !== undefined) updateData.country     = newCountry;
   if (newLocation    !== undefined) updateData.location    = newLocation;
