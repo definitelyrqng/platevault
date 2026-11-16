@@ -17,6 +17,13 @@ os.makedirs(OUT, exist_ok=True)
 face = src.copy()
 d = ImageDraw.Draw(face)
 d.rectangle([156, 22, 1898, 369], fill=(255, 255, 255, 255))
+# the face has rounded corners on the right (the border's inner edge is round), so no white pokes into the border
+R = 22
+for (cx, cy, x0, y0, x1, y1) in [(1904 - R, 16 + R, 1904 - R, 16, 1904, 16 + R), (1904 - R, 374 - R, 1904 - R, 374 - R, 1904, 374)]:
+    for y in range(y0, y1 + 1):
+        for x in range(x0, x1 + 1):
+            if (x - cx) ** 2 + (y - cy) ** 2 > R * R and face.getpixel((x, y))[:3] == (255, 255, 255):
+                face.putpixel((x, y), (0, 0, 0, 255))
 face.save(os.path.join(OUT, "single.png"))
 
 # seals: sticker (centre 647,112 r67) over seal (centre 647,285 r79)
