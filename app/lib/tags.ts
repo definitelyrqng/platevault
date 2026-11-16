@@ -30,6 +30,9 @@ export const ALL_TAGS: TagDef[] = [
   { id: "garbage-truck",      label: "Garbage truck",       group: "Commercial & Heavy Vehicles" },
   { id: "trailer",            label: "Trailer",             group: "Commercial & Heavy Vehicles" },
   { id: "motorhome",          label: "Motorhome",           group: "Commercial & Heavy Vehicles" },
+  { id: "tow-truck",          label: "Tow truck",           group: "Commercial & Heavy Vehicles" },
+  { id: "delivery-van",       label: "Delivery van",        group: "Commercial & Heavy Vehicles" },
+  { id: "construction",       label: "Construction vehicle",group: "Commercial & Heavy Vehicles" },
 
   // Two-Wheelers
   { id: "motorcycle",         label: "Motorcycle",          group: "Two-Wheelers" },
@@ -50,6 +53,15 @@ export const ALL_TAGS: TagDef[] = [
   { id: "archive",            label: "Archive photo",       group: "Special Interest" },
   { id: "taxi",               label: "Taxicab",             group: "Special Interest" },
   { id: "roofbox",            label: "Roofbox",             group: "Special Interest" },
+  { id: "roof-rack",          label: "Roof rack / cargo",   group: "Special Interest" },
+  { id: "bike-rack",          label: "Bike rack",           group: "Special Interest" },
+  { id: "wrapped",            label: "Wrapped / livery",    group: "Special Interest" },
+  { id: "lowered",            label: "Lowered / stanced",   group: "Special Interest" },
+  { id: "offroad",            label: "Off-road / lifted",   group: "Special Interest" },
+  { id: "camper",             label: "Camper van",          group: "Special Interest" },
+  { id: "electric",           label: "Electric vehicle",    group: "Special Interest" },
+  { id: "rental",             label: "Rental car",          group: "Special Interest" },
+  { id: "driving-school",     label: "Driving school",      group: "Special Interest" },
 
   // Plate-Related
   { id: "tampered-plate",     label: "Tampered plate",      group: "Plate-Related" },
