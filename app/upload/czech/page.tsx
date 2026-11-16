@@ -10,6 +10,7 @@ import CompanyPicker from "@/app/components/CompanyPicker";
 import ZoomImage from "@/app/components/ZoomImage";
 import TagPicker from "@/app/components/TagPicker";
 import MilestonePopup from "@/app/components/MilestonePopup";
+import PlateBadge from "@/app/components/PlateBadge";
 import OcrHint from "@/app/components/OcrHint";
 import DescriptionInput from "@/app/components/DescriptionInput";
 import {
@@ -143,6 +144,9 @@ export default function CzechUploadPage() {
   const [num1, setNum1]                     = useState("");
   const [num2, setNum2]                     = useState("");
   const [motoType1960, setMotoType1960]     = useState("trap60");
+  // the two inspection stickers (technical inspection = red, emissions = green) — some plates have them, some don't
+  const [stickerTop, setStickerTop]       = useState(true);
+  const [stickerBottom, setStickerBottom] = useState(true);
   const [location, setLocation]     = useState("");
   const [brand, setBrand]           = useState("");
   const [model, setModel]           = useState("");
@@ -173,7 +177,9 @@ export default function CzechUploadPage() {
   const plateText = useMemo(() => buildCzechPlateText(category, { firstDigit, regionLetter, optionalChar, fourDigits, regionNum, dealerLetter, elDigit, diplom1, diplom2, custom, regionCode1960, serialLetter, num1, num2 }),
     [category, firstDigit, regionLetter, optionalChar, fourDigits, regionNum, dealerLetter, elDigit, diplom1, diplom2, custom, regionCode1960, serialLetter, num1, num2]);
 
-  const plateTypeStored = useMemo(() => category === "moto1960" ? `cz-moto1960-${motoType1960}` : `cz-${category}-${plateFormat}`, [category, plateFormat, motoType1960]);
+  const hasStickers = category === "car2001" || category === "moto2001";
+  const stickerSuffix = hasStickers ? `-st${(stickerTop ? 1 : 0) + (category === "car2001" && stickerBottom ? 2 : 0)}` : "";
+  const plateTypeStored = useMemo(() => (category === "moto1960" ? `cz-moto1960-${motoType1960}` : `cz-${category}-${plateFormat}`) + stickerSuffix, [category, plateFormat, motoType1960, stickerSuffix]);
   const locationWarning = useMemo(() => { if (!location.trim()) return ""; return locationTooExact(locationOf(location)) ? "Keep it broad — city or area only." : ""; }, [location]);
   const is1960 = ["car1960","moto1960","commercial1960","agricultural1960","trailer1977"].includes(category);
   const is2001RegionBased = ["car2001","moto2001","dealer2001","sport2001","oldtimer2001","electric","foreign"].includes(category);
@@ -593,9 +599,29 @@ export default function CzechUploadPage() {
             {/* Right sidebar */}
             <div className="space-y-4">
               <div className={`rounded-2xl border p-6 text-center ${previewBg}`}>
+                {hasStickers ? (
+                  <div className="flex justify-center">
+                    <PlateBadge country="czech" text={plateText.trim() || selectedCat.example} plateType={plateTypeStored} size="xl" />
+                  </div>
+                ) : (
                 <div className={`font-mono text-3xl font-bold tracking-widest ${previewTextColor}`}>
                   {plateText.trim() || selectedCat.example}
                 </div>
+                )}
+                {hasStickers && (
+                  <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs">
+                    <button type="button" aria-pressed={stickerTop} onClick={() => setStickerTop((v) => !v)}
+                      className={`rounded-full border px-3 py-1.5 transition-colors ${stickerTop ? "border-red-500/60 bg-red-950/40 text-red-200" : "border-zinc-700 text-zinc-500 hover:border-zinc-500"}`}>
+                      {stickerTop ? "✓" : "+"} Red sticker
+                    </button>
+                    {category === "car2001" && (
+                      <button type="button" aria-pressed={stickerBottom} onClick={() => setStickerBottom((v) => !v)}
+                        className={`rounded-full border px-3 py-1.5 transition-colors ${stickerBottom ? "border-emerald-500/60 bg-emerald-950/40 text-emerald-200" : "border-zinc-700 text-zinc-500 hover:border-zinc-500"}`}>
+                        {stickerBottom ? "✓" : "+"} Green sticker
+                      </button>
+                    )}
+                  </div>
+                )}
                 <div className="mt-2 text-xs text-zinc-600">
                   {selectedCat.label} · {formats.find((f) => f.id === plateFormat)?.label ?? ""}
                 </div>

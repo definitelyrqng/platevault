@@ -70,6 +70,8 @@ const COUNTRY_PREFIX = /^(de|at|al|be|ba|bg|hr|cz)-/i;
 
 export function plateTypeLabel(country: string, type: string | null | undefined): string | null {
   if (!type) return null;
+  // Czech plates may end in "-st0..3" (which inspection stickers are on the plate) — not part of the type
+  if (country.toLowerCase() === "czech") type = type.replace(/-st[0-3]$/, "");
   if (country.toLowerCase() === "croatia") {
     const { category, format } = parseCroatiaPlateType(type);
     if (category) {

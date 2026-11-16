@@ -106,6 +106,8 @@ export type PlateArt = {
   sealH?: number;
   /** Lettering for this artwork (default: the country's). */
   font?: PlateFont;
+  /** Optional stickers (art pixel box); the plate type's "-stN" suffix chooses which are shown (bit 1, 2 …; default all). */
+  stickers?: { src: string; x: number; y: number; w: number; h: number; bit: number }[];
   /** Lettering colour (default near-black). */
   textColor?: string;
 };
@@ -204,6 +206,14 @@ export const PLATE_ART: Record<string, PlateArt> = {
     rows: [{ y0: 23, y1: 334, x0: 205, x1: 1545, slots: 1 }],
     split: "whole",
   },
+  // ── Czech: standard plate with the two inspection stickers (toggleable). FE-Schrift for now. ──
+  "czech:single-euro": { src: "/plates/czech/single-euro.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 114, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 975, slots: 1, align: "left" }], split: "at-two", fill: 0.9, stickers: [{ src: "/plates/czech/sticker-red.png", x: 452, y: 26, w: 86, h: 86, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 452, y: 112, w: 86, h: 86, bit: 2 }] },
+  "czech:single": { src: "/plates/czech/single.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 40, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 975, slots: 1, align: "left" }], split: "at-two", fill: 0.9, stickers: [{ src: "/plates/czech/sticker-red.png", x: 452, y: 26, w: 86, h: 86, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 452, y: 112, w: 86, h: 86, bit: 2 }] },
+  // motorcycle: small plate, region (digit + letter) above, four digits below, one inspection sticker
+  "czech:moto-euro": { src: "/plates/czech/moto-euro.png", w: 328, h: 260, rows: [{ y0: 20, y1: 124, x0: 84, x1: 216, slots: 1, align: "left" }, { y0: 140, y1: 240, x0: 30, x1: 308, slots: 1, align: "left" }], split: "at-two", fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 220, y: 30, w: 82, h: 82, bit: 1 }] },
+  "czech:moto": { src: "/plates/czech/moto.png", w: 328, h: 260, rows: [{ y0: 20, y1: 124, x0: 30, x1: 216, slots: 1, align: "left" }, { y0: 140, y1: 240, x0: 30, x1: 308, slots: 1, align: "left" }], split: "at-two", fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 220, y: 30, w: 82, h: 82, bit: 1 }] },
+  "czech:two-euro": { src: "/plates/czech/two-euro.png", w: 560, h: 400, rows: [{ y0: 28, y1: 190, x0: 112, x1: 420, slots: 1, align: "left" }, { y0: 212, y1: 378, x0: 112, x1: 520, slots: 1, align: "left" }], split: "at-two", fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 436, y: 22, w: 82, h: 82, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 436, y: 108, w: 82, h: 82, bit: 2 }] },
+  "czech:two": { src: "/plates/czech/two.png", w: 560, h: 400, rows: [{ y0: 28, y1: 190, x0: 40, x1: 420, slots: 1, align: "left" }, { y0: 212, y1: 378, x0: 40, x1: 520, slots: 1, align: "left" }], split: "at-two", fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 436, y: 22, w: 82, h: 82, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 436, y: 108, w: 82, h: 82, bit: 2 }] },
   // ── Croatia: the supplied plate photo with the lettering removed; the coat of arms is part of the artwork (region on its left, digits on its right). D-DIN lettering. ──
   // two-row car plate: region on top (left of the coat of arms), number below
   "croatia:two-line-euroband": { src: "/plates/croatia/two-euroband.png", w: 1024, h: 700, rows: [{ y0: 76, y1: 326, x0: 220, x1: 790, slots: 1 }, { y0: 346, y1: 626, x0: 50, x1: 974, slots: 1 }], split: "at-two", font: "dd", fill: 0.92, condense: 0.9, tracking: 0.03, thin: -0.02 },
@@ -322,8 +332,20 @@ function austriaSealFor(district: string, plateType?: string | null): string | n
 const sealAspect = (_src: string) => AT_SEAL_ASPECT;
 
 /** Artwork for a plate: its exact type first, then the country default. */
+/** Czech plate types end in "-st0" … "-st3" when the inspection stickers were chosen (1 = red top, 2 = green bottom); none = both. */
+export function czechStickerMask(plateType?: string | null) {
+  const m = (plateType ?? "").match(/-st([0-3])$/);
+  return m ? Number(m[1]) : 3;
+}
 export function plateArtFor(country: string, plateType?: string | null): PlateArt | null {
   const key = country.toLowerCase();
+  if (key === "czech") {
+    const t = (plateType ?? "").replace(/-st[0-3]$/, "");
+    const mo = t.match(/^cz-moto2001-(?:single|two)(-euro)?$/);
+    if (mo) return PLATE_ART[`czech:moto${mo[1] ?? ""}`] ?? null;
+    const m = t.match(/^cz-car2001-(single|two)(-euro)?$/);
+    return m ? PLATE_ART[`czech:${m[1]}${m[2] ?? ""}`] ?? null : null;
+  }
   if (key === "austria") {
     const k = austriaArtKey(plateType);
     const art = k ? PLATE_ART[k] ?? null : null;
@@ -569,6 +591,8 @@ export type PlateLayout = {
   runs: TextRun[];
   /** Seals to draw (centre + diameter, in output pixels). */
   seals: { cx: number; cy: number; d: number; h?: number; src?: string }[];
+  /** Stickers to draw (output pixels). */
+  stickers: { src: string; x: number; y: number; w: number; h: number }[];
   /** Neutral chip styling when there is no artwork. */
   chip: { border: number; radius: number } | null;
 };
@@ -656,7 +680,9 @@ export function plateLayout(country: string, rawText: string, height: number, pl
       });
     }
 
-    return { width, height: h, printed, art, font, chip: null, runs, seals };
+    const mask = czechStickerMask(plateType);
+    const stickers = (art.stickers ?? []).filter((k) => mask & k.bit).map((k) => ({ src: k.src, x: k.x * s, y: k.y * s, w: k.w * s, h: k.h * s }));
+    return { width, height: h, printed, art, font, chip: null, runs, seals, stickers };
   }
 
   // Neutral chip: white plate, dark border, text only
@@ -672,6 +698,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
     art: null,
     font: "fe",
     seals: [],
+    stickers: [],
     chip: { border, radius: h * 0.14 },
     runs: [{ text: printed, x0: border + padX, x1: width - border - padX, align: "center", fontSize, centerY: h / 2 }],
   };

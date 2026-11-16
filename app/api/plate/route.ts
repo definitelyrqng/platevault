@@ -195,8 +195,12 @@ export async function GET(req: Request) {
     : layout.font !== "fe"
     ? runSvgTraced(r, color, layout.font as Exclude<PlateFont, "fe" | "dd">)
     : runSvg(font, r, color)).join("");
+  let stickers = "";
+  if (layout.stickers.length) {
+    stickers = (await Promise.all(layout.stickers.map(async (k) => `<image href="${await getArtDataUri(k.src)}" x="${k.x.toFixed(2)}" y="${k.y.toFixed(2)}" width="${k.w.toFixed(2)}" height="${k.h.toFixed(2)}"/>`))).join("");
+  }
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${h}" viewBox="0 0 ${width} ${h}">`
-    + `<title>${esc(layout.printed)}</title>${background}${seals}${runs}</svg>`;
+    + `<title>${esc(layout.printed)}</title>${background}${seals}${stickers}${runs}</svg>`;
 
   const png = await sharp(Buffer.from(svg)).png({ compressionLevel: 9 }).toBuffer();
   // ASCII-only filename (HTTP headers can't carry Ä/Ö/Ü)
