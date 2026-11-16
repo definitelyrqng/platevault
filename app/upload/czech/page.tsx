@@ -192,7 +192,7 @@ export default function CzechUploadPage() {
   const is2001RegionBased = ["car2001","moto2001","dealer2001","sport2001","oldtimer2001","electric"].includes(category);
   const isFreeText = ["vanity","export","military","car1992","foreign"].includes(category);
   const isDiplomatic = category === "diplomatic";
-  const canSubmit = !!file && !fileError && plateText.trim().length >= 2 && location.trim().length >= 2 && !locationWarning && status === "idle";
+  const canSubmit = !!file && !fileError && plateText.trim().length >= 2 && (category !== "vanity" || /\d/.test(plateText)) && location.trim().length >= 2 && !locationWarning && status === "idle";
 
   function handleFileSelect(f: File | null) {
     setFileError("");
@@ -463,7 +463,7 @@ export default function CzechUploadPage() {
                   {/* Vanity / Export */}
                   {isFreeText && (
                     <input value={custom} onChange={(e) => setCustom(e.target.value.toUpperCase().replace(/[^A-Z0-9 ]/g, "").slice(0, category === "vanity" ? 9 : 9))}
-                      placeholder={category === "vanity" ? "AYA RULES" : category === "export" ? "6SN X4E" : category === "military" ? "022 61-25" : category === "foreign" ? "SUJ 22-45" : category === "car1992" ? "ALA 40-11" : "TEXT"} maxLength={9}
+                      placeholder={category === "vanity" ? "AYA V4ULT" : category === "export" ? "6SN X4E" : category === "military" ? "022 61-25" : category === "foreign" ? "SUJ 22-45" : category === "car1992" ? "ALA 40-11" : "TEXT"} maxLength={9}
                       className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono outline-none focus:border-zinc-600" />
                   )}
 

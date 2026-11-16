@@ -221,7 +221,7 @@ export const CZECH_CATEGORIES: CzechCategory[] = [
   { id: "sport2001",       label: "Sportscar",            emoji: "🏎️", example: "12R-3456",  hint: "Region number + R + digits",                      group: "current"   },
   { id: "oldtimer2001",    label: "Oldtimer",             emoji: "🏛️", example: "12V-3456",  hint: "Region number + V + digits",                      group: "current"   },
   { id: "electric",        label: "Electric",             emoji: "⚡", example: "EL1 06AC",  hint: "Always starts with EL + a digit, then 2 digits and 2 letters (EL1 06AC)",                    group: "current"   },
-  { id: "vanity",          label: "Vanity",               emoji: "✨", example: "AYA RULES",  hint: "Your own text, up to 8 characters (split 3 + 5). Czech plates have no G, O, Q or W",                  group: "current"   },
+  { id: "vanity",          label: "Vanity",               emoji: "✨", example: "AYA V4ULT",  hint: "Your own text, up to 8 characters (split 3 + 5) with at least one digit. Czech plates have no G, O, Q or W — use a 0 instead of an O",                  group: "current"   },
   { id: "diplomatic",      label: "Diplomatic",           emoji: "🟦", example: "017 CD75", hint: "New system: country code + CD + number (blue, euroband). Old system: three letters + 4 digits (turquoise)", group: "current"   },
   { id: "military",        label: "Military",             emoji: "🪖", example: "022 61-25", hint: "Military vehicle registration — no euroband",    group: "current"   },
   { id: "car1992",         label: "Car (1992–2001)",      emoji: "🗂️", example: "ALA 40-11", hint: "Three letters (district), 2 digits, dash, 2 digits — no euroband", group: "historical" },
