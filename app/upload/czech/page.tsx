@@ -319,8 +319,8 @@ export default function CzechUploadPage() {
                       className={`flex flex-col items-center gap-2 rounded-xl border px-3 py-3 text-center text-sm transition-all ${
                         category === cat.id ? "border-indigo-600 bg-indigo-950/50 text-indigo-200" : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
                       }`}>
-                      <span className="block h-[44px] w-full overflow-hidden text-center leading-[44px]">
-                        <PlateBadge country="czech" text={cat.example} plateType={`cz-${cat.id}-${CZECH_FORMATS[cat.id][0]?.id ?? "single"}`} size="md" />
+                      <span className="flex h-[64px] w-full items-center justify-center overflow-hidden">
+                        <PlateBadge country="czech" text={cat.example} plateType={`cz-${cat.id}-${CZECH_FORMATS[cat.id][0]?.id ?? "single"}`} size={cat.id === "moto2001" ? "lg" : "md"} />
                       </span>
                       <span className="font-medium leading-snug">{cat.label}</span>
                     </button>
@@ -461,7 +461,7 @@ export default function CzechUploadPage() {
                   {/* Vanity / Export */}
                   {isFreeText && (
                     <input value={custom} onChange={(e) => setCustom(e.target.value.toUpperCase().slice(0,9))}
-                      placeholder={category === "vanity" ? "CZECHREP" : "EXPORT123"} maxLength={9}
+                      placeholder={category === "export" ? "6SN X4E" : category === "military" ? "022 61-25" : category === "foreign" ? "SUJ 22-45" : category === "car1992" ? "ALA 40-11" : "TEXT"} maxLength={9}
                       className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono outline-none focus:border-zinc-600" />
                   )}
 

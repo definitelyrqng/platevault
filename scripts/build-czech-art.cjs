@@ -84,7 +84,8 @@ async function clean(file, out, white, stickerBoxes) {
     let lines = "";
     for (let i = 1; i < 3; i++) lines += `<rect x="${898 + i * cw - 0.75}" y="16" width="1.5" height="189" fill="#fff" fill-opacity=".85"/>`;
     for (let i = 1; i < 7; i++) lines += `<rect x="898" y="${16 + i * ch - 0.75}" width="${3 * cw}" height="1.5" fill="#fff" fill-opacity=".85"/>`;
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="221"><rect x="898" y="16" width="${3 * cw}" height="189" fill="#e8472f"/>${lines}${g}</svg>`;
+    const rings = '<circle cx="494" cy="68" r="34" fill="none" stroke="#d9d9d9" stroke-width="3"/><circle cx="494" cy="150" r="34" fill="none" stroke="#d9d9d9" stroke-width="3"/>';
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="221"><rect x="898" y="16" width="${3 * cw}" height="189" fill="#e8472f"/>${lines}${g}${rings}</svg>`;
     await sharp(path.join(OUT, "single.png")).composite([{ input: Buffer.from(svg) }]).png().toFile(path.join(OUT, "export.png"));
   }
 

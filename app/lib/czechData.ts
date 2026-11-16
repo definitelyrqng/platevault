@@ -225,7 +225,7 @@ export const CZECH_CATEGORIES: CzechCategory[] = [
   { id: "diplomatic",      label: "Diplomatic",           emoji: "🟦", example: "017 CD75", hint: "New system: country code + CD + number (blue, euroband). Old system: three letters + 4 digits (turquoise)", group: "current"   },
   { id: "military",        label: "Military",             emoji: "🪖", example: "022 61-25", hint: "Military vehicle registration — no euroband",    group: "current"   },
   { id: "car1992",         label: "Car (1992–2001)",      emoji: "🗂️", example: "ALA 40-11", hint: "Three letters (district), 2 digits, dash, 2 digits — no euroband", group: "historical" },
-  { id: "export",          label: "Export",               emoji: "🟧", example: "EXPORT123", hint: "Custom export plate text",                        group: "current"   },
+  { id: "export",          label: "Export",               emoji: "🟧", example: "6SN X4E", hint: "Export plate — three characters, space, three characters; red month grid at the right end",                        group: "current"   },
   // Historical (1960/1977)
   { id: "car1960",         label: "Car (1960)",           emoji: "🗂️", example: "NBI 47-69", hint: "Region + serial letter + number range",           group: "historical" },
   { id: "moto1960",        label: "Motorcycle (1960)",    emoji: "🏍️", example: "NBI 47-69", hint: "Two-row, trapezoidal or rectangular",             group: "historical" },
