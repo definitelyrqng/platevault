@@ -105,6 +105,11 @@ async function clean(file, out, white, stickerBoxes) {
     const svg = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${rings.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="#d9d9d9" stroke-width="3"/>`).join("")}</svg>`);
     await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).composite([{ input: svg }]).png().toFile(path.join(OUT, to));
   }
+  // vanity plates: the normal plate with two embossed rings in the middle (no stickers)
+  for (const [from, to] of [["single-euro.png", "vanity-euro.png"], ["single.png", "vanity.png"]]) {
+    const rings = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="221"><circle cx="494" cy="68" r="34" fill="none" stroke="#d9d9d9" stroke-width="3"/><circle cx="494" cy="150" r="34" fill="none" stroke="#d9d9d9" stroke-width="3"/></svg>');
+    await sharp(path.join(OUT, from)).composite([{ input: rings }]).png().toFile(path.join(OUT, to));
+  }
   // foreign citizens: sky-blue plate with yellow lettering (one embossed ring) and a dark-blue one with orange lettering
   for (const [to, face, frame, ring] of [["foreign-turq.png", [45, 168, 224], [245, 196, 0], true], ["foreign-blue.png", [29, 79, 157], [228, 155, 45], false]]) {
     const { data, info } = await sharp(path.join(OUT, "single.png")).ensureAlpha().raw().toBuffer({ resolveWithObject: true });

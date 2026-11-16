@@ -126,7 +126,7 @@ const DIGITS_0_9 = ["0","1","2","3","4","5","6","7","8","9"];
 const DEALER_LETTERS = ["A","B","C","E","F","H","J","K","L","M","P","S","T","U","X","Z"];
 const OPT_CHARS = ["", ...Array.from("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), ...Array.from("0123456789")];
 
-const AVAILABLE: CzechCategoryId[] = ["car2001", "moto2001", "dealer2001", "sport2001", "oldtimer2001", "electric", "diplomatic", "military", "export", "car1992", "foreign"];
+const AVAILABLE: CzechCategoryId[] = ["car2001", "moto2001", "dealer2001", "sport2001", "oldtimer2001", "electric", "vanity", "diplomatic", "military", "export", "car1992", "foreign"];
 
 export default function CzechUploadPage() {
   const router = useRouter();
@@ -462,8 +462,8 @@ export default function CzechUploadPage() {
 
                   {/* Vanity / Export */}
                   {isFreeText && (
-                    <input value={custom} onChange={(e) => setCustom(e.target.value.toUpperCase().slice(0,9))}
-                      placeholder={category === "export" ? "6SN X4E" : category === "military" ? "022 61-25" : category === "foreign" ? "SUJ 22-45" : category === "car1992" ? "ALA 40-11" : "TEXT"} maxLength={9}
+                    <input value={custom} onChange={(e) => setCustom(e.target.value.toUpperCase().replace(/[^A-Z0-9 ]/g, "").slice(0, category === "vanity" ? 9 : 9))}
+                      placeholder={category === "vanity" ? "AYA RULES" : category === "export" ? "6SN X4E" : category === "military" ? "022 61-25" : category === "foreign" ? "SUJ 22-45" : category === "car1992" ? "ALA 40-11" : "TEXT"} maxLength={9}
                       className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono outline-none focus:border-zinc-600" />
                   )}
 

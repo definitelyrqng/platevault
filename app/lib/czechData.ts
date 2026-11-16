@@ -221,7 +221,7 @@ export const CZECH_CATEGORIES: CzechCategory[] = [
   { id: "sport2001",       label: "Sportscar",            emoji: "🏎️", example: "12R-3456",  hint: "Region number + R + digits",                      group: "current"   },
   { id: "oldtimer2001",    label: "Oldtimer",             emoji: "🏛️", example: "12V-3456",  hint: "Region number + V + digits",                      group: "current"   },
   { id: "electric",        label: "Electric",             emoji: "⚡", example: "EL1 06AC",  hint: "Always starts with EL + a digit, then 2 digits and 2 letters (EL1 06AC)",                    group: "current"   },
-  { id: "vanity",          label: "Vanity",               emoji: "✨", example: "CZECHREP",  hint: "Custom text up to 9 characters",                  group: "current"   },
+  { id: "vanity",          label: "Vanity",               emoji: "✨", example: "AYA RULES",  hint: "Your own text, up to 8 characters (split 3 + 5). Czech plates have no G, O, Q or W",                  group: "current"   },
   { id: "diplomatic",      label: "Diplomatic",           emoji: "🟦", example: "017 CD75", hint: "New system: country code + CD + number (blue, euroband). Old system: three letters + 4 digits (turquoise)", group: "current"   },
   { id: "military",        label: "Military",             emoji: "🪖", example: "022 61-25", hint: "Military vehicle registration — no euroband",    group: "current"   },
   { id: "car1992",         label: "Car (1992–2001)",      emoji: "🗂️", example: "ALA 40-11", hint: "Three letters (district), 2 digits, dash, 2 digits — no euroband", group: "historical" },
@@ -282,7 +282,7 @@ export const CZECH_FORMATS: Record<CzechCategoryId, CzechPlateFormat[]> = {
     { id: "two-euro",      label: "Two-line + euroband" },
     { id: "us-euro",       label: "US-style + euroband" },
   ],
-  vanity:      [{ id: "single", label: "Single-line" }],
+  vanity:      [{ id: "single-euro", label: "Single-line + euroband" }, { id: "single", label: "Single-line" }],
   diplomatic:  [{ id: "single-euro", label: "New system (blue, with euroband)" }, { id: "single", label: "Old system (turquoise, no euroband)" }],
   military:    [{ id: "single", label: "Single-line (no euroband)" }],
   foreign:     [{ id: "turq", label: "Sky blue, yellow lettering" }, { id: "blue", label: "Dark blue, orange lettering" }],
@@ -394,7 +394,10 @@ export function buildCzechPlateText(
       const d2 = f.diplom2 ?? "";
       return `${d1} ${d2}`.trim().toUpperCase();
     }
-    case "vanity":
+    case "vanity": {                       // 3 + up to 5 characters, split over the two halves of the plate
+      const v = (f.custom ?? "").toUpperCase().replace(/\s+/g, " ").trim();
+      return v.includes(" ") || v.length <= 3 ? v : v.slice(0, 3) + " " + v.slice(3);
+    }
     case "export":
     case "foreign":
     case "military":

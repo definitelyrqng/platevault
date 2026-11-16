@@ -238,6 +238,8 @@ export const PLATE_ART: Record<string, PlateArt> = {
   "czech:oldtimer-two": { src: "/plates/czech/oldtimer-two.png", w: 560, h: 400, rows: [{ y0: 28, y1: 190, x0: 40, x1: 420, slots: 1, align: "left" }, { y0: 212, y1: 378, x0: 40, x1: 520, slots: 1, align: "left" }], split: "at-two", font: "cz", fill: 0.92, textColor: "#1e6e30" },
   "czech:oldtimer-us-euro": { src: "/plates/czech/oldtimer-us-euro.png", w: 1000, h: 497, rows: [{ y0: 44, y1: 232, x0: 170, x1: 780, slots: 1 }, { y0: 262, y1: 456, x0: 140, x1: 780, slots: 1 }], split: "at-two", font: "cz", fill: 0.9, textColor: "#1e6e30" },
   "czech:oldtimer-us": { src: "/plates/czech/oldtimer-us.png", w: 1000, h: 497, rows: [{ y0: 44, y1: 232, x0: 60, x1: 780, slots: 1 }, { y0: 262, y1: 456, x0: 60, x1: 780, slots: 1 }], split: "at-two", font: "cz", fill: 0.9, textColor: "#1e6e30" },
+  "czech:vanity-euro": { src: "/plates/czech/vanity-euro.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 114, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 975, slots: 1, align: "left" }], split: "at-two", font: "cz", fill: 0.9 },
+  "czech:vanity": { src: "/plates/czech/vanity.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 40, x1: 446, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 574, x1: 975, slots: 1, align: "left" }], split: "at-two", font: "cz", fill: 0.9 },
   "czech:two-euro": { src: "/plates/czech/two-euro.png", w: 560, h: 400, rows: [{ y0: 28, y1: 190, x0: 112, x1: 420, slots: 1, align: "left" }, { y0: 212, y1: 378, x0: 112, x1: 520, slots: 1, align: "left" }], split: "at-two", font: "cz", fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 436, y: 22, w: 82, h: 82, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 436, y: 108, w: 82, h: 82, bit: 2 }] },
   "czech:two": { src: "/plates/czech/two.png", w: 560, h: 400, rows: [{ y0: 28, y1: 190, x0: 40, x1: 420, slots: 1, align: "left" }, { y0: 212, y1: 378, x0: 40, x1: 520, slots: 1, align: "left" }], split: "at-two", font: "cz", fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 436, y: 22, w: 82, h: 82, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 436, y: 108, w: 82, h: 82, bit: 2 }] },
   // ── Croatia: the supplied plate photo with the lettering removed; the coat of arms is part of the artwork (region on its left, digits on its right). D-DIN lettering. ──
@@ -379,6 +381,8 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
     if (sp) { const a = PLATE_ART[`czech:${sp[1]}${sp[2] ?? ""}`]; return a ? { ...a, textColor: "#1e6e30" } : null; }
     const el = t.match(/^cz-electric-(single|two)(-euro)?$/);          // electric cars: the normal plate, EL + digit + number
     if (el) return PLATE_ART[`czech:${el[1]}${el[2] ?? ""}`] ?? null;
+    if (t === "cz-vanity-single-euro") return PLATE_ART["czech:vanity-euro"] ?? null;
+    if (t === "cz-vanity-single") return PLATE_ART["czech:vanity"] ?? null;
     const fo = t.match(/^cz-foreign-(turq|blue)$/);
     if (fo) return PLATE_ART[`czech:foreign-${fo[1]}`] ?? null;
     const us = t.match(/^cz-car2001-us(-euro)?$/);
