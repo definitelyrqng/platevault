@@ -12,7 +12,7 @@ export { formatPlateText } from "@/app/lib/plateLayout";
 export type { PlateSize };
 
 /** Bump when the plate rendering changes, so CDN-cached images refresh. */
-const PLATE_IMAGE_VERSION = 133;
+const PLATE_IMAGE_VERSION = 134;
 /** Render at 3× for crisp output on high-density screens. */
 const DENSITY = 3;
 
