@@ -410,7 +410,7 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
   }
   if (key === "germany") {
     // single-row plates of the ordinary kinds (E, H, seasonal and exchange plates look the same); the other kinds are not drawn yet
-    return !plateType || /^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)(-single)?(-w\d{3})?(-hu(\d\d|0))?$/.test(plateType) ? PLATE_ART[`germany:${(plateType ?? "").match(/-w(\d{3})/)?.[0].slice(1) ?? "single"}`] ?? PLATE_ART["germany:single"] ?? null : null;
+    return !plateType || /^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)(-single)?(-short)?(-hu(\d\d|0))?$/.test(plateType) ? PLATE_ART["germany:single"] ?? null : null;
   }
   if (key === "austria") {
     const k = austriaArtKey(plateType);
@@ -673,8 +673,14 @@ export function plateLayout(country: string, rawText: string, height: number, pl
   const key = country.toLowerCase();
   const printed = formatPlateText(key, rawText);
   const h = height;
-  const art = plateArtFor(key, plateType);
+  let art = plateArtFor(key, plateType);
   const capH = CAP_BOTTOM - CAP_TOP; // em
+  // German plates are made as short as the registration allows: 7–8 characters 520 mm, 6 → 460, 5 → 400, 4 → 360, 3 → 340 (only for plates marked "-short")
+  if (key === "germany" && art === PLATE_ART["germany:single"] && /^de-regular-single-short(-hu(\d\d|0))?$/.test(plateType ?? "")) {
+    const n = printed.replace(/[^A-Z0-9ÄÖÜ]/g, "").length;
+    const mm = n >= 7 ? 520 : n === 6 ? 460 : n === 5 ? 400 : n === 4 ? 360 : 340;
+    if (mm < 520) art = PLATE_ART[`germany:w${mm}`] ?? art;
+  }
 
   if (art) {
     const font = art.font ?? plateFont(key);
