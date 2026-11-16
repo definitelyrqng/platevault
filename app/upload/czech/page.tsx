@@ -11,6 +11,7 @@ import ZoomImage from "@/app/components/ZoomImage";
 import TagPicker from "@/app/components/TagPicker";
 import MilestonePopup from "@/app/components/MilestonePopup";
 import PlateBadge from "@/app/components/PlateBadge";
+import { plateArtFor } from "@/app/lib/plateLayout";
 import OcrHint from "@/app/components/OcrHint";
 import DescriptionInput from "@/app/components/DescriptionInput";
 import {
@@ -177,13 +178,15 @@ export default function CzechUploadPage() {
   const plateText = useMemo(() => buildCzechPlateText(category, { firstDigit, regionLetter, optionalChar, fourDigits, regionNum, dealerLetter, elDigit, diplom1, diplom2, custom, regionCode1960, serialLetter, num1, num2 }),
     [category, firstDigit, regionLetter, optionalChar, fourDigits, regionNum, dealerLetter, elDigit, diplom1, diplom2, custom, regionCode1960, serialLetter, num1, num2]);
 
-  const hasStickers = category === "car2001" || category === "moto2001";
-  const stickerSuffix = hasStickers ? `-st${(stickerTop ? 1 : 0) + (category === "car2001" && stickerBottom ? 2 : 0)}` : "";
-  const plateTypeStored = useMemo(() => (category === "moto1960" ? `cz-moto1960-${motoType1960}` : `cz-${category}-${plateFormat}`) + stickerSuffix, [category, plateFormat, motoType1960, stickerSuffix]);
+  const baseType = category === "moto1960" ? `cz-moto1960-${motoType1960}` : `cz-${category}-${plateFormat}`;
+  const hasStickers = !!plateArtFor("czech", baseType)?.stickers;      // plates that have artwork (and so inspection stickers)
+  const twoStickers = hasStickers && category !== "moto2001";
+  const stickerSuffix = hasStickers ? `-st${(stickerTop ? 1 : 0) + (twoStickers && stickerBottom ? 2 : 0)}` : "";
+  const plateTypeStored = useMemo(() => baseType + stickerSuffix, [baseType, stickerSuffix]);
   const locationWarning = useMemo(() => { if (!location.trim()) return ""; return locationTooExact(locationOf(location)) ? "Keep it broad — city or area only." : ""; }, [location]);
   const is1960 = ["car1960","moto1960","commercial1960","agricultural1960","trailer1977"].includes(category);
   const is2001RegionBased = ["car2001","moto2001","dealer2001","sport2001","oldtimer2001","electric","foreign"].includes(category);
-  const isFreeText = ["vanity","export"].includes(category);
+  const isFreeText = ["vanity","export","military","car1992"].includes(category);
   const isDiplomatic = category === "diplomatic";
   const canSubmit = !!file && !fileError && plateText.trim().length >= 2 && location.trim().length >= 2 && !locationWarning && status === "idle";
 
@@ -472,9 +475,9 @@ export default function CzechUploadPage() {
                         </div>
                       </div>
                       <div>
-                        <label className="mb-1 block text-xs text-zinc-500">4 digits</label>
+                        <label className="mb-1 block text-xs text-zinc-500">Number (e.g. 06AC)</label>
                         <input value={fourDigits} onChange={(e) => setFourDigits(e.target.value.replace(/[^A-Z0-9]/gi,"").slice(0,4).toUpperCase())}
-                          placeholder="1234" maxLength={4} className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono outline-none focus:border-zinc-600" />
+                          placeholder="06AC" maxLength={4} className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono outline-none focus:border-zinc-600" />
                       </div>
                     </div>
                   )}
@@ -483,14 +486,14 @@ export default function CzechUploadPage() {
                   {isDiplomatic && (
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="mb-1 block text-xs text-zinc-500">First 4 digits</label>
-                        <input value={diplom1} onChange={(e) => setDiplom1(e.target.value.replace(/\D/g,"").slice(0,4))}
-                          placeholder="1234" maxLength={4} className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono outline-none focus:border-zinc-600" />
+                        <label className="mb-1 block text-xs text-zinc-500">{plateFormat === "single-euro" ? "Country code (3 digits)" : "Letters (3)"}</label>
+                        <input value={diplom1} onChange={(e) => setDiplom1(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,3))}
+                          placeholder={plateFormat === "single-euro" ? "017" : "DDO"} maxLength={3} className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono outline-none focus:border-zinc-600" />
                       </div>
                       <div>
-                        <label className="mb-1 block text-xs text-zinc-500">Second 4 digits</label>
-                        <input value={diplom2} onChange={(e) => setDiplom2(e.target.value.replace(/\D/g,"").slice(0,4))}
-                          placeholder="5678" maxLength={4} className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono outline-none focus:border-zinc-600" />
+                        <label className="mb-1 block text-xs text-zinc-500">{plateFormat === "single-euro" ? "CD + number" : "Digits (4)"}</label>
+                        <input value={diplom2} onChange={(e) => setDiplom2(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,4))}
+                          placeholder={plateFormat === "single-euro" ? "CD75" : "0529"} maxLength={4} className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono outline-none focus:border-zinc-600" />
                       </div>
                     </div>
                   )}
@@ -614,7 +617,7 @@ export default function CzechUploadPage() {
                       className={`rounded-full border px-3 py-1.5 transition-colors ${stickerTop ? "border-red-500/60 bg-red-950/40 text-red-200" : "border-zinc-700 text-zinc-500 hover:border-zinc-500"}`}>
                       {stickerTop ? "✓" : "+"} Red sticker
                     </button>
-                    {category === "car2001" && (
+                    {twoStickers && (
                       <button type="button" aria-pressed={stickerBottom} onClick={() => setStickerBottom((v) => !v)}
                         className={`rounded-full border px-3 py-1.5 transition-colors ${stickerBottom ? "border-emerald-500/60 bg-emerald-950/40 text-emerald-200" : "border-zinc-700 text-zinc-500 hover:border-zinc-500"}`}>
                         {stickerBottom ? "✓" : "+"} Green sticker

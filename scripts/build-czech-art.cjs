@@ -32,7 +32,11 @@ async function clean(file, out, white, stickerBoxes) {
 
 (async () => {
   const s1 = await clean("single-source.png", "single-euro.png", [[102, 15, 975, 205]], { "sticker-red": [452, 26, 538, 112], "sticker-green": [452, 112, 538, 198] });
-  for (const [n, b] of s1) await sharp(b).toFile(path.join(OUT, n + ".png"));
+  for (const [n, b] of s1) {          // round, so they sit on any plate colour
+    const m = await sharp(b).metadata();
+    const mask = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${m.width}" height="${m.height}"><circle cx="${m.width / 2}" cy="${m.height / 2}" r="${Math.min(m.width, m.height) / 2 - 0.5}" fill="#fff"/></svg>`);
+    await sharp(b).ensureAlpha().composite([{ input: mask, blend: "dest-in" }]).png().toFile(path.join(OUT, n + ".png"));
+  }
   await clean("two-source.png", "two-euro.png", [[100, 15, 538, 384], [21, 207, 100, 384]]);
   // old plate style (no euroband): the band area is white
   for (const [n, box] of [["single", [14, 15, 102, 206]], ["two", [21, 15, 100, 206]]]) {
@@ -52,5 +56,48 @@ async function clean(file, out, white, stickerBoxes) {
   await noBand("single-euro.png", "single.png", [21, 14, 101, 205]);
   await noBand("two-euro.png", "two.png", [21, 14, 100, 206]);
   await noBand("moto-euro.png", "moto.png", [14, 9, 75, 129]);
+
+  // US-size plate (2 : 1), with and without euroband
+  {
+    const band = await sharp(path.join(OUT, "single-euro.png")).extract({ left: 21, top: 14, width: 81, height: 192 }).resize(134, 268, { kernel: "lanczos3" }).toBuffer();
+    const frame = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="497"><rect width="1000" height="497" rx="34" fill="#141414"/><rect x="12" y="12" width="976" height="473" rx="24" fill="#ffffff"/></svg>`);
+    await sharp(frame).composite([{ input: band, left: 14, top: 14 }]).png().toFile(path.join(OUT, "us-euro.png"));
+    await sharp(frame).png().toFile(path.join(OUT, "us.png"));
+  }
+  // old diplomatic plate: turquoise face, yellow frame and lettering
+  {
+    const { data, info } = await sharp(path.join(OUT, "single.png")).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] === 0) continue;
+      const lum = (data[i] + data[i + 1] + data[i + 2]) / 3;
+      if (lum > 200) { data[i] = 63; data[i + 1] = 193; data[i + 2] = 224; }
+      else if (lum < 90) { data[i] = 232; data[i + 1] = 170; data[i + 2] = 0; }
+    }
+    await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toFile(path.join(OUT, "diplomatic-old.png"));
+  }
+  // export plate: the red month grid at the right end
+  {
+    const rows = [["04", "05", "06"], ["C7", "08", "09"], ["10", "11", "12"], ["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"], ["10", "11", "12"]];
+    const cw = 27.5, ch = 27;
+    let g = "";
+    rows.forEach((r, ri) => r.forEach((t, ci) => { g += `<text x="${898 + ci * cw + cw / 2}" y="${16 + ri * ch + ch / 2 + 5}" font-family="Arial, sans-serif" font-weight="700" font-size="14" fill="#fff" text-anchor="middle">${t}</text>`; }));
+    let lines = "";
+    for (let i = 1; i < 3; i++) lines += `<rect x="${898 + i * cw - 0.75}" y="16" width="1.5" height="189" fill="#fff" fill-opacity=".85"/>`;
+    for (let i = 1; i < 7; i++) lines += `<rect x="898" y="${16 + i * ch - 0.75}" width="${3 * cw}" height="1.5" fill="#fff" fill-opacity=".85"/>`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="221"><rect x="898" y="16" width="${3 * cw}" height="189" fill="#e8472f"/>${lines}${g}</svg>`;
+    await sharp(path.join(OUT, "single.png")).composite([{ input: Buffer.from(svg) }]).png().toFile(path.join(OUT, "export.png"));
+  }
+
+  // antique / oldtimer plates: green frame and lettering (the plate carries two embossed rings instead of stickers)
+  for (const [from, to] of [["single-euro.png", "oldtimer-euro.png"], ["single.png", "oldtimer.png"]]) {
+    const { data, info } = await sharp(path.join(OUT, from)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] === 0) continue;
+      const lum = (data[i] + data[i + 1] + data[i + 2]) / 3, neutral = Math.abs(data[i] - data[i + 1]) < 25 && Math.abs(data[i + 1] - data[i + 2]) < 25;
+      if (neutral && lum < 120) { data[i] = 30; data[i + 1] = 110; data[i + 2] = 48; }
+    }
+    const rings = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="221"><circle cx="494" cy="68" r="34" fill="none" stroke="#d9d9d9" stroke-width="3"/><circle cx="494" cy="150" r="34" fill="none" stroke="#d9d9d9" stroke-width="3"/></svg>');
+    await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).composite([{ input: rings }]).png().toFile(path.join(OUT, to));
+  }
   console.log("ok");
 })();

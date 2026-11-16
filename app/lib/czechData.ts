@@ -199,6 +199,8 @@ export type CzechCategoryId =
   | "vanity"
   | "electric"
   | "diplomatic"
+  | "car1992"
+  | "military"
   | "export"
   | "trailer1977";
 
@@ -218,9 +220,11 @@ export const CZECH_CATEGORIES: CzechCategory[] = [
   { id: "dealer2001",      label: "Dealer",               emoji: "🟩", example: "H 5912",    hint: "Green-text dealer plate (2001+)",                  group: "current"   },
   { id: "sport2001",       label: "Sportscar",            emoji: "🏎️", example: "11R 0466",  hint: "Region number + R + digits",                      group: "current"   },
   { id: "oldtimer2001",    label: "Oldtimer",             emoji: "🏛️", example: "02V 1621",  hint: "Region number + V + digits",                      group: "current"   },
-  { id: "electric",        label: "Electric",             emoji: "⚡", example: "EL0 1234",  hint: "EL prefix + digit + 4 digits",                    group: "current"   },
+  { id: "electric",        label: "Electric",             emoji: "⚡", example: "EL1 06AC",  hint: "Always starts with EL + a digit, then 2 digits and 2 letters (EL1 06AC)",                    group: "current"   },
   { id: "vanity",          label: "Vanity",               emoji: "✨", example: "CZECHREP",  hint: "Custom text up to 9 characters",                  group: "current"   },
-  { id: "diplomatic",      label: "Diplomatic",           emoji: "🟦", example: "1234 5678", hint: "Four digits, space, four digits",                  group: "current"   },
+  { id: "diplomatic",      label: "Diplomatic",           emoji: "🟦", example: "017 CD75", hint: "New system: country code + CD + number (blue, euroband). Old system: three letters + 4 digits (turquoise)", group: "current"   },
+  { id: "military",        label: "Military",             emoji: "🪖", example: "022 61-25", hint: "Military vehicle registration — no euroband",    group: "current"   },
+  { id: "car1992",         label: "Car (1992–2001)",      emoji: "🗂️", example: "ALA 40-11", hint: "Three letters (district), 2 digits, dash, 2 digits — no euroband", group: "historical" },
   { id: "export",          label: "Export",               emoji: "🟧", example: "EXPORT123", hint: "Custom export plate text",                        group: "current"   },
   // Historical (1960/1977)
   { id: "car1960",         label: "Car (1960)",           emoji: "🗂️", example: "NBI 47-69", hint: "Region + serial letter + number range",           group: "historical" },
@@ -280,7 +284,9 @@ export const CZECH_FORMATS: Record<CzechCategoryId, CzechPlateFormat[]> = {
     { id: "two",           label: "Two-line" },
   ],
   vanity:      [{ id: "single", label: "Single-line" }],
-  diplomatic:  [{ id: "single", label: "Single-line" }],
+  diplomatic:  [{ id: "single-euro", label: "New system (blue, with euroband)" }, { id: "single", label: "Old system (turquoise, no euroband)" }],
+  military:    [{ id: "single", label: "Single-line (no euroband)" }],
+  car1992:     [{ id: "single", label: "Single-line (no euroband)" }],
   export:      [{ id: "single", label: "Single-line" }],
   car1960: [
     { id: "trap60",        label: "Two-row trapezoidal (1960)" },
@@ -325,8 +331,8 @@ export const CZECH_FORMATS: Record<CzechCategoryId, CzechPlateFormat[]> = {
 
 // ── Category groups ──────────────────────────────────────────────────────────
 export const CZECH_CATEGORY_GROUPS: { id: string; label: string; ids: CzechCategoryId[] }[] = [
-  { id: "current",    label: "Current (2001+)",   ids: ["car2001","moto2001","dealer2001","sport2001","oldtimer2001","electric","vanity","diplomatic","export","foreign"] },
-  { id: "historical", label: "Historical",        ids: ["car1960","moto1960","commercial1960","agricultural1960","trailer1977"] },
+  { id: "current",    label: "Current (2001+)",   ids: ["car2001","moto2001","dealer2001","sport2001","oldtimer2001","electric","vanity","diplomatic","military","export","foreign"] },
+  { id: "historical", label: "Historical",        ids: ["car1992","car1960","moto1960","commercial1960","agricultural1960","trailer1977"] },
 ];
 
 // ── Plate text builder ───────────────────────────────────────────────────────
@@ -399,7 +405,9 @@ export function buildCzechPlateText(
     }
     case "vanity":
     case "export":
-      return (f.custom ?? "").toUpperCase();
+    case "military":
+    case "car1992":
+      return (f.custom ?? "").toUpperCase().replace(/\s+/g, " ").trim();
     case "car1960":
     case "moto1960":
     case "commercial1960":
