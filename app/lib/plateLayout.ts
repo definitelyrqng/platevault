@@ -114,6 +114,8 @@ export type PlateArt = {
   stickers?: { src: string; x: number; y: number; w: number; h: number; bit: number }[];
   /** Lettering colour (default near-black). */
   textColor?: string;
+  /** Width of a word space in em (FE-Schrift; default 0.5). */
+  space?: number;
 };
 
 /** Seal size and the gap either side of it, as fractions of the row height. */
@@ -242,6 +244,8 @@ export const PLATE_ART: Record<string, PlateArt> = {
   "czech:vanity": { src: "/plates/czech/vanity.png", w: 1000, h: 221, rows: [{ y0: 26, y1: 196, x0: 60, x1: 430, slots: 1, align: "left" }, { y0: 26, y1: 196, x0: 590, x1: 955, slots: 1, align: "left" }], split: "at-two", font: "cz", fill: 0.97 },
   "czech:two-euro": { src: "/plates/czech/two-euro.png", w: 560, h: 400, rows: [{ y0: 28, y1: 190, x0: 112, x1: 420, slots: 1, align: "left" }, { y0: 212, y1: 378, x0: 112, x1: 520, slots: 1, align: "left" }], split: "at-two", font: "cz", fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 436, y: 22, w: 82, h: 82, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 436, y: 108, w: 82, h: 82, bit: 2 }] },
   "czech:two": { src: "/plates/czech/two.png", w: 560, h: 400, rows: [{ y0: 28, y1: 190, x0: 40, x1: 420, slots: 1, align: "left" }, { y0: 212, y1: 378, x0: 40, x1: 520, slots: 1, align: "left" }], split: "at-two", font: "cz", fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 436, y: 22, w: 82, h: 82, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 436, y: 108, w: 82, h: 82, bit: 2 }] },
+  // ── Germany: the full 520 mm plate (FE-Schrift); the stacked inspection sticker + seal sits between the district and the letters/digits ──
+  "germany:single": { src: "/plates/germany/single.png", w: 1920, h: 390, rows: [{ y0: 50, y1: 328, x0: 172, x1: 1885, slots: 2, seal: true, gap: 0.1 }], split: "at-seal", seal: "/plates/germany/seals.png", sealAspect: 162 / 322, sealH: 1.16, fill: 0.98, space: 0.2 },
   // ── Croatia: the supplied plate photo with the lettering removed; the coat of arms is part of the artwork (region on its left, digits on its right). D-DIN lettering. ──
   // two-row car plate: region on top (left of the coat of arms), number below
   "croatia:two-line-euroband": { src: "/plates/croatia/two-euroband.png", w: 1024, h: 700, rows: [{ y0: 76, y1: 326, x0: 220, x1: 790, slots: 1 }, { y0: 346, y1: 626, x0: 50, x1: 974, slots: 1 }], split: "at-two", font: "dd", fill: 0.92, condense: 0.9, tracking: 0.03, thin: -0.02 },
@@ -393,6 +397,10 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
     if (t === "cz-diplomatic-single-euro") { const a = PLATE_ART["czech:single-euro"]; return a ? { ...a, textColor: "#2f55a8" } : null; }
     const m = t.match(/^cz-car2001-(single|two)(-euro)?$/);
     return m ? PLATE_ART[`czech:${m[1]}${m[2] ?? ""}`] ?? null : null;
+  }
+  if (key === "germany") {
+    // single-row plates of the ordinary kinds (E, H, seasonal and exchange plates look the same); the other kinds are not drawn yet
+    return !plateType || /^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)(-single)?$/.test(plateType) ? PLATE_ART["germany:single"] ?? null : null;
   }
   if (key === "austria") {
     const k = austriaArtKey(plateType);
@@ -625,6 +633,7 @@ export type TextRun = {
   capBottom?: number;
   condense?: number;   // FE-Schrift squeeze
   thin?: number;       // FE-Schrift lightening, em
+  space?: number;      // width of a word space, em (default: the font's)
 };
 
 /** Left edge of a run of the given width inside its slot. */
@@ -689,7 +698,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
       const sealD = !mode ? 0 : stateSrc ? sealH * sealAspect(stateSrc) : art.sealAspect ? sealH * art.sealAspect : rowH * SEAL_DIAMETER;
       const gap = mode ? rowH * (row.gap ?? SEAL_GAP) : 0;
       const gaps = mode === "between" ? 2 : mode === "left" || mode === "right" ? 1 : 0;   // gaps touching the seal
-      const ems = texts.map((t) => textWidthEm(art.dots ? t.replace(/-/g, "·") : t, font, art.condense ?? (font === "dd" ? 1 : CONDENSE)) + (art.tracking ?? 0) * [...t].length);
+      const ems = texts.map((t) => textWidthEm(art.dots ? t.replace(/-/g, "·") : t, font, art.condense ?? (font === "dd" ? 1 : CONDENSE)) + (art.tracking ?? 0) * [...t].length + (art.space !== undefined && font === "fe" ? [...t].filter((c) => c === " ").length * (art.space - 0.5) * (art.condense ?? CONDENSE) : 0));
       return { row, texts, rowH, mode, sealD, sealH, gap, gaps, ems, avail: (row.x1 - row.x0) * s };
     });
     const fit = (l: (typeof lines)[number]) => Math.min((l.rowH * (art.fill ?? 0.72)) / capHF, (l.avail - l.sealD - l.gaps * l.gap) / Math.max(l.ems.reduce((x, y) => x + y, 0), 0.5));
@@ -721,7 +730,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
       }
       l.texts.forEach((text, i) => {
         // Belgian lettering has no slashed zero: use the plain O
-        runs.push({ text: key === "belgium" ? text.replace(/0/g, "O") : art.dots ? text.replace(/-/g, "·") : text, x0: x, x1: x + widths[i], align: "left", fontSize: fs, centerY, tracking: (art.tracking ?? 0) + fillTrack, condense: art.condense ?? (font === "dd" ? 1 : undefined), thin: art.thin, ...(font === "dd" ? { capTop: -DD_CAP_HEIGHT, capBottom: 0 } : {}) });
+        runs.push({ text: key === "belgium" ? text.replace(/0/g, "O") : art.dots ? text.replace(/-/g, "·") : text, x0: x, x1: x + widths[i], align: "left", fontSize: fs, centerY, tracking: (art.tracking ?? 0) + fillTrack, condense: art.condense ?? (font === "dd" ? 1 : undefined), thin: art.thin, space: art.space, ...(font === "dd" ? { capTop: -DD_CAP_HEIGHT, capBottom: 0 } : {}) });
         x += widths[i];
         if (l.mode === "right" && i === l.texts.length - 1) {                 // text then ●
           seals.push({ cx: x + l.gap + l.sealD / 2, cy: centerY, d: l.sealD, h: l.sealH || undefined, src: stateSrc ?? undefined });

@@ -64,6 +64,7 @@ function runSvg(font: opentype.Font, run: TextRun, color = "#111") {
   let x = 0;
 
   for (const ch of text) {
+    if (ch === " " && run.space !== undefined) { x += run.space * fontSize / cond + track; continue; }      // a narrower word space
     const native = ACCENT[ch] && font.charToGlyph(ch).index > 0;     // the font has Š / Ž itself
     const acc = native ? undefined : ACCENT[ch];
     const base = acc ? acc[0] : UMLAUT_BASE[ch];
