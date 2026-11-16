@@ -5,8 +5,10 @@ export interface TagDef {
 }
 
 export const TAG_GROUPS = [
+  "Registration Number",
   "Emergency & Special Services",
   "Commercial & Heavy Vehicles",
+  "Special Machinery",
   "Two-Wheelers",
   "Body Style",
   "Special Interest",
@@ -15,6 +17,11 @@ export const TAG_GROUPS = [
 ] as const;
 
 export const ALL_TAGS: TagDef[] = [
+  // Registration Number
+  { id: "new-combination",    label: "New letter combination", group: "Registration Number" },
+  { id: "brand-plate",        label: "Plate for brand / model", group: "Registration Number" },
+  { id: "repeater",           label: "Repeater",            group: "Registration Number" },
+
   // Emergency & Special Services
   { id: "ambulance",          label: "Ambulance",           group: "Emergency & Special Services" },
   { id: "fire-appliance",     label: "Fire appliance",      group: "Emergency & Special Services" },
@@ -33,10 +40,24 @@ export const ALL_TAGS: TagDef[] = [
   { id: "tow-truck",          label: "Tow truck",           group: "Commercial & Heavy Vehicles" },
   { id: "delivery-van",       label: "Delivery van",        group: "Commercial & Heavy Vehicles" },
   { id: "construction",       label: "Construction vehicle",group: "Commercial & Heavy Vehicles" },
+  { id: "tractor",            label: "Tractor",             group: "Commercial & Heavy Vehicles" },
+  { id: "adr",                label: "ADR (dangerous goods)",group: "Commercial & Heavy Vehicles" },
+  { id: "cash-in-transit",    label: "Cash-in-transit",     group: "Emergency & Special Services" },
+
+  // Special Machinery
+  { id: "concrete-mixer",     label: "Concrete mixer",      group: "Special Machinery" },
+  { id: "drilling-rig",       label: "Drilling rig",        group: "Special Machinery" },
+  { id: "excavator",          label: "Excavator",           group: "Special Machinery" },
+  { id: "food-truck",         label: "Food truck",          group: "Special Machinery" },
+  { id: "road-roller",        label: "Road roller",         group: "Special Machinery" },
+  { id: "tanker",             label: "Tanker",              group: "Special Machinery" },
+  { id: "crane-truck",        label: "Truck-mounted crane", group: "Special Machinery" },
 
   // Two-Wheelers
   { id: "motorcycle",         label: "Motorcycle",          group: "Two-Wheelers" },
   { id: "moped",              label: "Moped",               group: "Two-Wheelers" },
+  { id: "atv",                label: "ATV / quad",          group: "Two-Wheelers" },
+  { id: "trike",              label: "Trike",               group: "Two-Wheelers" },
 
   // Body Style
   { id: "cabriolet",          label: "Cabriolet",           group: "Body Style" },
@@ -62,11 +83,14 @@ export const ALL_TAGS: TagDef[] = [
   { id: "electric",           label: "Electric vehicle",    group: "Special Interest" },
   { id: "rental",             label: "Rental car",          group: "Special Interest" },
   { id: "driving-school",     label: "Driving school",      group: "Special Interest" },
+  { id: "aerography",         label: "Aerography / airbrush",group: "Special Interest" },
+  { id: "test-drive",         label: "Test drive / prototype",group: "Special Interest" },
 
   // Plate-Related
   { id: "tampered-plate",     label: "Tampered plate",      group: "Plate-Related" },
   { id: "non-standard-plate", label: "Non-standard plate",  group: "Plate-Related" },
   { id: "reissued-plate",     label: "Reissued plate",      group: "Plate-Related" },
+  { id: "remade-plate",       label: "Remade plate",        group: "Plate-Related" },
 
   // Incidents & Situations
   { id: "abandoned",          label: "Abandoned vehicle",   group: "Incidents & Situations" },
