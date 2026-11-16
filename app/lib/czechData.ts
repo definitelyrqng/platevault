@@ -282,7 +282,7 @@ export const CZECH_FORMATS: Record<CzechCategoryId, CzechPlateFormat[]> = {
     { id: "two-euro",      label: "Two-line + euroband" },
     { id: "us-euro",       label: "US-style + euroband" },
   ],
-  vanity:      [{ id: "single-euro", label: "Single-line + euroband" }, { id: "single", label: "Single-line" }],
+  vanity:      [{ id: "single-euro", label: "Single-line + euroband" }],      // vanity plates always have the euroband
   diplomatic:  [{ id: "single-euro", label: "New system (blue, with euroband)" }, { id: "single", label: "Old system (turquoise, no euroband)" }],
   military:    [{ id: "single", label: "Single-line (no euroband)" }],
   foreign:     [{ id: "turq", label: "Sky blue, yellow lettering" }, { id: "blue", label: "Dark blue, orange lettering" }],

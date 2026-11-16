@@ -26,7 +26,9 @@ export default function PlateEditor({ value, onChange, canMove }: {
   canMove: boolean;
 }) {
   const options = useMemo(() => plateTypeOptions(value.country), [value.country]);
-  const { base, mask } = splitSticker(value.plateType);
+  const split = splitSticker(value.plateType);
+  const base = split.base === "cz-vanity-single" ? "cz-vanity-single-euro" : split.base;      // older vanity spots were saved without the euroband suffix
+  const mask = split.mask;
   const art = plateArtFor(value.country, base);
   const stickers = art?.stickers ?? [];
   const known = options?.some((o) => o.id === base);

@@ -382,7 +382,7 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
     const el = t.match(/^cz-electric-(single|two)(-euro)?$/);          // electric cars: the normal plate, EL + digit + number
     if (el) return PLATE_ART[`czech:${el[1]}${el[2] ?? ""}`] ?? null;
     if (t === "cz-vanity-single-euro") return PLATE_ART["czech:vanity-euro"] ?? null;
-    if (t === "cz-vanity-single") return PLATE_ART["czech:vanity"] ?? null;
+    if (t === "cz-vanity-single") return PLATE_ART["czech:vanity-euro"] ?? null;          // vanity plates always have the euroband (older spots were saved without the suffix)
     const fo = t.match(/^cz-foreign-(turq|blue)$/);
     if (fo) return PLATE_ART[`czech:foreign-${fo[1]}`] ?? null;
     const us = t.match(/^cz-car2001-us(-euro)?$/);

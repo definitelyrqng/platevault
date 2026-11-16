@@ -73,7 +73,7 @@ export function plateTypeLabel(country: string, type: string | null | undefined)
   if (!type) return null;
   // Czech plates: "cz-<category>-<layout>", optionally ending in "-st0..3" (which inspection stickers are on the plate)
   if (country.toLowerCase() === "czech") {
-    const t = type.replace(/-st[0-3]$/, "");
+    const t = type.replace(/-st[0-3]$/, "").replace(/^cz-vanity-single$/, "cz-vanity-single-euro");
     const m = t.match(/^cz-([a-z0-9]+)-(single|two|us|turq|blue)(-euro)?$/);
     if (m) {
       const [, catId, layout, euro] = m;
