@@ -7,7 +7,7 @@
  * - public/plates/germany/seals/<ST>.png  round state seal (316 px), ST = state code (BW, BY, …)
  *   NW uses the supplied photo of a real seal (assets/germany-seals/nrw.png); the others are drawn
  *   from the state coat of arms (assets/germany-seals/coa/<ST>.png) in the same style.
- * (the inspection stickers come from scripts/build-germany-hu.py)
+ * (the inspection stickers come from scripts/build-germany-hu.py, Berlin's seals from scripts/build-germany-berlin-seals.py)
  */
 const fs = require("fs");
 const path = require("path");
@@ -18,7 +18,7 @@ const SEALS = path.join(ROOT, "public/plates/germany/seals");
 fs.mkdirSync(SEALS, { recursive: true });
 
 const STATES = {
-  BW: "BADEN-WÜRTTEMBERG", BY: "BAYERN", BE: "BERLIN", BB: "BRANDENBURG", HB: "BREMEN", HH: "HAMBURG", HE: "HESSEN",
+  BW: "BADEN-WÜRTTEMBERG", BY: "BAYERN", BB: "BRANDENBURG", HB: "BREMEN", HH: "HAMBURG", HE: "HESSEN",
   MV: "MECKLENBURG-VORPOMMERN", NI: "NIEDERSACHSEN", RP: "RHEINLAND-PFALZ", SL: "SAARLAND", SN: "SACHSEN",
   ST: "SACHSEN-ANHALT", SH: "SCHLESWIG-HOLSTEIN", TH: "THÜRINGEN",
 };
