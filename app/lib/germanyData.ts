@@ -860,6 +860,7 @@ export interface GermanyPlateFormat {
 
 export const GERMANY_PLATE_FORMATS: GermanyPlateFormat[] = [
   { id: "single",     label: "Single-line",     desc: "520×110 mm · most common",         group: "regular" },
+  { id: "moto-old",   label: "Motorcycle (old)", desc: "Until 2011 · stickers on the left",group: "regular" },
   { id: "double",     label: "Two-line",         desc: "280×200 mm · tight spaces",        group: "regular" },
   { id: "us",         label: "US-Style",         desc: "305×152 mm · wider import format", group: "regular" },
   { id: "moto",       label: "Motorcycle",       desc: "180×200 mm · rear-only",           group: "regular" },

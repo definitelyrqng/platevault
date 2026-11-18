@@ -157,7 +157,7 @@ function RegionPicker({
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 /** Plate kinds drawn with the realistic single-row artwork, and the colours of the inspection stickers by year. */
-const HU_TYPES = /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-single|de-din-din-(single|double|us))$/;
+const HU_TYPES = /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-(single|double|us|moto|moto-old)|de-din-din-(single|double|us))$/;
 const HU_YEARS = ["19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31"];
 const HU_COLORS = ["#1ab0ee", "#f5ef12", "#d85c4c", "#f7a0b8", "#18b082", "#e89000"];
 
@@ -170,6 +170,7 @@ export default function GermanyUploadPage() {
   // inspection sticker (HU) on the plate: its year (= colour), or none on front plates
   const [huYear, setHuYear] = useState("25");
   const [frontPlate, setFrontPlate] = useState(false);
+  const [noSeals, setNoSeals] = useState(false);               // no seals and stickers on the plate
   const [shortPlate, setShortPlate] = useState(false);         // shortened plate (standard single row only): cut to the length of the registration
 
   // ── Region-based fields
@@ -294,10 +295,14 @@ export default function GermanyUploadPage() {
     if (category === "red") return `de-red-${redCode}`;
     if (category === "federal") return `de-federal-${federalSub}`;
     const base = `de-${category}-${plateFormat}`;
-    return HU_TYPES.test(base) ? `${base}${shortPlate && base === "de-regular-single" ? "-short" : ""}-hu${frontPlate ? "0" : huYear}` : base;
-  }, [category, plateFormat, redCode, federalSub, huYear, frontPlate, shortPlate]);
+    const stripPlate = (category === "transit-5day" || category === "export") && ["single", "double", "us"].includes(plateFormat);
+    const t = HU_TYPES.test(base) ? `${base}${shortPlate && base === "de-regular-single" ? "-short" : ""}-hu${frontPlate ? "0" : huYear}` : base;
+    return noSeals && (HU_TYPES.test(base) || stripPlate) ? `${t}-ns` : t;                // "-ns": no seals or stickers
+  }, [category, plateFormat, redCode, federalSub, huYear, frontPlate, shortPlate, noSeals]);
   const drawn = HU_TYPES.test(`de-${category}-${plateFormat}`);
-  const transitDrawn = category === "transit-5day" && ["single", "double", "us"].includes(plateFormat);
+  const transitDrawn = (category === "transit-5day" || category === "export") && ["single", "double", "us"].includes(plateFormat);
+  // export plates: 1–4 digits and a letter (8 characters in total with the district code)
+  const exportMax = Math.max(1, Math.min(plateFormat === "us" ? 4 : 5, 7 - regionCode.length));
   // plates have 8 characters at most: a long district code leaves fewer digits (5-day plates: 6 digits, 5 on the US size)
   const transitMax = Math.max(1, Math.min(plateFormat === "us" ? 5 : 6, 8 - regionCode.length));               // the plate kinds we have artwork for
 
@@ -591,7 +596,7 @@ export default function GermanyUploadPage() {
                   <div>
                     <span className="block text-sm text-zinc-300 mb-2">Format</span>
                     <div className="grid grid-cols-2 gap-2">
-                      {(isDIN ? dinFormats : category === "transit-5day" ? regularFormats.filter((f) => f.id !== "moto") : regularFormats).map((fmt) => (
+                      {(isDIN ? dinFormats : (category === "transit-5day" || category === "export") ? regularFormats.filter((f) => ["single", "double", "us"].includes(f.id)) : regularFormats).map((fmt) => (
                         <button
                           key={fmt.id}
                           type="button"
@@ -638,6 +643,14 @@ export default function GermanyUploadPage() {
                   </div>
                 )}
 
+                {/* ── Remove the seals ── */}
+                {(drawn || transitDrawn) && (
+                  <label className="flex items-center gap-2 text-sm text-zinc-300">
+                    <input type="checkbox" checked={noSeals} onChange={(e) => setNoSeals(e.target.checked)} className="accent-indigo-500" />
+                    No seals <span className="text-xs text-zinc-500">(remove the state seal and the stickers from the plate)</span>
+                  </label>
+                )}
+
                 {/* ── Region-based fields ── */}
                 {isRegionBased && (
                   <div className="space-y-4">
@@ -671,9 +684,9 @@ export default function GermanyUploadPage() {
                           <span className="text-sm text-zinc-300">Numbers <span className="text-zinc-600 text-xs">(digits)</span></span>
                           <input
                             value={plateSuffix}
-                            onChange={(e) => setPlateSuffix(e.target.value.replace(/[^0-9]/g, "").slice(0, 4))}
+                            onChange={(e) => setPlateSuffix(e.target.value.replace(/[^0-9]/g, "").slice(0, exportMax))}
                             placeholder="73"
-                            maxLength={4}
+                            maxLength={exportMax}
                             className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono outline-none focus:border-zinc-600"
                           />
                         </label>

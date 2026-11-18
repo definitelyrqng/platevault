@@ -26,14 +26,16 @@ export default function PlateEditor({ value, onChange, canMove }: {
   canMove: boolean;
 }) {
   const options = useMemo(() => plateTypeOptions(value.country), [value.country]);
-  const huMatch = value.plateType.match(/^(.*)-hu(\d\d|0)$/);                          // German plates: "-hu24" = inspection sticker of 2024, "-hu0" = none (front plate)
-  const shortMatch = (huMatch ? huMatch[1] : value.plateType).match(/^(.*?)-short$/);           // German plates: "-short" = cut down to the registration (3–8 characters)
-  const split = splitSticker(shortMatch ? shortMatch[1] : huMatch ? huMatch[1] : value.plateType);
+  const isNs = value.plateType.endsWith("-ns");                                   // German plates: "-ns" = no seals or stickers
+  const pt = isNs ? value.plateType.slice(0, -3) : value.plateType;
+  const huMatch = pt.match(/^(.*)-hu(\d\d|0)$/);                          // German plates: "-hu24" = inspection sticker of 2024, "-hu0" = none (front plate)
+  const shortMatch = (huMatch ? huMatch[1] : pt).match(/^(.*?)-short$/);           // German plates: "-short" = cut down to the registration (3–8 characters)
+  const split = splitSticker(shortMatch ? shortMatch[1] : huMatch ? huMatch[1] : pt);
   const base = split.base === "cz-vanity-single" ? "cz-vanity-single-euro" : split.base;
-  const isDeHu = value.country === "germany" && /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-single|de-din-(din-)?(single|double|us))$/.test(base);
+  const isDeHu = value.country === "germany" && /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-(single|double|us|moto|moto-old)|de-din-(din-)?(single|double|us))$/.test(base);
   const huVal = huMatch ? huMatch[2] : "25";
   const isShort = !!shortMatch;
-  const deType = (short: boolean, hu: string) => `${base}${short && base === "de-regular-single" ? "-short" : ""}-hu${hu}`;
+  const deType = (short: boolean, hu: string) => `${base}${short && base === "de-regular-single" ? "-short" : ""}-hu${hu}${isNs ? "-ns" : ""}`;
   const mask = split.mask;
   const art = plateArtFor(value.country, base);
   const stickers = art?.stickers ?? [];
@@ -45,7 +47,7 @@ export default function PlateEditor({ value, onChange, canMove }: {
   }
   function setType(id: string) {
     const a = plateArtFor(value.country, id);
-    onChange({ ...value, plateType: a?.stickers?.length ? `${id}-st${mask}` : /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-single|de-din-(din-)?(single|double|us))$/.test(id) && value.country === "germany" ? `${id}-hu${huVal}` : id });
+    onChange({ ...value, plateType: a?.stickers?.length ? `${id}-st${mask}` : /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-(single|double|us|moto|moto-old)|de-din-(din-)?(single|double|us))$/.test(id) && value.country === "germany" ? `${id}-hu${huVal}` : id });
   }
   function toggle(bit: number) {
     const next = mask ^ bit;
@@ -82,6 +84,12 @@ export default function PlateEditor({ value, onChange, canMove }: {
           <input className={`${INPUT} font-mono uppercase`} value={value.plateRegion} maxLength={10} onChange={(e) => onChange({ ...value, plateRegion: e.target.value.toUpperCase() })} /></label>
       </div>
 
+      {value.country === "germany" && (
+        <label className="flex items-center gap-2 text-xs text-zinc-400">
+          <input type="checkbox" checked={isNs} onChange={(e) => onChange({ ...value, plateType: e.target.checked ? `${pt}-ns` : pt })} className="accent-indigo-500" />
+          No seals — remove the state seal and the stickers
+        </label>
+      )}
       {isDeHu && (
         <div>
           {base === "de-regular-single" && (

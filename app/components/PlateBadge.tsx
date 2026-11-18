@@ -12,7 +12,7 @@ export { formatPlateText } from "@/app/lib/plateLayout";
 export type { PlateSize };
 
 /** Bump when the plate rendering changes, so CDN-cached images refresh. */
-const PLATE_IMAGE_VERSION = 154;
+const PLATE_IMAGE_VERSION = 160;
 /** Render at 3× for crisp output on high-density screens. */
 const DENSITY = 3;
 
@@ -25,7 +25,7 @@ export function plateImageUrl(country: string, text: string, height: number, pla
   });
   // Only plate types with their own artwork change the image — keep other URLs (and caches) stable
   // (a Czech sticker choice, "-st0".."-st3", also changes the image even when the artwork is the default one)
-  if (plateType && (plateArtFor(country, plateType) !== plateArtFor(country) || /-(st[0-3]|hu(\d\d|0))$/.test(plateType))) qs.set("p", plateType);
+  if (plateType && (plateArtFor(country, plateType) !== plateArtFor(country) || /-(st[0-3]|hu(\d\d|0)|ns)$/.test(plateType))) qs.set("p", plateType);
   return `/api/plate?${qs}`;
 }
 
