@@ -1,4 +1,4 @@
-"""Berlin's own seals (supplied photos, assets/germany-seals/BE*.png), trimmed and enlarged to the seal size.
+"""Berlin's own seals and the Stuttgart ones (district seals, "d-S"; supplied photos, assets/germany-seals/BE*.png), trimmed and enlarged to the seal size.
 
   python scripts/build-germany-berlin-seals.py
 
@@ -9,7 +9,7 @@ from PIL import Image
 import os
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 OUT = os.path.join(ROOT, "public/plates/germany/seals")
-for name in ("BE", "BE-export", "BE-temp"):
+for name in ("BE", "BE-export", "BE-temp", "d-S", "d-S-export", "d-S-temp"):
     im = Image.open(os.path.join(ROOT, f"assets/germany-seals/{name}.png")).convert("RGBA")
     box = im.getchannel("A").point(lambda a: 255 if a > 40 else 0).getbbox()
     im = im.crop(box)
