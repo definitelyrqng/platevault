@@ -191,12 +191,12 @@ export async function GET(req: Request) {
   }
 
   const color = layout.art?.textColor ?? "#111";
-  const dd = layout.font === "dd" ? await getDD() : null;
-  const runsIn = (c: string) => layout.runs.map((r) => layout.font === "dd"
+  const dd = layout.font === "dd" || layout.runs.some((r) => r.font === "dd") ? await getDD() : null;
+  const runsIn = (c: string) => layout.runs.map((r) => { const f = r.font ?? layout.font; return f === "dd"
     ? runSvg(dd!, r, c)
-    : layout.font !== "fe"
-    ? runSvgTraced(r, c, layout.font as Exclude<PlateFont, "fe" | "dd">)
-    : runSvg(font, r, c)).join("");
+    : f !== "fe"
+    ? runSvgTraced(r, c, f as Exclude<PlateFont, "fe" | "dd">)
+    : runSvg(font, r, c); }).join("");
   let runs = runsIn(color);
   // embossed plates (stamped letters, raised seals): a soft shadow falls to the lower right
   let sealShadow = "";

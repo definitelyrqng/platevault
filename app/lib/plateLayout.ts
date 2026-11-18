@@ -68,6 +68,8 @@ export type ArtRow = {
   align?: "right" | "left";
   /** Sized on its own (never shrinks the rest of the plate), e.g. the month in the red box. */
   own?: boolean;
+  /** Lettering for this row only (e.g. the DIN date lines on the yellow / red strip). */
+  font?: PlateFont;
 };
 
 /**
@@ -271,9 +273,9 @@ export const PLATE_ART: Record<string, PlateArt> = {
   "germany:moto": { src: "/plates/germany/moto.png", w: 900, h: 1000, rows: [{ y0: 70, y1: 320, x0: 340, x1: 700, slots: 1 }, { y0: 670, y1: 940, x0: 60, x1: 840, slots: 1 }], split: "de-two", fill: 0.98, condense: 0.9, tracking: 0.015, emboss: true, fixed: [{ kind: "hu", x: 290, y: 530, d: 160 }, { kind: "state", x: 510, y: 520, d: 210 }] },
   "germany:moto-old": { src: "/plates/germany/moto-old.png", w: 1100, h: 1000, rows: [{ y0: 100, y1: 470, x0: 275, x1: 990, slots: 1 }, { y0: 530, y1: 930, x0: 280, x1: 990, slots: 1 }], split: "de-two", fill: 0.98, condense: 0.9, tracking: 0.015, emboss: true, fixed: [{ kind: "hu", x: 165, y: 560, d: 150 }, { kind: "state", x: 165, y: 770, d: 190 }] },
   // ── Germany, 5-day plates (Kurzzeitkennzeichen): DIN lettering, yellow strip with the expiry date (three small lines), blue seal ──
-  "germany:transit": { src: "/plates/germany/transit.png", w: 1920, h: 390, rows: [{ y0: 50, y1: 340, x0: 60, x1: 1660, slots: 2, seal: true, gap: 0.07 }, { y0: 40, y1: 130, x0: 1715, x1: 1895, slots: 1, own: true }, { y0: 150, y1: 240, x0: 1715, x1: 1895, slots: 1, own: true }, { y0: 260, y1: 350, x0: 1715, x1: 1895, slots: 1, own: true }], split: "de-transit", fill: 0.92, condense: 0.88, tracking: 0.015, seal: "/plates/germany/seals/XX.png", sealAspect: 1, sealH: 0.36, tempSeal: { y: 262, d: 104 } },
-  "germany:transit-two": { src: "/plates/germany/transit-two.png", w: 960, h: 600, rows: [{ y0: 40, y1: 290, x0: 200, x1: 730, slots: 1 }, { y0: 310, y1: 565, x0: 50, x1: 910, slots: 1 }, { y0: 30, y1: 100, x0: 785, x1: 945, slots: 1, own: true }, { y0: 118, y1: 188, x0: 785, x1: 945, slots: 1, own: true }, { y0: 206, y1: 276, x0: 785, x1: 945, slots: 1, own: true }], split: "de-transit", fill: 0.92, condense: 0.88, tracking: 0.015, fixed: [{ kind: "temp", x: 120, y: 165, d: 110 }] },
-  "germany:transit-us": { src: "/plates/germany/transit-us.png", w: 1000, h: 500, rows: [{ y0: 40, y1: 235, x0: 180, x1: 770, slots: 1 }, { y0: 255, y1: 465, x0: 50, x1: 950, slots: 1 }, { y0: 24, y1: 78, x0: 850, x1: 980, slots: 1, own: true }, { y0: 90, y1: 144, x0: 850, x1: 980, slots: 1, own: true }, { y0: 156, y1: 210, x0: 850, x1: 980, slots: 1, own: true }], split: "de-transit", fill: 0.92, condense: 0.88, tracking: 0.015, fixed: [{ kind: "temp", x: 110, y: 140, d: 100 }] },
+  "germany:transit": { src: "/plates/germany/transit.png", w: 1920, h: 390, rows: [{ y0: 50, y1: 340, x0: 60, x1: 1660, slots: 2, seal: true, gap: 0.07 }, { y0: 40, y1: 130, x0: 1715, x1: 1895, slots: 1, own: true, font: "dd" }, { y0: 150, y1: 240, x0: 1715, x1: 1895, slots: 1, own: true, font: "dd" }, { y0: 260, y1: 350, x0: 1715, x1: 1895, slots: 1, own: true, font: "dd" }], split: "de-transit", fill: 0.92, condense: 0.88, tracking: 0.015, seal: "/plates/germany/seals/XX.png", sealAspect: 1, sealH: 0.36, tempSeal: { y: 262, d: 104 } },
+  "germany:transit-two": { src: "/plates/germany/transit-two.png", w: 960, h: 600, rows: [{ y0: 40, y1: 290, x0: 200, x1: 730, slots: 1 }, { y0: 310, y1: 565, x0: 50, x1: 910, slots: 1 }, { y0: 30, y1: 100, x0: 785, x1: 945, slots: 1, own: true, font: "dd" }, { y0: 118, y1: 188, x0: 785, x1: 945, slots: 1, own: true, font: "dd" }, { y0: 206, y1: 276, x0: 785, x1: 945, slots: 1, own: true, font: "dd" }], split: "de-transit", fill: 0.92, condense: 0.88, tracking: 0.015, fixed: [{ kind: "temp", x: 120, y: 165, d: 110 }] },
+  "germany:transit-us": { src: "/plates/germany/transit-us.png", w: 1000, h: 500, rows: [{ y0: 40, y1: 235, x0: 180, x1: 770, slots: 1 }, { y0: 255, y1: 465, x0: 50, x1: 950, slots: 1 }, { y0: 24, y1: 78, x0: 850, x1: 980, slots: 1, own: true, font: "dd" }, { y0: 90, y1: 144, x0: 850, x1: 980, slots: 1, own: true, font: "dd" }, { y0: 156, y1: 210, x0: 850, x1: 980, slots: 1, own: true, font: "dd" }], split: "de-transit", fill: 0.92, condense: 0.88, tracking: 0.015, fixed: [{ kind: "temp", x: 110, y: 140, d: 100 }] },
   // ── Croatia: the supplied plate photo with the lettering removed; the coat of arms is part of the artwork (region on its left, digits on its right). D-DIN lettering. ──
   // two-row car plate: region on top (left of the coat of arms), number below
   "croatia:two-line-euroband": { src: "/plates/croatia/two-euroband.png", w: 1024, h: 700, rows: [{ y0: 76, y1: 326, x0: 220, x1: 790, slots: 1 }, { y0: 346, y1: 626, x0: 50, x1: 974, slots: 1 }], split: "at-two", font: "dd", fill: 0.92, condense: 0.9, tracking: 0.03, thin: -0.02 },
@@ -692,6 +694,7 @@ export type TextRun = {
   tracking?: number;   // extra space after each character, em
   capTop?: number;     // capital top relative to the baseline, em (default: FE-Schrift's)
   capBottom?: number;
+  font?: PlateFont;    // lettering of this run when it differs from the plate's
   condense?: number;   // FE-Schrift squeeze
   thin?: number;       // FE-Schrift lightening, em
   space?: number;      // width of a word space, em (default: the font's)
@@ -756,6 +759,8 @@ export function plateLayout(country: string, rawText: string, height: number, pl
     }
 
     const lines = rows.map(({ row, texts }) => {
+      const rowFont = row.font ?? font;                           // a row can have its own lettering (DIN dates on the strip)
+      const rowCap = rowFont === "dd" ? DD_CAP_HEIGHT : capH;
       const rowH = (row.y1 - row.y0) * s;
       // seal: true → between the first two pieces; seal: "left" → before the first piece
       const hasSeal = (art.seal || stateSrc) && row.seal;
@@ -767,10 +772,10 @@ export function plateLayout(country: string, rawText: string, height: number, pl
       const sealD = !mode ? 0 : stateSrc ? sealH * sealAspect(stateSrc) : art.sealAspect ? sealH * art.sealAspect : rowH * SEAL_DIAMETER;
       const gap = mode ? rowH * (row.gap ?? SEAL_GAP) : 0;
       const gaps = mode === "between" ? 2 : mode === "left" || mode === "right" ? 1 : 0;   // gaps touching the seal
-      const ems = texts.map((t) => textWidthEm(art.dots ? t.replace(/-/g, "·") : t, font, art.condense ?? (font === "dd" ? 1 : CONDENSE)) + (art.tracking ?? 0) * [...t].length + (art.space !== undefined && font === "fe" ? [...t].filter((c) => c === " ").length * (art.space - 0.5) * (art.condense ?? CONDENSE) : 0));
-      return { row, texts, rowH, mode, sealD, sealH, gap, gaps, ems, avail: (row.x1 - row.x0) * s };
+      const ems = texts.map((t) => textWidthEm(art.dots ? t.replace(/-/g, "·") : t, rowFont, art.condense ?? (rowFont === "dd" ? 1 : CONDENSE)) + (art.tracking ?? 0) * [...t].length + (art.space !== undefined && rowFont === "fe" ? [...t].filter((c) => c === " ").length * (art.space - 0.5) * (art.condense ?? CONDENSE) : 0));
+      return { row, texts, rowH, mode, sealD, sealH, gap, gaps, ems, rowFont, rowCap, avail: (row.x1 - row.x0) * s };
     });
-    const fit = (l: (typeof lines)[number]) => Math.min((l.rowH * (art.fill ?? 0.72)) / capHF, (l.avail - l.sealD - l.gaps * l.gap) / Math.max(l.ems.reduce((x, y) => x + y, 0), 0.5));
+    const fit = (l: (typeof lines)[number]) => Math.min((l.rowH * (art.fill ?? 0.72)) / l.rowCap, (l.avail - l.sealD - l.gaps * l.gap) / Math.max(l.ems.reduce((x, y) => x + y, 0), 0.5));
 
     // One letter height for the whole plate: capped by every row's height and by
     // every row's width (text + seal must fit between the bands).
@@ -799,7 +804,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
       }
       l.texts.forEach((text, i) => {
         // Belgian lettering has no slashed zero: use the plain O
-        runs.push({ text: key === "belgium" ? text.replace(/0/g, "O") : art.dots ? text.replace(/-/g, "·") : text, x0: x, x1: x + widths[i], align: "left", fontSize: fs, centerY, tracking: (art.tracking ?? 0) + fillTrack, condense: art.condense ?? (font === "dd" ? 1 : undefined), thin: art.thin, space: art.space, ...(font === "dd" ? { capTop: -DD_CAP_HEIGHT, capBottom: 0 } : {}) });
+        runs.push({ text: key === "belgium" ? text.replace(/0/g, "O") : art.dots ? text.replace(/-/g, "·") : text, x0: x, x1: x + widths[i], align: "left", fontSize: fs, centerY, tracking: (art.tracking ?? 0) + fillTrack, condense: art.condense ?? (l.rowFont === "dd" ? 1 : undefined), thin: art.thin, space: art.space, ...(l.rowFont !== font ? { font: l.rowFont } : {}), ...(l.rowFont === "dd" ? { capTop: -DD_CAP_HEIGHT, capBottom: 0 } : {}) });
         x += widths[i];
         if (l.mode === "right" && i === l.texts.length - 1) {                 // text then ●
           seals.push({ cx: x + l.gap + l.sealD / 2, cy: centerY, d: l.sealD, h: l.sealH || undefined, src: stateSrc ?? undefined });
