@@ -294,13 +294,12 @@ export default function GermanyUploadPage() {
   // ── Plate type stored in DB
   const plateTypeStored = useMemo(() => {
     if (category === "red") { const f = ["single", "double", "us", "moto", "din-single", "din-double", "din-us"].includes(plateFormat) ? plateFormat : "single"; return `de-red-${redCode}-${f}${noSeals ? "-ns" : ""}`; }
-    if (category === "federal") return `de-federal-${federalSub}`;
-    const base = `de-${category}-${plateFormat}`;
+    const base = category === "federal" ? `de-federal-${federalSub}-${plateFormat}` : `de-${category}-${plateFormat}`;
     const stripPlate = (category === "transit-5day" || category === "export") && ["single", "double", "us"].includes(plateFormat);
-    const t = HU_TYPES.test(base) ? `${base}${shortPlate && base === "de-regular-single" ? "-short" : ""}-hu${frontPlate ? "0" : huYear}` : base;
-    return noSeals && (HU_TYPES.test(base) || stripPlate) ? `${t}-ns` : t;                // "-ns": no seals or stickers
+    const t = HU_TYPES.test(category === "federal" ? `de-official-${plateFormat}` : base) ? `${base}${shortPlate && base === "de-regular-single" ? "-short" : ""}-hu${frontPlate ? "0" : huYear}` : base;
+    return noSeals && (HU_TYPES.test(category === "federal" ? `de-official-${plateFormat}` : base) || stripPlate) ? `${t}-ns` : t;                // "-ns": no seals or stickers
   }, [category, plateFormat, redCode, federalSub, huYear, frontPlate, shortPlate, noSeals]);
-  const drawn = HU_TYPES.test(`de-${category}-${plateFormat}`);
+  const drawn = HU_TYPES.test(category === "federal" ? `de-official-${plateFormat}` : `de-${category}-${plateFormat}`);
   const redDrawn = category === "red";
   const transitDrawn = (category === "transit-5day" || category === "export") && ["single", "double", "us"].includes(plateFormat);
   // export plates: 1–4 digits and a letter (8 characters in total with the district code)
@@ -415,7 +414,7 @@ export default function GermanyUploadPage() {
   // the DIN categories have their own formats: pick a matching one when the category changes (otherwise there is no preview)
   useEffect(() => {
     if (category === "din" && !plateFormat.startsWith("din-")) setPlateFormat("din-single");
-    else if (category !== "din" && category !== "red" && category !== "official" && category !== "state-authority" && plateFormat.startsWith("din-")) setPlateFormat("single");
+    else if (category !== "din" && category !== "red" && category !== "official" && category !== "state-authority" && category !== "federal" && plateFormat.startsWith("din-")) setPlateFormat("single");
   }, [category, plateFormat]);
   useEffect(() => { if ((plateFormat === "moto-old" && !OLD_MOTO.includes(category)) || (category === "red" && plateFormat === "moto-old")) setPlateFormat("moto"); }, [category, plateFormat]);
   const dinFormats     = GERMANY_PLATE_FORMATS.filter((f) => f.group === "din");
@@ -605,11 +604,11 @@ export default function GermanyUploadPage() {
                 </div>
 
                 {/* ── Plate format (all categories) ── */}
-                {category !== "federal" && (
+                {(
                   <div>
                     <span className="block text-sm text-zinc-300 mb-2">Format</span>
                     <div className="grid grid-cols-2 gap-2">
-                      {(isDIN ? dinFormats : (category === "red" || category === "official" || category === "state-authority") ? [...regularFormats.filter((f) => ["single", "double", "us", "moto"].includes(f.id)), ...dinFormats] : (category === "transit-5day" || category === "export") ? regularFormats.filter((f) => ["single", "double", "us"].includes(f.id)) : regularFormats.filter((f) => f.id !== "moto-old" || OLD_MOTO.includes(category))).map((fmt) => (
+                      {(isDIN ? dinFormats : (category === "red" || category === "official" || category === "state-authority" || category === "federal") ? [...regularFormats.filter((f) => ["single", "double", "us", "moto"].includes(f.id)), ...dinFormats] : (category === "transit-5day" || category === "export") ? regularFormats.filter((f) => ["single", "double", "us"].includes(f.id)) : regularFormats.filter((f) => f.id !== "moto-old" || OLD_MOTO.includes(category))).map((fmt) => (
                         <button
                           key={fmt.id}
                           type="button"

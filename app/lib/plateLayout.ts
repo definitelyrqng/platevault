@@ -81,7 +81,7 @@ export type ArtRow = {
  *  - "al-moto":    letters | digits                    ("AB 123" → AB | 123)
  *  - "al-trailer-two": letters | "R" + digits          ("AB R 456" → AB | R 456)
  */
-export type SplitRule = "hr-three" | "bg-moto" | "bg-two" | "bg-year" | "ba-two-eu" | "ba-two" | "be-seal" | "be-two" | "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "de-two" | "de-season" | "de-season-two" | "de-transit" | "de-wechsel" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
+export type SplitRule = "hr-three" | "bg-moto" | "bg-two" | "bg-year" | "ba-two-eu" | "ba-two" | "be-seal" | "be-two" | "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "de-two" | "de-season" | "de-season-two" | "de-federal" | "de-transit" | "de-wechsel" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
 
 export type PlateArt = {
   src: string;          // path under /public
@@ -481,6 +481,8 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
     if (ex) return PLATE_ART[ex[1] === "single" ? "germany:export" : ex[1] === "double" ? "germany:export-two" : "germany:export-us"] ?? null;
     const tr = (plateType ?? "").match(/^de-transit-5day-(single|double|us)$/);                    // 5-day plates
     if (tr) return PLATE_ART[tr[1] === "single" ? "germany:transit" : tr[1] === "double" ? "germany:transit-two" : "germany:transit-us"] ?? null;
+    const fed = (plateType ?? "").match(/^de-federal-(?:bd|bp|bw|thw)(?:-(.+))?$/);                // federal agencies: the official plate layouts, split before the serial number
+    if (fed) { const fa = plateArtFor(country, `de-official-${fed[1] ?? "single"}`); return fa ? { ...fa, split: "de-federal" } : null; }
     const din = (plateType ?? "").match(/^de-(?:din-(?:din-)?|(?:official|state-authority)-din-)(single|double|us)(-hu(\d\d|0))?$/);              // historical DIN plates
     if (din && /^de-(?:official|state-authority)-din-double/.test(plateType ?? "")) return PLATE_ART["germany:official-din-two"] ?? null;
     if (din) return PLATE_ART[din[1] === "single" ? "germany:din" : din[1] === "double" ? "germany:din-two" : "germany:din-us"] ?? null;
@@ -690,6 +692,10 @@ function splitText(rule: SplitRule, text: string): string[] | null {
   if (rule === "de-wechsel") {                                                         // HER H 22-2 → HER | H 22 | 2 (district, letters + digits, number on the small plate)
     const m = text.trim().match(/^(\S+)\s+(.+?)(?:-(\w+))?$/);
     return m ? [m[1], m[2], m[3] ?? ""] : null;
+  }
+  if (rule === "de-federal") {                                                         // BD 5 2345 → BD 5 | 2345 (agency code, serial)
+    const m = text.trim().match(/^(.*\S)\s+(\d+)$/);
+    return m ? [m[1], m[2]] : null;
   }
   if (rule === "de-season-two") {                                                      // B AB 1234 04/10 → B | AB1234 | 04 | 10 (two-row: no space in the lower row)
     const m = text.trim().match(/^(\S+?)[\s-]+(.+?)(?:\s+(\d\d)\/(\d\d))?$/);

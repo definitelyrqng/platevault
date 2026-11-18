@@ -919,7 +919,7 @@ export const GERMANY_FEDERAL_BD: GermanyFederalAgency[] = [
   { num:  3, short: "Bundesrat",  name: "Federal Council (Bundesrat)" },
   { num:  4, short: "BVerfG",     name: "Federal Constitutional Court" },
   { num:  5, short: "BPräs",      name: "Office of the Federal President" },
-  { num:  6, short: "BKAmt",      name: "Federal Chancellery" },
+  { num:  6, short: "BKAmt",      name: "Federal Chancellery & Federal Press Office" },
   { num:  7, short: "AA",         name: "Foreign Office" },
   { num:  8, short: "Zoll",       name: "Federal Customs Service" },
   { num:  9, short: "BMI",        name: "Federal Ministry of the Interior" },
@@ -931,10 +931,11 @@ export const GERMANY_FEDERAL_BD: GermanyFederalAgency[] = [
   { num: 15, short: "BMAS",       name: "Federal Ministry of Labour & Social Affairs" },
   { num: 16, short: "Zoll II",    name: "Federal Customs Service (2nd series)" },
   { num: 18, short: "BMVg",       name: "Federal Ministry of Defense" },
-  { num: 19, short: "BMBF",       name: "Federal Ministry of Education & Research" },
-  { num: 20, short: "BMUV",       name: "Federal Ministry for the Environment & Nuclear Safety" },
-  { num: 21, short: "BMFSFJ",     name: "Federal Ministry of Family Affairs, Women & Youth" },
+  { num: 19, short: "BMFTR",      name: "Federal Ministry of Research, Technology & Space" },
+  { num: 20, short: "BMUKN",      name: "Federal Ministry for the Environment, Nature Conservation, Nuclear Safety & Consumer Protection" },
+  { num: 21, short: "BMBFSFJ",    name: "Federal Ministry of Education, Family, Seniors, Women & Youth" },
   { num: 22, short: "BMG",        name: "Federal Ministry of Health" },
+  { num: 23, short: "BKA",        name: "Federal Criminal Police Office (Bundeskriminalamt)" },
   { num: 26, short: "BMZ",        name: "Federal Ministry of Economic Cooperation & Development" },
 ];
 
@@ -1206,3 +1207,6 @@ export const PLATE_TYPE_LABELS: Record<string, string> = {
   "de-military-moto":       "Military — Motorcycle",
   "de-military":            "Military (Bundeswehr / NATO)",
 };
+
+// federal agency plates exist in the same formats as the official plates
+for (const sub of ["bd", "bp", "bw", "thw"]) for (const f of ["single", "double", "us", "moto", "din-single", "din-double", "din-us"]) PLATE_TYPE_LABELS[`de-federal-${sub}-${f}`] = `${PLATE_TYPE_LABELS[`de-federal-${sub}`]} — ${f.replace("din-", "DIN ")}`;
