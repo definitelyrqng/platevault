@@ -124,7 +124,7 @@ export type PlateArt = {
   /** Stamped lettering and raised seals: draw a soft shadow under them. */
   emboss?: boolean;
   /** Germany: the seal slot holds an inspection sticker over the state seal (art-pixel centres and diameters). */
-  huSeals?: { stickerY: number; sealY: number; stickerD: number; sealD: number; frontY: number; dash?: { y: number; w: number; h: number; src?: string }; topSrc?: string; noSticker?: boolean };
+  huSeals?: { stickerY: number; sealY: number; stickerD: number; sealD: number; frontY: number; dash?: { y: number; w: number; h: number; src?: string }; topSrc?: string; noSticker?: boolean; dx?: number };
   /** Width of a word space in em (FE-Schrift; default 0.5). */
   space?: number;
 };
@@ -357,7 +357,7 @@ export const PLATE_ART: Record<string, PlateArt> = {
   PLATE_ART["germany:official-din-two"] = { ...PLATE_ART["germany:din-two"], fixed: [{ kind: "hu", x: 140, y: 165, d: 130 }, { kind: "state", x: 820, y: 165, d: 130 }] };
   // Bundeswehr plates: flag instead of the euroband, the federal seal without an inspection sticker, at most six digits
   const mil = { font: "dd" as const, fill: 0.92, condense: 0.92, tracking: 0.02, emboss: true };
-  PLATE_ART["germany:military"] = { src: "/plates/germany/military.png", w: 1920, h: 390, rows: [{ y0: 69, y1: 326, x0: 185, x1: 1880, slots: 2, seal: true, gap: 0.2 }], split: "de-military", ...mil, seal: "/plates/germany/seals/XX.png", sealAspect: 1, sealH: 0.46, huSeals: { noSticker: true, stickerY: 0, sealY: 262, stickerD: 0, sealD: 118, frontY: 262 } };
+  PLATE_ART["germany:military"] = { src: "/plates/germany/military.png", w: 1920, h: 390, rows: [{ y0: 69, y1: 326, x0: 185, x1: 1880, slots: 2, seal: true, gap: 0.2 }], split: "de-military", ...mil, seal: "/plates/germany/seals/XX.png", sealAspect: 1, sealH: 0.14, huSeals: { noSticker: true, stickerY: 0, sealY: 270, stickerD: 0, sealD: 110, frontY: 270, dx: -88 } };
   PLATE_ART["germany:military-two"] = { src: "/plates/germany/military-two.png", w: 700, h: 500, rows: [{ y0: 36, y1: 252, x0: 120, x1: 470, slots: 1 }, { y0: 300, y1: 478, x0: 120, x1: 665, slots: 1 }], split: "de-military-two", ...mil, fixed: [{ kind: "state", x: 575, y: 140, d: 84 }] };
   PLATE_ART["germany:military-us"] = { src: "/plates/germany/military-us.png", w: 1000, h: 590, rows: [{ y0: 56, y1: 277, x0: 150, x1: 650, slots: 1 }, { y0: 313, y1: 540, x0: 140, x1: 940, slots: 1 }], split: "de-military-two", ...mil, fixed: [{ kind: "state", x: 835, y: 150, d: 96 }] };
   PLATE_ART["germany:military-moto"] = { src: "/plates/germany/military-moto.png", w: 900, h: 1000, rows: [{ y0: 70, y1: 320, x0: 170, x1: 600, slots: 1 }, { y0: 670, y1: 940, x0: 140, x1: 845, slots: 1 }], split: "de-military-two", ...mil, fixed: [{ kind: "state", x: 700, y: 200, d: 120 }] };
@@ -908,7 +908,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
           if (b.topSrc) seals.push({ cx: e.cx, cy: b.stickerY * s, d: b.stickerD * s, h: b.stickerD * s, src: b.topSrc });
           else if (yy && !b.noSticker) seals.push({ cx: e.cx, cy: b.stickerY * s, d: b.stickerD * s, h: b.stickerD * s, src: huSrc });
           if (b.dash) seals.push({ cx: e.cx, cy: b.dash.y * s, d: b.dash.w * s, h: b.dash.h * s, src: b.dash.src ?? "/plates/germany/dash.png" });
-          seals.push({ cx: e.cx, cy: (yy ? b.sealY : b.frontY) * s, d: b.sealD * s, h: b.sealD * s, src: sealSrc });
+          seals.push({ cx: e.cx + (b.dx ?? 0) * s, cy: (yy ? b.sealY : b.frontY) * s, d: b.sealD * s, h: b.sealD * s, src: sealSrc });
         }
       }
       if (art.tempSeal) {                                                                 // 5-day plates: a blue seal in the gap
