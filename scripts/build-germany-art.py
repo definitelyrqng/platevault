@@ -180,3 +180,12 @@ with_small("two.png", 200, "transferable-two.png")
 with_small("us.png", 200, "transferable-us.png")
 with_small("moto.png", 240, "transferable-moto.png")
 print("transferable variants ok")
+
+
+# seasonal plates (two-row / US / motorcycle): a line between the two month numbers at the right end of the lower row (same formula as plateLayout.ts)
+for name, (x0, y0, x1, y1) in {"two": (40, 300, 660, 478), "us": (80, 313, 930, 540), "moto": (60, 670, 840, 940), "moto-old": (280, 530, 990, 930)}.items():
+    im = Image.open(os.path.join(OUT, name + ".png")).convert("RGBA")
+    h = y1 - y0; cw = round(h * 0.42); t = max(4, round(h * 0.03)); cy = (y0 + y1) // 2
+    ImageDraw.Draw(im).rectangle([x1 - cw, cy - t // 2, x1, cy + t // 2], fill=(17, 17, 17, 255))
+    im.save(os.path.join(OUT, f"season-{name}.png"))
+print("season variants ok")

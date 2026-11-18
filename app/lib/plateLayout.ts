@@ -81,7 +81,7 @@ export type ArtRow = {
  *  - "al-moto":    letters | digits                    ("AB 123" → AB | 123)
  *  - "al-trailer-two": letters | "R" + digits          ("AB R 456" → AB | R 456)
  */
-export type SplitRule = "hr-three" | "bg-moto" | "bg-two" | "bg-year" | "ba-two-eu" | "ba-two" | "be-seal" | "be-two" | "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "de-two" | "de-season" | "de-transit" | "de-wechsel" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
+export type SplitRule = "hr-three" | "bg-moto" | "bg-two" | "bg-year" | "ba-two-eu" | "ba-two" | "be-seal" | "be-two" | "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "de-two" | "de-season" | "de-season-two" | "de-transit" | "de-wechsel" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
 
 export type PlateArt = {
   src: string;          // path under /public
@@ -350,6 +350,11 @@ export const PLATE_ART: Record<string, PlateArt> = {
   const b = PLATE_ART["germany:single"];
   PLATE_ART["germany:season"] = { ...b, src: "/plates/germany/season.png", rows: [{ ...b.rows[0], x1: 1735 }, { y0: 44, y1: 106, x0: 1765, x1: 1875, slots: 1, own: true, font: "dd" }, { y0: 244, y1: 306, x0: 1765, x1: 1875, slots: 1, own: true, font: "dd" }], split: "de-season" };
 }
+// seasonal plates in the other formats: the months go stacked at the right end of the lower row (scripts/build-germany-art.py draws the line)
+for (const k of ["two", "us", "moto", "moto-old"]) {
+  const b = PLATE_ART[`germany:${k}`], r = b.rows[1], h = r.y1 - r.y0, cw = Math.round(h * 0.42), mh = Math.round(h * 0.3), mx = r.x1 - cw;
+  PLATE_ART[`germany:${k}-season`] = { ...b, src: `/plates/germany/season-${k}.png`, split: "de-season-two", rows: [b.rows[0], { ...r, x1: mx - Math.round(h * 0.08) }, { y0: r.y0, y1: r.y0 + mh, x0: mx, x1: r.x1, slots: 1, own: true, font: "dd" }, { y0: r.y1 - mh, y1: r.y1, x0: mx, x1: r.x1, slots: 1, own: true, font: "dd" }] };
+}
 for (const k of ["", "-two", "-us"]) PLATE_ART[`germany:export${k}`] = { ...PLATE_ART[`germany:transit${k}`], src: `/plates/germany/export${k}.png`, space: 0.3 };
 // Germany: shortened plates (480 … 340 mm) — the 520 mm plate with a slice cut from the middle of the face (scripts/build-germany-art.py)
 for (const mm of [480, 460, 440, 420, 400, 380, 360, 340]) {
@@ -455,6 +460,7 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
     const trf = (plateType ?? "").match(/^de-transferable-(double|us|moto)(-hu(\d\d|0))?$/);                  // two-row, US-size and motorcycle Wechselkennzeichen
     if (trf) return PLATE_ART[trf[1] === "double" ? "germany:transferable-two" : trf[1] === "us" ? "germany:transferable-us" : "germany:transferable-moto"] ?? null;
     const reg = (plateType ?? "").match(/^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-(double|us|moto|moto-old)(-hu(\d\d|0))?$/);      // two-row, US-size and motorcycle plates
+    if (reg && /^seasonal/.test(reg[1])) return PLATE_ART[`germany:${reg[2] === "double" ? "two" : reg[2]}-season`] ?? null;
     if (reg) return PLATE_ART[reg[2] === "double" ? "germany:two" : reg[2] === "us" ? "germany:us" : reg[2] === "moto" ? "germany:moto" : "germany:moto-old"] ?? null;
     if (/^de-seasonal(-h)?-single(-hu(\d\d|0))?$/.test(plateType ?? "")) return PLATE_ART["germany:season"] ?? null;
     return !plateType || /^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)(-single)?(-short)?(-hu(\d\d|0))?$/.test(plateType) ? PLATE_ART["germany:single"] ?? null : null;
@@ -654,6 +660,10 @@ function splitText(rule: SplitRule, text: string): string[] | null {
   if (rule === "de-wechsel") {                                                         // HER H 22-2 → HER | H 22 | 2 (district, letters + digits, number on the small plate)
     const m = text.trim().match(/^(\S+)\s+(.+?)(?:-(\w+))?$/);
     return m ? [m[1], m[2], m[3] ?? ""] : null;
+  }
+  if (rule === "de-season-two") {                                                      // B AB 1234 04/10 → B | AB1234 | 10 | 04 (two-row: no space in the lower row)
+    const m = text.trim().match(/^(\S+?)[\s-]+(.+?)(?:\s+(\d\d)\/(\d\d))?$/);
+    return m ? [m[1], m[2].replace(/\s+/g, ""), m[4] ?? "", m[3] ?? ""] : null;
   }
   if (rule === "de-season") {                                                          // B AB 1234 04/10 → B | AB 1234 | 10 | 04 (district, rest, last month over first month)
     const m = text.trim().match(/^(\S+)\s+(.+?)(?:\s+(\d\d)\/(\d\d))?$/);
