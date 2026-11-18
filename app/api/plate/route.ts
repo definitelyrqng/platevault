@@ -203,7 +203,7 @@ export async function GET(req: Request) {
   if (layout.art?.emboss) {
     const dx = h * 0.008, dy = h * 0.012;
     runs = `<g transform="translate(${dx.toFixed(2)} ${dy.toFixed(2)})" filter="url(#sh)" opacity="0.42">${runsIn("#000")}</g>${runs}`;
-    sealShadow = layout.seals.map((k) => `<ellipse cx="${(k.cx + dx * 0.7).toFixed(2)}" cy="${(k.cy + dy * 0.9).toFixed(2)}" rx="${(k.d / 2).toFixed(2)}" ry="${((k.h ?? k.d) / 2).toFixed(2)}" fill="#000" opacity="0.38" filter="url(#sh)"/>`).join("");
+    sealShadow = layout.seals.filter((k) => !/\/(w|dash)\.png$/.test(k.src ?? "")).map((k) => `<ellipse cx="${(k.cx + dx * 0.7).toFixed(2)}" cy="${(k.cy + dy * 0.9).toFixed(2)}" rx="${(k.d / 2).toFixed(2)}" ry="${((k.h ?? k.d) / 2).toFixed(2)}" fill="#000" opacity="0.38" filter="url(#sh)"/>`).join("");
   }
   const defs = layout.art?.emboss ? `<defs><filter id="sh" x="-10%" y="-10%" width="120%" height="125%"><feGaussianBlur stdDeviation="${(h * 0.007).toFixed(2)}"/></filter></defs>` : "";
   let stickers = "";

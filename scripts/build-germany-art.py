@@ -162,3 +162,36 @@ strip_variant("export.png", "din.png", [1700, 0, 1920, 390], RED)
 strip_variant("export-two.png", "din-two.png", [770, 0, 960, 310], RED)
 strip_variant("export-us.png", "din-us.png", [830, 0, 1000, 230], RED)
 print("export ok")
+
+
+# ── Transferable (Wechselkennzeichen) plates: the plate plus a small plate at the right (inspection sticker + number) ──
+from PIL import ImageFont
+din_plate(1560, 390, 14, 36, "_tmp_main.png")
+din_plate(330, 390, 14, 36, "_tmp_small.png")
+main = Image.open(os.path.join(OUT, "_tmp_main.png")).convert("RGBA")
+main.alpha_composite(src.crop((14, 16, 152, 374)), (14, 16))
+small = Image.open(os.path.join(OUT, "_tmp_small.png")).convert("RGBA")
+tw = Image.new("RGBA", (1920, 390), (0, 0, 0, 0))
+tw.alpha_composite(main, (0, 0)); tw.alpha_composite(small, (1590, 0))
+tw.save(os.path.join(OUT, "transferable.png"))
+os.remove(os.path.join(OUT, "_tmp_main.png")); os.remove(os.path.join(OUT, "_tmp_small.png"))
+# the small "W" that stands where the inspection sticker would be
+wimg = Image.new("RGBA", (160, 160), (0, 0, 0, 0))
+f = ImageFont.truetype(os.path.join(ROOT, "assets/fonts/D-DIN.ttf"), 150)
+ImageDraw.Draw(wimg).text((80, 80), "W", fill=(17, 17, 17, 255), font=f, anchor="mm")
+wimg.save(os.path.join(OUT, "w.png"))
+print("transferable ok")
+
+
+# transferable two-row / US / motorcycle: the plate plus a small plate at the right
+def with_small(main_name, small_w, out_name, gap=20):
+    m = Image.open(os.path.join(OUT, main_name)).convert("RGBA")
+    din_plate(small_w, m.size[1], 14, 40, "_tmp_small.png")
+    sm = Image.open(os.path.join(OUT, "_tmp_small.png")).convert("RGBA")
+    c = Image.new("RGBA", (m.size[0] + gap + small_w, m.size[1]), (0, 0, 0, 0))
+    c.alpha_composite(m, (0, 0)); c.alpha_composite(sm, (m.size[0] + gap, 0))
+    c.save(os.path.join(OUT, out_name)); os.remove(os.path.join(OUT, "_tmp_small.png"))
+with_small("two.png", 200, "transferable-two.png")
+with_small("us.png", 200, "transferable-us.png")
+with_small("moto.png", 240, "transferable-moto.png")
+print("transferable variants ok")
