@@ -261,7 +261,7 @@ export default function GermanyUploadPage() {
   const plateText = useMemo(() => buildGermanyPlateText({
     category,
     regionCode,
-    plateSuffix,
+    plateSuffix: plateFormat === "moto-old" ? plateSuffix.slice(0, 3) : plateFormat === "moto" ? plateSuffix.slice(0, 4) : plateSuffix,
     date: category === "transit-5day" ? transitDate : category === "export" ? exportDate : undefined,
     exportCheckLetter: category === "export" ? exportCheckLetter : undefined,
     seasonStart: (category === "seasonal" || category === "seasonal-h") ? seasonStart : undefined,
@@ -409,10 +409,13 @@ export default function GermanyUploadPage() {
   const isRegionBased = ["regular","din","transit-5day","export","oldtimer","seasonal","seasonal-h","electric","transferable","red","official"].includes(category);
   const isDIN     = category === "din";
   const regularFormats = GERMANY_PLATE_FORMATS.filter((f) => f.group === "regular");
+  // there are no old-style transferable motorcycle plates
+  useEffect(() => { if (category === "transferable" && plateFormat === "moto-old") setPlateFormat("moto"); }, [category, plateFormat]);
   const dinFormats     = GERMANY_PLATE_FORMATS.filter((f) => f.group === "din");
   const selectedCat = GERMANY_CATEGORIES.find((c) => c.id === category)!;
 
-  const maxSfx = maxSuffixChars(regionCode);
+  // motorcycle plates are short: the lower row holds 3 characters on the old plate and 4 on the new one, so the letters stay big
+  const maxSfx = plateFormat === "moto-old" ? Math.min(3, maxSuffixChars(regionCode)) : plateFormat === "moto" ? Math.min(4, maxSuffixChars(regionCode)) : maxSuffixChars(regionCode);
 
   // ── Preview styling
   const previewBg =
@@ -596,7 +599,7 @@ export default function GermanyUploadPage() {
                   <div>
                     <span className="block text-sm text-zinc-300 mb-2">Format</span>
                     <div className="grid grid-cols-2 gap-2">
-                      {(isDIN ? dinFormats : (category === "transit-5day" || category === "export") ? regularFormats.filter((f) => ["single", "double", "us"].includes(f.id)) : regularFormats).map((fmt) => (
+                      {(isDIN ? dinFormats : (category === "transit-5day" || category === "export") ? regularFormats.filter((f) => ["single", "double", "us"].includes(f.id)) : category === "transferable" ? regularFormats.filter((f) => f.id !== "moto-old") : regularFormats).map((fmt) => (
                         <button
                           key={fmt.id}
                           type="button"

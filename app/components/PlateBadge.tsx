@@ -12,7 +12,7 @@ export { formatPlateText } from "@/app/lib/plateLayout";
 export type { PlateSize };
 
 /** Bump when the plate rendering changes, so CDN-cached images refresh. */
-const PLATE_IMAGE_VERSION = 164;
+const PLATE_IMAGE_VERSION = 165;
 /** Render at 3× for crisp output on high-density screens. */
 const DENSITY = 3;
 
@@ -43,7 +43,13 @@ export default function PlateBadge({
   size?: PlateSize;
   className?: string;
 }) {
-  const h = PLATE_HEIGHTS[size];
+  let h: number = PLATE_HEIGHTS[size];
+  // German two-row, US-size and motorcycle plates are nearly square: give them more height so they are not tiny next to single-row plates
+  if (country.toLowerCase() === "germany") {
+    const a0 = plateLayout(country, text, h, plateType).art;
+    const asp = a0 ? a0.w / a0.h : 5;
+    if (asp < 4) h = Math.round(h * Math.min(size === "lg" || size === "xl" ? 2.4 : 1.7, Math.sqrt(4.9 / asp)));
+  }
   const { width, printed, art } = plateLayout(country, text, h, plateType);
 
   return (
