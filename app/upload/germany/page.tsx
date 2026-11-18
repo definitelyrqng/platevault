@@ -458,7 +458,7 @@ export default function GermanyUploadPage() {
     "…";
   // motorcycle plates hold fewer characters in the lower row: shorten the sample to match
   const placeholderText = (plateFormat === "moto-old" || plateFormat === "moto") && /^[A-ZÄÖÜ]{1,3}-/.test(placeholderBase)
-    ? placeholderBase.replace(/^([A-ZÄÖÜ]{1,3}-)(\S+)/, (_m, d: string, rest: string) => d + rest.slice(0, plateFormat === "moto-old" ? 3 : 4)) : placeholderBase;
+    ? placeholderBase.replace(/^([A-ZÄÖÜ]{1,3}-)(\S+)/, (_m, d: string, rest: string) => { const [, body, tag] = rest.match(/^(.*?)([EH])?$/)!; return d + body.slice(0, plateFormat === "moto-old" ? 3 : 4) + (tag ?? ""); }) : placeholderBase;
 
   return (
     <>
