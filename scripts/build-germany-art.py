@@ -13,42 +13,51 @@ W, H = src.size
 OUT = os.path.join(ROOT, "public/plates/germany")
 os.makedirs(OUT, exist_ok=True)
 
-# blank face: the border and the face are drawn fresh (clean rounded corners, a faint gradient and an inner rim), the euroband comes from the photo
-SS = 4
-big = Image.new("RGBA", (W * SS, H * SS), (0, 0, 0, 0))
-bd = ImageDraw.Draw(big)
-bd.rounded_rectangle([0, 0, W * SS - 1, H * SS - 1], radius=38 * SS, fill=(0, 0, 0, 255))
-FX0, FY0, FX1, FY1 = 150, 16, 1904, 373
-face_mask = Image.new("L", big.size, 0)
-ImageDraw.Draw(face_mask).rounded_rectangle([FX0 * SS - 40 * SS, FY0 * SS, FX1 * SS, FY1 * SS], radius=20 * SS, fill=255)
-grad = Image.new("RGBA", big.size, (255, 255, 255, 255))
-gd = ImageDraw.Draw(grad)
-for y in range(FY0 * SS, FY1 * SS + 1):
-    t = (y - FY0 * SS) / ((FY1 - FY0) * SS)
-    v = round(255 - 14 * t)                                   # white at the top, a touch greyer at the bottom
-    gd.line([(0, y), (big.size[0], y)], fill=(v, v, v, 255))
-big.paste(grad, (0, 0), face_mask)
-# faint inner rim just inside the border
-ImageDraw.Draw(big).rounded_rectangle([FX0 * SS, FY0 * SS + 2 * SS, FX1 * SS - 2 * SS, FY1 * SS - 2 * SS], radius=13 * SS, outline=(222, 222, 222, 255), width=2 * SS)
-face = big.resize((W, H), Image.LANCZOS)
-# a fine grain in the face (stamped sheet metal, not a flat fill)
-import random
-random.seed(7)
+# ── flat vector plates drawn after assets/germany-template.png (the 520 mm plate: black border, flat white face, blue euroband) ──
 from PIL import ImageChops
-noise = Image.effect_noise((W, H), 14).point(lambda p: max(0, min(255, p // 5)))       # 0..51, mean ~25
-grain = Image.merge("RGB", (noise, noise, noise))
-fmask = face_mask.resize((W, H), Image.LANCZOS)
-fr = ImageChops.add(face.convert("RGB"), grain, 1, -25)
-face.paste(fr, (0, 0), fmask)
-face.paste(src.crop((0, 0, 156, H)), (0, 0))                  # border corners and euroband (stars, D) from the photo
-def clip_corners(im, r):
-    k = 4
-    m = Image.new("L", (im.size[0] * k, im.size[1] * k), 0)
-    ImageDraw.Draw(m).rounded_rectangle([0, 0, im.size[0] * k - 1, im.size[1] * k - 1], radius=r * k, fill=255)
-    m = m.resize(im.size, Image.LANCZOS)
-    out = im.copy(); out.putalpha(ImageChops.multiply(im.getchannel("A"), m)); return out
-face = clip_corners(face, 38)
-face.save(os.path.join(OUT, "single.png"))
+TPL = Image.open(os.path.join(ROOT, "assets/germany-template.png")).convert("RGBA")
+BLUE = (0, 51, 153)
+BORDER = 18
+def _band_overlay():
+    """The stars and the D of the template's euroband as an overlay (alpha = how far a pixel is from the blue)."""
+    c = TPL.crop((40, 37, 209, 402)); px = c.load()
+    ov = Image.new("RGBA", c.size, (0, 0, 0, 0)); op = ov.load()
+    for y in range(c.size[1]):
+        for x in range(c.size[0]):
+            r, g, b, a = px[x, y]
+            al = r / 255
+            if al < 0.02 or a < 255: continue
+            col = [max(0, min(255, round((v - (1 - al) * bv) / al))) for v, bv in zip((r, g, b), BLUE)]
+            op[x, y] = (col[0], col[1], col[2], round(al * 255))
+    return ov
+BAND_OV = _band_overlay()
+def flat_plate(w, h, radius, name, band=None, stretch=False):
+    SS = 4
+    big = Image.new("RGBA", (w * SS, h * SS), (0, 0, 0, 0))
+    ImageDraw.Draw(big).rounded_rectangle([0, 0, w * SS - 1, h * SS - 1], radius=radius * SS, fill=(0, 0, 0, 255))
+    fm = Image.new("L", big.size, 0)
+    ImageDraw.Draw(fm).rounded_rectangle([BORDER * SS, BORDER * SS, (w - BORDER) * SS - 1, (h - BORDER) * SS - 1], radius=max(4, radius - BORDER) * SS, fill=255)
+    big.paste(Image.new("RGBA", big.size, (255, 255, 255, 255)), (0, 0), fm)
+    if band:
+        x0, y0, x1, y1 = band
+        bm = Image.new("L", big.size, 0)
+        ImageDraw.Draw(bm).rectangle([x0 * SS, y0 * SS, x1 * SS - 1, y1 * SS - 1], fill=255)
+        big.paste(Image.new("RGBA", big.size, BLUE + (255,)), (0, 0), ImageChops.multiply(fm, bm))
+        bw, bh = (x1 - x0) * SS, (y1 - y0) * SS
+        if stretch: ow, oh = bw, bh
+        else:
+            k = min(bw / BAND_OV.size[0], bh / BAND_OV.size[1]); ow, oh = round(BAND_OV.size[0] * k), round(BAND_OV.size[1] * k)
+        ov = BAND_OV.resize((ow, oh), Image.LANCZOS)
+        big.alpha_composite(ov, (x0 * SS + (bw - ow) // 2, y0 * SS + (bh - oh) // 2))
+    im = big.resize((w, h), Image.LANCZOS)
+    im.save(os.path.join(OUT, name))
+    return im
+face = flat_plate(W, H, 38, "single.png", band=(BORDER, BORDER, 190, H - BORDER), stretch=True)
+
+# seasonal plates: the plate with a short line between the two month numbers at the right end
+season = face.copy()
+ImageDraw.Draw(season).rectangle([1765, 169, 1875, 176], fill=(17, 17, 17, 255))
+season.save(os.path.join(OUT, "season.png"))
 
 # shortened plates: the same plate with a slice cut out of the middle of the white face (lengths in mm as the shops offer them)
 PX_PER_MM = W / 520
@@ -84,26 +93,8 @@ print("ok", S.size)
 
 
 # ── Historical DIN plates (before 1994): white face, black border, no euroband ──
-def din_plate(w, h, border, radius, name):
-    SS = 4
-    big = Image.new("RGBA", (w * SS, h * SS), (0, 0, 0, 0))
-    bd = ImageDraw.Draw(big)
-    bd.rounded_rectangle([0, 0, w * SS - 1, h * SS - 1], radius=radius * SS, fill=(0, 0, 0, 255))
-    fm = Image.new("L", big.size, 0)
-    ImageDraw.Draw(fm).rounded_rectangle([border * SS, border * SS, (w - border) * SS, (h - border) * SS], radius=max(4, radius - border) * SS, fill=255)
-    grad = Image.new("RGBA", big.size, (255, 255, 255, 255))
-    gd = ImageDraw.Draw(grad)
-    for y in range(border * SS, (h - border) * SS + 1):
-        t = (y - border * SS) / ((h - 2 * border) * SS)
-        v = round(255 - 14 * t)
-        gd.line([(0, y), (big.size[0], y)], fill=(v, v, v, 255))
-    big.paste(grad, (0, 0), fm)
-    ImageDraw.Draw(big).rounded_rectangle([border * SS, border * SS + 2 * SS, (w - border) * SS - 2 * SS, (h - border) * SS - 2 * SS], radius=max(4, radius - border - 2) * SS, outline=(222, 222, 222, 255), width=2 * SS)
-    im = big.resize((w, h), Image.LANCZOS)
-    n = Image.effect_noise((w, h), 14).point(lambda p: max(0, min(255, p // 5)))
-    fr = ImageChops.add(im.convert("RGB"), Image.merge("RGB", (n, n, n)), 1, -25)
-    im.paste(fr, (0, 0), fm.resize((w, h), Image.LANCZOS))
-    im.save(os.path.join(OUT, name))
+def din_plate(w, h, border, radius, name, band=None):
+    return flat_plate(w, h, radius, name, band)
 din_plate(1920, 390, 14, 36, "din.png")
 din_plate(960, 600, 14, 52, "din-two.png")
 din_plate(1000, 500, 14, 44, "din-us.png")
@@ -117,11 +108,12 @@ print("din ok")
 # ── 5-day (short-term) plates: white face, no euroband, yellow strip with the expiry date at the right ──
 YEL = (250, 184, 0, 255)
 def transit_plate(w, h, border, radius, name, box):
+    border = BORDER
     base = Image.open(os.path.join(OUT, name.replace("transit", "din"))).convert("RGBA")
     ov = Image.new("RGBA", base.size, (0, 0, 0, 0))
     ImageDraw.Draw(ov).rectangle(box, fill=YEL)
     face_only = Image.new("L", base.size, 0)
-    ImageDraw.Draw(face_only).rounded_rectangle([border + 2, border + 2, w - border - 3, h - border - 3], radius=max(4, radius - border - 2), fill=255)
+    ImageDraw.Draw(face_only).rounded_rectangle([border, border, w - border - 1, h - border - 1], radius=max(4, radius - border), fill=255)
     base.paste(ov, (0, 0), ImageChops.multiply(ov.getchannel("A"), face_only))
     base.save(os.path.join(OUT, name))
 transit_plate(1920, 390, 14, 36, "transit.png", [1700, 0, 1920, 390])
@@ -131,18 +123,12 @@ print("transit ok")
 
 
 # ── Regular two-row / US-size / motorcycle plates (euroband top-left only, stickers at fixed spots) ──
-BAND = src.crop((14, 16, 152, 374))                                 # the euroband from the photo (stars + D)
-def regular_plate(w, h, radius, name, band_box, band=True):
-    din_plate(w, h, 14, radius, name)
-    im = Image.open(os.path.join(OUT, name)).convert("RGBA")
-    if band:
-        x0, y0, x1, y1 = band_box
-        im.alpha_composite(BAND.resize((x1 - x0, y1 - y0), Image.LANCZOS), (x0, y0))
-    im.save(os.path.join(OUT, name))
-regular_plate(1000, 590, 44, "us.png", (14, 14, 154, 291))
-regular_plate(700, 500, 44, "two.png", (14, 14, 114, 244))
-regular_plate(900, 1000, 56, "moto.png", (14, 14, 204, 454))
-regular_plate(1100, 1000, 56, "moto-old.png", (14, 14, 201, 448))
+def regular_plate(w, h, radius, name, band_box):
+    flat_plate(w, h, radius, name, band_box)
+regular_plate(1000, 590, 44, "us.png", (18, 18, 160, 294))
+regular_plate(700, 500, 44, "two.png", (18, 18, 120, 246))
+regular_plate(900, 1000, 56, "moto.png", (18, 18, 208, 458))
+regular_plate(1100, 1000, 56, "moto-old.png", (18, 18, 205, 452))
 print("regular ok")
 
 
@@ -155,7 +141,7 @@ def strip_variant(out_name, base_name, box, col):
     ImageDraw.Draw(ov).rectangle(box, fill=col)
     face_only = Image.new("L", base.size, 0)
     r = {1920: 36, 960: 52, 1000: 44}[w]
-    ImageDraw.Draw(face_only).rounded_rectangle([16, 16, w - 17, h - 17], radius=r - 16, fill=255)
+    ImageDraw.Draw(face_only).rounded_rectangle([BORDER, BORDER, w - BORDER - 1, h - BORDER - 1], radius=r - BORDER, fill=255)
     base.paste(ov, (0, 0), ImageChops.multiply(ov.getchannel("A"), face_only))
     base.save(os.path.join(OUT, out_name))
 strip_variant("export.png", "din.png", [1700, 0, 1920, 390], RED)
@@ -166,15 +152,14 @@ print("export ok")
 
 # ── Transferable (Wechselkennzeichen) plates: the plate plus a small plate at the right (inspection sticker + number) ──
 from PIL import ImageFont
-din_plate(1560, 390, 14, 36, "_tmp_main.png")
 din_plate(330, 390, 14, 36, "_tmp_small.png")
-main = Image.open(os.path.join(OUT, "_tmp_main.png")).convert("RGBA")
-main.alpha_composite(src.crop((14, 16, 152, 374)), (14, 16))
+main = Image.new("RGBA", (1560, H), (0, 0, 0, 0))
+main.paste(face.crop((0, 0, 1000, H)), (0, 0)); main.paste(face.crop((1360, 0, W, H)), (1000, 0))
 small = Image.open(os.path.join(OUT, "_tmp_small.png")).convert("RGBA")
 tw = Image.new("RGBA", (1920, 390), (0, 0, 0, 0))
 tw.alpha_composite(main, (0, 0)); tw.alpha_composite(small, (1590, 0))
 tw.save(os.path.join(OUT, "transferable.png"))
-os.remove(os.path.join(OUT, "_tmp_main.png")); os.remove(os.path.join(OUT, "_tmp_small.png"))
+os.remove(os.path.join(OUT, "_tmp_small.png"))
 # the small "W" that stands where the inspection sticker would be
 wimg = Image.new("RGBA", (160, 160), (0, 0, 0, 0))
 f = ImageFont.truetype(os.path.join(ROOT, "assets/fonts/D-DIN.ttf"), 150)

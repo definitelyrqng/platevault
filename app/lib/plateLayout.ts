@@ -81,7 +81,7 @@ export type ArtRow = {
  *  - "al-moto":    letters | digits                    ("AB 123" → AB | 123)
  *  - "al-trailer-two": letters | "R" + digits          ("AB R 456" → AB | R 456)
  */
-export type SplitRule = "hr-three" | "bg-moto" | "bg-two" | "bg-year" | "ba-two-eu" | "ba-two" | "be-seal" | "be-two" | "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "de-two" | "de-transit" | "de-wechsel" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
+export type SplitRule = "hr-three" | "bg-moto" | "bg-two" | "bg-year" | "ba-two-eu" | "ba-two" | "be-seal" | "be-two" | "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "de-two" | "de-season" | "de-transit" | "de-wechsel" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
 
 export type PlateArt = {
   src: string;          // path under /public
@@ -256,13 +256,13 @@ export const PLATE_ART: Record<string, PlateArt> = {
   "czech:two-euro": { src: "/plates/czech/two-euro.png", w: 560, h: 400, rows: [{ y0: 28, y1: 190, x0: 112, x1: 420, slots: 1, align: "left" }, { y0: 212, y1: 378, x0: 112, x1: 520, slots: 1, align: "left" }], split: "at-two", font: "cz", fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 436, y: 22, w: 82, h: 82, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 436, y: 108, w: 82, h: 82, bit: 2 }] },
   "czech:two": { src: "/plates/czech/two.png", w: 560, h: 400, rows: [{ y0: 28, y1: 190, x0: 40, x1: 420, slots: 1, align: "left" }, { y0: 212, y1: 378, x0: 40, x1: 520, slots: 1, align: "left" }], split: "at-two", font: "cz", fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 436, y: 22, w: 82, h: 82, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 436, y: 108, w: 82, h: 82, bit: 2 }] },
   // ── Germany: the full 520 mm plate (FE-Schrift); the stacked inspection sticker + seal sits between the district and the letters/digits ──
-  "germany:single": { src: "/plates/germany/single.png", w: 1920, h: 390, rows: [{ y0: 50, y1: 328, x0: 172, x1: 1885, slots: 2, seal: true, gap: 0.1 }], split: "at-seal", seal: "/plates/germany/seals/XX.png", sealAspect: 162 / 322, sealH: 1.16, fill: 0.98, space: 0.2, emboss: true, condense: 0.88, tracking: 0.015, huSeals: { stickerY: 112, sealY: 285, stickerD: 134, sealD: 158, frontY: 250 } },
+  "germany:single": { src: "/plates/germany/single.png", w: 1920, h: 390, rows: [{ y0: 69, y1: 326, x0: 215, x1: 1862, slots: 2, seal: true, gap: 0.26 }], split: "at-seal", seal: "/plates/germany/seals/XX.png", sealAspect: 162 / 322, sealH: 1.16, fill: 0.98, space: 0.2, emboss: true, condense: 0.88, tracking: 0.015, huSeals: { stickerY: 108, sealY: 278, stickerD: 126, sealD: 152, frontY: 245 } },
   // ── Germany, historical DIN plates (before 1994): no euroband, dash between district and letters, DIN lettering ──
   "germany:din": { src: "/plates/germany/din.png", w: 1920, h: 390, rows: [{ y0: 50, y1: 340, x0: 60, x1: 1860, slots: 2, seal: true, gap: 0.06 }], split: "at-seal", font: "dd", fill: 0.92, condense: 0.92, tracking: 0.02, emboss: true, seal: "/plates/germany/seals/XX.png", sealAspect: 1, sealH: 0.51, huSeals: { stickerY: 110, sealY: 294, stickerD: 124, sealD: 148, frontY: 294, dash: { y: 195, w: 112, h: 22 } } },
   "germany:din-two": { src: "/plates/germany/din-two.png", w: 960, h: 600, rows: [{ y0: 40, y1: 290, x0: 280, x1: 680, slots: 1 }, { y0: 310, y1: 565, x0: 50, x1: 910, slots: 1 }], split: "de-two", font: "dd", fill: 0.92, condense: 0.92, tracking: 0.02, emboss: true, fixed: [{ kind: "state", x: 140, y: 165, d: 130 }, { kind: "hu", x: 820, y: 165, d: 130 }] },
   "germany:din-us": { src: "/plates/germany/din-us.png", w: 1000, h: 500, rows: [{ y0: 40, y1: 235, x0: 300, x1: 700, slots: 1 }, { y0: 255, y1: 465, x0: 50, x1: 950, slots: 1 }], split: "de-two", font: "dd", fill: 0.92, condense: 0.92, tracking: 0.02, emboss: true, fixed: [{ kind: "hu", x: 140, y: 140, d: 110 }, { kind: "state", x: 860, y: 140, d: 110 }] },
   // ── Germany, transferable plates (Wechselkennzeichen): a small "W" instead of the sticker, the inspection sticker and the number on the small plate ──
-  "germany:transferable": { src: "/plates/germany/transferable.png", w: 1920, h: 390, rows: [{ y0: 50, y1: 328, x0: 172, x1: 1530, slots: 2, seal: true, gap: 0.1 }, { y0: 200, y1: 345, x0: 1605, x1: 1905, slots: 1, own: true }], split: "de-wechsel", fill: 0.98, condense: 0.88, tracking: 0.015, space: 0.2, emboss: true, seal: "/plates/germany/seals/XX.png", sealAspect: 162 / 322, sealH: 1.16, huSeals: { stickerY: 105, sealY: 285, stickerD: 60, sealD: 158, frontY: 285, topSrc: "/plates/germany/w.png" }, fixed: [{ kind: "hu", x: 1755, y: 112, d: 130 }] },
+  "germany:transferable": { src: "/plates/germany/transferable.png", w: 1920, h: 390, rows: [{ y0: 69, y1: 326, x0: 215, x1: 1500, slots: 2, seal: true, gap: 0.26 }, { y0: 200, y1: 345, x0: 1605, x1: 1905, slots: 1, own: true }], split: "de-wechsel", fill: 0.98, condense: 0.88, tracking: 0.015, space: 0.2, emboss: true, seal: "/plates/germany/seals/XX.png", sealAspect: 162 / 322, sealH: 1.16, huSeals: { stickerY: 105, sealY: 285, stickerD: 60, sealD: 158, frontY: 285, topSrc: "/plates/germany/w.png" }, fixed: [{ kind: "hu", x: 1755, y: 112, d: 130 }] },
   // two-row / US / motorcycle transferable plates (small plate at the right; a small "W" instead of the sticker on the main plate)
   "germany:transferable-two": { src: "/plates/germany/transferable-two.png", w: 920, h: 500, rows: [{ y0: 36, y1: 252, x0: 150, x1: 520, slots: 1 }, { y0: 300, y1: 478, x0: 40, x1: 660, slots: 1 }, { y0: 300, y1: 478, x0: 735, x1: 905, slots: 1, own: true }], split: "de-wechsel", fill: 0.86, condense: 0.9, tracking: 0.015, emboss: true, fixed: [{ kind: "w", x: 590, y: 96, d: 56 }, { kind: "state", x: 590, y: 240, d: 128 }, { kind: "hu", x: 820, y: 130, d: 120 }] },
   "germany:transferable-us": { src: "/plates/germany/transferable-us.png", w: 1220, h: 590, rows: [{ y0: 56, y1: 277, x0: 300, x1: 640, slots: 1 }, { y0: 313, y1: 540, x0: 80, x1: 930, slots: 1 }, { y0: 313, y1: 540, x0: 1040, x1: 1200, slots: 1, own: true }], split: "de-wechsel", fill: 0.98, condense: 0.9, tracking: 0.015, emboss: true, fixed: [{ kind: "w", x: 815, y: 100, d: 60 }, { kind: "state", x: 815, y: 224, d: 134 }, { kind: "hu", x: 1120, y: 150, d: 130 }] },
@@ -345,6 +345,11 @@ export const PLATE_ART: Record<string, PlateArt> = {
 };
 
 // Germany: export plates = the 5-day plates with a red strip (the number ends in one letter, with a gap before it)
+// Germany: seasonal plates — the regular plate with the season months (small, stacked over a line) at the right end
+{
+  const b = PLATE_ART["germany:single"];
+  PLATE_ART["germany:season"] = { ...b, src: "/plates/germany/season.png", rows: [{ ...b.rows[0], x1: 1735 }, { y0: 44, y1: 106, x0: 1765, x1: 1875, slots: 1, own: true, font: "dd" }, { y0: 244, y1: 306, x0: 1765, x1: 1875, slots: 1, own: true, font: "dd" }], split: "de-season" };
+}
 for (const k of ["", "-two", "-us"]) PLATE_ART[`germany:export${k}`] = { ...PLATE_ART[`germany:transit${k}`], src: `/plates/germany/export${k}.png`, space: 0.3 };
 // Germany: shortened plates (480 … 340 mm) — the 520 mm plate with a slice cut from the middle of the face (scripts/build-germany-art.py)
 for (const mm of [480, 460, 440, 420, 400, 380, 360, 340]) {
@@ -451,6 +456,7 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
     if (trf) return PLATE_ART[trf[1] === "double" ? "germany:transferable-two" : trf[1] === "us" ? "germany:transferable-us" : "germany:transferable-moto"] ?? null;
     const reg = (plateType ?? "").match(/^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-(double|us|moto|moto-old)(-hu(\d\d|0))?$/);      // two-row, US-size and motorcycle plates
     if (reg) return PLATE_ART[reg[2] === "double" ? "germany:two" : reg[2] === "us" ? "germany:us" : reg[2] === "moto" ? "germany:moto" : "germany:moto-old"] ?? null;
+    if (/^de-seasonal(-h)?-single(-hu(\d\d|0))?$/.test(plateType ?? "")) return PLATE_ART["germany:season"] ?? null;
     return !plateType || /^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)(-single)?(-short)?(-hu(\d\d|0))?$/.test(plateType) ? PLATE_ART["germany:single"] ?? null : null;
   }
   if (key === "austria") {
@@ -648,6 +654,10 @@ function splitText(rule: SplitRule, text: string): string[] | null {
   if (rule === "de-wechsel") {                                                         // HER H 22-2 → HER | H 22 | 2 (district, letters + digits, number on the small plate)
     const m = text.trim().match(/^(\S+)\s+(.+?)(?:-(\w+))?$/);
     return m ? [m[1], m[2], m[3] ?? ""] : null;
+  }
+  if (rule === "de-season") {                                                          // B AB 1234 04/10 → B | AB 1234 | 10 | 04 (district, rest, last month over first month)
+    const m = text.trim().match(/^(\S+)\s+(.+?)(?:\s+(\d\d)\/(\d\d))?$/);
+    return m ? [m[1], m[2], m[4] ?? "", m[3] ?? ""] : null;
   }
   if (rule === "de-transit") {                                                         // A 123456 20.04.15 → A | 123456 | 20 | 04 | 15 (district, number, day, month, year of the expiry date)
     const m = text.trim().match(/^(\S+)\s+(\d+(?:\s?[A-Z])?)(?:\s+(\d\d)\.(\d\d)\.(\d\d))?$/);             // export plates: the number ends in one letter (458 C)
