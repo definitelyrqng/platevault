@@ -1114,7 +1114,7 @@ export function buildGermanyPlateText(opts: {
     case "military": {
       // Format: Y 123456 (Bundeswehr) or X 123456 (NATO), no dash
       const pre    = opts.militaryPrefix ?? "Y";
-      const milNum = (opts.numbers ?? "").replace(/[^0-9]/g, "").slice(0, 6);
+      const milNum = (opts.numbers ?? "").replace(/[^0-9]/g, "").slice(0, pre === "X" ? 4 : 6);
       return milNum ? `${pre}-${milNum}` : `${pre}-`;
     }
     default:

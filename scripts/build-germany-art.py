@@ -215,3 +215,19 @@ dd_.ellipse([2, 2, 197, 197], fill=(160, 40, 48, 255)); dd_.ellipse([14, 14, 185
 dot.save(os.path.join(OUT, "red-dot.png"))
 rd = Image.new("RGBA", (200, 40), (0, 0, 0, 0)); ImageDraw.Draw(rd).rounded_rectangle([0, 0, 199, 39], radius=4, fill=(184, 31, 38, 255)); rd.save(os.path.join(OUT, "red-dash.png"))
 print("red din ok")
+
+
+# Bundeswehr plates: white face, black border, a small German flag at the left instead of the euroband
+def flag(im, box):
+    x0, y0, x1, y1 = box
+    d = ImageDraw.Draw(im)
+    h = (y1 - y0) / 3
+    for i, col in enumerate([(0, 0, 0, 255), (221, 0, 0, 255), (255, 206, 0, 255)]):
+        d.rectangle([x0, round(y0 + i * h), x1, round(y0 + (i + 1) * h) - 1], fill=col)
+for name, (w, h, r, fb) in {"military": (1920, 390, 38, (38, 150, 140, 240)), "military-two": (700, 500, 44, (30, 190, 96, 275)), "military-us": (1000, 590, 44, (32, 225, 104, 310)), "military-moto": (900, 1000, 56, (34, 450, 124, 560))}.items():
+    im = flat_plate(w, h, r, name + ".png")
+    flag(im, fb)
+    im.save(os.path.join(OUT, name + ".png"))
+for name, (w, h, r) in {"military-nato": (1920, 390, 38), "military-nato-two": (700, 500, 44), "military-nato-us": (1000, 590, 44), "military-nato-moto": (900, 1000, 56)}.items():
+    flat_plate(w, h, r, name + ".png")
+print("military ok")

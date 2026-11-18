@@ -81,7 +81,7 @@ export type ArtRow = {
  *  - "al-moto":    letters | digits                    ("AB 123" → AB | 123)
  *  - "al-trailer-two": letters | "R" + digits          ("AB R 456" → AB | R 456)
  */
-export type SplitRule = "hr-three" | "bg-moto" | "bg-two" | "bg-year" | "ba-two-eu" | "ba-two" | "be-seal" | "be-two" | "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "de-two" | "de-season" | "de-season-two" | "de-federal" | "de-transit" | "de-wechsel" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
+export type SplitRule = "hr-three" | "bg-moto" | "bg-two" | "bg-year" | "ba-two-eu" | "ba-two" | "be-seal" | "be-two" | "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "de-two" | "de-season" | "de-season-two" | "de-federal" | "de-military" | "de-military-two" | "de-transit" | "de-wechsel" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
 
 export type PlateArt = {
   src: string;          // path under /public
@@ -355,6 +355,14 @@ export const PLATE_ART: Record<string, PlateArt> = {
   PLATE_ART["germany:red-din-us"] = { ...PLATE_ART["germany:din-us"], src: "/plates/germany/red-din-us.png", textColor: "#b81f26", emboss: false, fixed: [{ kind: "state", x: 840, y: 140, d: 120 }] };
   // official plates in two-row DIN: the sticker on the left, the seal on the right
   PLATE_ART["germany:official-din-two"] = { ...PLATE_ART["germany:din-two"], fixed: [{ kind: "hu", x: 140, y: 165, d: 130 }, { kind: "state", x: 820, y: 165, d: 130 }] };
+  // Bundeswehr plates: flag instead of the euroband, the federal seal without an inspection sticker, at most six digits
+  const mil = { fill: 0.98, condense: 0.9, tracking: 0.015, emboss: true };
+  PLATE_ART["germany:military"] = { src: "/plates/germany/military.png", w: 1920, h: 390, rows: [{ y0: 69, y1: 326, x0: 185, x1: 1880, slots: 2, seal: true, gap: 0.2 }], split: "de-military", ...mil, condense: 0.88, seal: "/plates/germany/seals/XX.png", sealAspect: 1, sealH: 0.6, huSeals: { noSticker: true, stickerY: 0, sealY: 250, stickerD: 0, sealD: 160, frontY: 250 } };
+  PLATE_ART["germany:military-two"] = { src: "/plates/germany/military-two.png", w: 700, h: 500, rows: [{ y0: 36, y1: 252, x0: 120, x1: 470, slots: 1 }, { y0: 300, y1: 478, x0: 120, x1: 665, slots: 1 }], split: "de-military-two", ...mil, fixed: [{ kind: "state", x: 585, y: 140, d: 120 }] };
+  PLATE_ART["germany:military-us"] = { src: "/plates/germany/military-us.png", w: 1000, h: 590, rows: [{ y0: 56, y1: 277, x0: 150, x1: 650, slots: 1 }, { y0: 313, y1: 540, x0: 140, x1: 940, slots: 1 }], split: "de-military-two", ...mil, fixed: [{ kind: "state", x: 840, y: 150, d: 130 }] };
+  PLATE_ART["germany:military-moto"] = { src: "/plates/germany/military-moto.png", w: 900, h: 1000, rows: [{ y0: 70, y1: 320, x0: 170, x1: 600, slots: 1 }, { y0: 670, y1: 940, x0: 140, x1: 845, slots: 1 }], split: "de-military-two", ...mil, fixed: [{ kind: "state", x: 715, y: 330, d: 190 }] };
+  // NATO plates (X): the same without the flag
+  for (const k of ["", "-two", "-us", "-moto"]) { const b = PLATE_ART[`germany:military${k}`]; PLATE_ART[`germany:military-nato${k}`] = { ...b, src: `/plates/germany/military-nato${k}.png`, rows: b.rows.map((r) => ({ ...r, x0: Math.max(k === "" ? 60 : 40, r.x0 - 110) })) }; }
   PLATE_ART["germany:red-two"] = { src: "/plates/germany/red-two.png", w: 700, h: 500, rows: [{ y0: 36, y1: 252, x0: 130, x1: 500, slots: 1 }, { y0: 300, y1: 478, x0: 40, x1: 660, slots: 1 }], split: "de-two", ...red, fixed: [{ kind: "state", x: 590, y: 150, d: 118 }] };
   PLATE_ART["germany:red-us"] = { src: "/plates/germany/red-us.png", w: 1000, h: 590, rows: [{ y0: 56, y1: 277, x0: 240, x1: 700, slots: 1 }, { y0: 313, y1: 540, x0: 80, x1: 930, slots: 1 }], split: "de-two", ...red, fixed: [{ kind: "state", x: 840, y: 160, d: 130 }] };
   PLATE_ART["germany:red-moto"] = { src: "/plates/germany/red-moto.png", w: 900, h: 1000, rows: [{ y0: 70, y1: 320, x0: 300, x1: 760, slots: 1 }, { y0: 670, y1: 940, x0: 60, x1: 840, slots: 1 }], split: "de-two", ...red, fixed: [{ kind: "state", x: 610, y: 500, d: 200 }] };
@@ -489,6 +497,8 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
     if (/^de-transferable-single(-hu(\d\d|0))?$/.test(plateType ?? "")) return PLATE_ART["germany:transferable"] ?? null;                  // Wechselkennzeichen
     const trf = (plateType ?? "").match(/^de-transferable-(double|us|moto)(-hu(\d\d|0))?$/);                  // two-row, US-size and motorcycle Wechselkennzeichen
     if (trf) return PLATE_ART[trf[1] === "double" ? "germany:transferable-two" : trf[1] === "us" ? "germany:transferable-us" : "germany:transferable-moto"] ?? null;
+    const mil = (plateType ?? "").match(/^de-military(-nato)?(?:-(single|double|us|moto))?$/);                // Bundeswehr (Y) and NATO (X) plates
+    if (mil) return PLATE_ART[`germany:military${mil[1] ? "-nato" : ""}${mil[2] === "double" ? "-two" : mil[2] === "us" ? "-us" : mil[2] === "moto" ? "-moto" : ""}`] ?? null;
     const red = (plateType ?? "").match(/^de-red-\d\d(?:-(single|double|us|moto|din-single|din-double|din-us))?$/);                    // red plates
     if (red) return PLATE_ART[`germany:red${{ double: "-two", us: "-us", moto: "-moto", "din-single": "-din", "din-double": "-din-two", "din-us": "-din-us" }[red[1] ?? ""] ?? ""}`] ?? null;
     const reg = (plateType ?? "").match(/^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable|official|state-authority|diplomatic)-(double|us|moto|moto-old)(-hu(\d\d|0))?$/);      // two-row, US-size and motorcycle plates
@@ -692,6 +702,14 @@ function splitText(rule: SplitRule, text: string): string[] | null {
   if (rule === "de-wechsel") {                                                         // HER H 22-2 → HER | H 22 | 2 (district, letters + digits, number on the small plate)
     const m = text.trim().match(/^(\S+)\s+(.+?)(?:-(\w+))?$/);
     return m ? [m[1], m[2], m[3] ?? ""] : null;
+  }
+  if (rule === "de-military") {                                                        // Y 123456 → Y- | 123 456 (letter, digits in two groups of three)
+    const m = text.trim().match(/^([A-Z])[\s-]+(\d{1,6})$/);
+    return m ? [m[1] + "-", m[2].length > 4 ? `${m[2].slice(0, 3)} ${m[2].slice(3)}` : m[2]] : null;
+  }
+  if (rule === "de-military-two") {                                                    // Y 123456 → Y-12 | 3456 (the last four digits in the lower row)
+    const m = text.trim().match(/^([A-Z])[\s-]+(\d{1,6})$/);
+    return m ? [m[1] + "-" + m[2].slice(0, Math.max(0, m[2].length - 4)), m[2].slice(-4)] : null;
   }
   if (rule === "de-federal") {                                                         // BD 5 2345 → BD 5 | 2345 (agency code, serial)
     const m = text.trim().match(/^(.*\S)\s+(\d+)$/);

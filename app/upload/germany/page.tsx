@@ -295,13 +295,14 @@ export default function GermanyUploadPage() {
   // ── Plate type stored in DB
   const plateTypeStored = useMemo(() => {
     if (category === "red") { const f = ["single", "double", "us", "moto", "din-single", "din-double", "din-us"].includes(plateFormat) ? plateFormat : "single"; return `de-red-${redCode}-${f}${noSeals ? "-ns" : ""}`; }
+    if (category === "military") return `de-military${militaryPrefix === "X" ? "-nato" : ""}-${["single", "double", "us", "moto"].includes(plateFormat) ? plateFormat : "single"}${noSeals ? "-ns" : ""}`;
     const base = category === "federal" ? `de-federal-${federalSub}-${plateFormat}` : `de-${category}-${plateFormat}`;
     const stripPlate = (category === "transit-5day" || category === "export") && ["single", "double", "us"].includes(plateFormat);
     const t = HU_TYPES.test(category === "federal" ? `de-official-${plateFormat}` : base) ? `${base}${shortPlate && base === "de-regular-single" ? "-short" : ""}-hu${frontPlate ? "0" : huYear}` : base;
     return noSeals && (HU_TYPES.test(category === "federal" ? `de-official-${plateFormat}` : base) || stripPlate) ? `${t}-ns` : t;                // "-ns": no seals or stickers
-  }, [category, plateFormat, redCode, federalSub, huYear, frontPlate, shortPlate, noSeals]);
+  }, [category, plateFormat, redCode, federalSub, huYear, frontPlate, shortPlate, noSeals, militaryPrefix]);
   const drawn = HU_TYPES.test(category === "federal" ? `de-official-${plateFormat}` : `de-${category}-${plateFormat}`);
-  const redDrawn = category === "red";
+  const redDrawn = category === "red" || category === "military";
   const transitDrawn = (category === "transit-5day" || category === "export") && ["single", "double", "us"].includes(plateFormat);
   // export plates: 1–4 digits and a letter (8 characters in total with the district code)
   const exportMax = Math.max(1, Math.min(plateFormat === "us" ? 4 : 5, 7 - regionCode.length));
@@ -415,7 +416,7 @@ export default function GermanyUploadPage() {
   // the DIN categories have their own formats: pick a matching one when the category changes (otherwise there is no preview)
   useEffect(() => {
     if (category === "din" && !plateFormat.startsWith("din-")) setPlateFormat("din-single");
-    else if (category !== "din" && category !== "red" && category !== "official" && category !== "state-authority" && category !== "federal" && category !== "diplomatic" && plateFormat.startsWith("din-")) setPlateFormat("single");
+    else if (category !== "din" && category !== "red" && category !== "official" && category !== "state-authority" && category !== "federal" && category !== "diplomatic" && category !== "military" && plateFormat.startsWith("din-")) setPlateFormat("single");
   }, [category, plateFormat]);
   useEffect(() => { if ((plateFormat === "moto-old" && !OLD_MOTO.includes(category)) || (category === "red" && plateFormat === "moto-old")) setPlateFormat("moto"); }, [category, plateFormat]);
   const dinFormats     = GERMANY_PLATE_FORMATS.filter((f) => f.group === "din");
@@ -454,7 +455,7 @@ export default function GermanyUploadPage() {
     category === "state-authority"? "THL-123456" :
     category === "federal"        ? "BD 5-123456" :
     category === "diplomatic"     ? "0-42-123456A" :
-    category === "military"       ? `${militaryPrefix}-123456` :
+    category === "military"       ? `${militaryPrefix}-${militaryPrefix === "X" ? "1234" : "123456"}` :
     "…";
   // motorcycle plates hold fewer characters in the lower row: shorten the sample to match
   const placeholderText = (plateFormat === "moto-old" || plateFormat === "moto") && /^[A-ZÄÖÜ]{1,3}-/.test(placeholderBase)
@@ -613,7 +614,7 @@ export default function GermanyUploadPage() {
                   <div>
                     <span className="block text-sm text-zinc-300 mb-2">Format</span>
                     <div className="grid grid-cols-2 gap-2">
-                      {(isDIN ? dinFormats : (category === "red" || category === "official" || category === "state-authority" || category === "federal" || category === "diplomatic") ? [...regularFormats.filter((f) => ["single", "double", "us", "moto"].includes(f.id)), ...dinFormats] : (category === "transit-5day" || category === "export") ? regularFormats.filter((f) => ["single", "double", "us"].includes(f.id)) : regularFormats.filter((f) => f.id !== "moto-old" || OLD_MOTO.includes(category))).map((fmt) => (
+                      {(isDIN ? dinFormats : category === "military" ? regularFormats.filter((f) => ["single", "double", "us", "moto"].includes(f.id)) : (category === "red" || category === "official" || category === "state-authority" || category === "federal" || category === "diplomatic") ? [...regularFormats.filter((f) => ["single", "double", "us", "moto"].includes(f.id)), ...dinFormats] : (category === "transit-5day" || category === "export") ? regularFormats.filter((f) => ["single", "double", "us"].includes(f.id)) : regularFormats.filter((f) => f.id !== "moto-old" || OLD_MOTO.includes(category))).map((fmt) => (
                         <button
                           key={fmt.id}
                           type="button"
@@ -1053,13 +1054,13 @@ export default function GermanyUploadPage() {
                         <span className="text-zinc-400 font-mono font-bold text-sm select-none">-</span>
                         <input
                           value={officialNumbers}
-                          onChange={(e) => setOfficialNumbers(e.target.value.replace(/\D/g,"").slice(0,6))}
-                          placeholder="123456"
-                          maxLength={6}
+                          onChange={(e) => setOfficialNumbers(e.target.value.replace(/\D/g,"").slice(0, militaryPrefix === "X" ? 4 : 6))}
+                          placeholder={militaryPrefix === "X" ? "1234" : "123456"}
+                          maxLength={militaryPrefix === "X" ? 4 : 6}
                           className="flex-1 rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono outline-none focus:border-zinc-600"
                         />
                       </div>
-                      <p className="text-xs text-zinc-600">Y = Bundeswehr · X = NATO forces</p>
+                      <p className="text-xs text-zinc-600">Y = Bundeswehr (up to 6 digits) · X = NATO forces (up to 4 digits)</p>
                     </label>
                     <p className="text-xs text-zinc-500">White plate, black text — centrally issued</p>
                   </div>
