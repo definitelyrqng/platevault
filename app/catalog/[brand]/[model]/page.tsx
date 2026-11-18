@@ -215,7 +215,7 @@ export default async function ModelPage({ params, searchParams }: {
             <h1 className="mt-1 text-3xl font-bold tracking-tight text-white sm:text-4xl">{modelData.name}</h1>
             <p className="mt-2 text-sm tabular-nums text-zinc-400">
               {spots.length === 0 ? "No spots yet" : `${spots.length} spot${spots.length === 1 ? "" : "s"}`}
-              {" · "}{gens.length} generation{gens.length === 1 ? "" : "s"}
+              {gens.length > 0 && <>{" · "}{gens.length} generation{gens.length === 1 ? "" : "s"}</>}
               {span && <> · {span}</>}
             </p>
           </div>
@@ -276,15 +276,16 @@ export default async function ModelPage({ params, searchParams }: {
 
         {ungrouped.length > 0 && (
           <section>
+            {gens.length > 0 && (
             <div className="mb-5 flex items-center gap-3 border-b border-zinc-800/70 pb-3">
-              <h2 className="text-lg font-semibold text-zinc-400">Generation not set</h2>
+              <h2 className="text-lg font-semibold text-zinc-400">No generation</h2>
               <span className="text-xs tabular-nums text-zinc-600">{ungrouped.length}</span>
             </div>
+            )}
             <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">{ungrouped.map(card)}</div>
           </section>
         )}
 
-        {gens.length === 0 && <p className="text-sm text-zinc-500">No generations have been added for this model yet.</p>}
       </div>
     </main>
   );

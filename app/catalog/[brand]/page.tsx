@@ -68,7 +68,7 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-400">Make</p>
             <h1 className="mt-1 text-3xl font-bold tracking-tight text-white sm:text-4xl">{brand.name}</h1>
             <p className="mt-2 text-sm tabular-nums text-zinc-400">
-              {totalSpots} spot{totalSpots === 1 ? "" : "s"} · {brand.models.length} model{brand.models.length === 1 ? "" : "s"} · {totalGens} generation{totalGens === 1 ? "" : "s"}
+              {totalSpots} spot{totalSpots === 1 ? "" : "s"} · {brand.models.length} model{brand.models.length === 1 ? "" : "s"} {totalGens > 0 && <> · {totalGens} generation{totalGens === 1 ? "" : "s"}</>}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -111,7 +111,7 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
                 <div className="relative p-3.5">
                   <div className="truncate text-base font-semibold text-white">{m.name}</div>
                   <div className="mt-0.5 text-xs tabular-nums text-white/70">
-                    {n > 0 ? `${n} spot${n === 1 ? "" : "s"}` : "no spots yet"} · {m.generations.length} gen{m.generations.length === 1 ? "" : "s"}
+                    {n > 0 ? `${n} spot${n === 1 ? "" : "s"}` : "no spots yet"}{m.generations.length > 0 && <> · {m.generations.length} gen{m.generations.length === 1 ? "" : "s"}</>}
                     {span && <> · {span}</>}
                   </div>
                 </div>

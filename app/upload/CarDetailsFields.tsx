@@ -117,7 +117,7 @@ export default function CarDetailsFields({ onChange }: Props) {
         <div className="col-span-2">
           <Label>Generation</Label>
           <select value={generationId} onChange={handleGenChange} disabled={!modelId} className={FIELD}>
-            <option value="">Select generation...</option>
+            <option value="">{modelId && generations.length === 0 ? "No generations for this model (optional)" : "Select generation... (optional)"}</option>
             {generations.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
           </select>
         </div>
