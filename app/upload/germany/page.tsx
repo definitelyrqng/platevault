@@ -411,6 +411,11 @@ export default function GermanyUploadPage() {
   const isDIN     = category === "din";
   const regularFormats = GERMANY_PLATE_FORMATS.filter((f) => f.group === "regular");
   // the old motorcycle plate (until 2011) exists only for regular and seasonal plates: no historic, transferable, electric, 5-day or export versions
+  // the DIN categories have their own formats: pick a matching one when the category changes (otherwise there is no preview)
+  useEffect(() => {
+    if (category === "din" && !plateFormat.startsWith("din-")) setPlateFormat("din-single");
+    else if (category !== "din" && plateFormat.startsWith("din-")) setPlateFormat("single");
+  }, [category, plateFormat]);
   useEffect(() => { if (plateFormat === "moto-old" && !OLD_MOTO.includes(category)) setPlateFormat("moto"); }, [category, plateFormat]);
   const dinFormats     = GERMANY_PLATE_FORMATS.filter((f) => f.group === "din");
   const selectedCat = GERMANY_CATEGORIES.find((c) => c.id === category)!;
@@ -433,7 +438,7 @@ export default function GermanyUploadPage() {
     category === "din"           ? "text-zinc-100" :
     "text-zinc-100";
 
-  const placeholderText =
+  const placeholderBase =
     category === "regular"        ? "B-AB1234" :
     category === "din"            ? "B-AB1234" :
     category === "transit-5day"   ? "B-123456 23.06.26" :
@@ -450,6 +455,9 @@ export default function GermanyUploadPage() {
     category === "diplomatic"     ? "0-42-123456A" :
     category === "military"       ? `${militaryPrefix}-123456` :
     "…";
+  // motorcycle plates hold fewer characters in the lower row: shorten the sample to match
+  const placeholderText = (plateFormat === "moto-old" || plateFormat === "moto") && /^[A-ZÄÖÜ]{1,3}-/.test(placeholderBase)
+    ? placeholderBase.replace(/^([A-ZÄÖÜ]{1,3}-)(\S+)/, (_m, d: string, rest: string) => d + rest.slice(0, plateFormat === "moto-old" ? 3 : 4)) : placeholderBase;
 
   return (
     <>
