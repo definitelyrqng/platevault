@@ -139,10 +139,10 @@ def regular_plate(w, h, radius, name, band_box, band=True):
         x0, y0, x1, y1 = band_box
         im.alpha_composite(BAND.resize((x1 - x0, y1 - y0), Image.LANCZOS), (x0, y0))
     im.save(os.path.join(OUT, name))
-regular_plate(1000, 500, 44, "us.png", (14, 14, 134, 244))
+regular_plate(1000, 590, 44, "us.png", (14, 14, 154, 291))
 regular_plate(700, 500, 44, "two.png", (14, 14, 114, 244))
-regular_plate(900, 1000, 56, "moto.png", (14, 14, 164, 324))
-regular_plate(900, 1000, 56, "moto-old.png", (14, 14, 164, 324))
+regular_plate(900, 1000, 56, "moto.png", (14, 14, 204, 454))
+regular_plate(1100, 1000, 56, "moto-old.png", (14, 14, 201, 448))
 print("regular ok")
 
 
