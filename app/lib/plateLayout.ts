@@ -378,7 +378,7 @@ for (const k of ["moto-old"]) {
 }
 { // motorcycle: the months sit right of the stickers, between the two rows
   const b = PLATE_ART["germany:moto"];
-  PLATE_ART["germany:moto-season"] = { ...b, src: "/plates/germany/season-moto.png", split: "de-season-two", rows: [b.rows[0], b.rows[1], { y0: 375, y1: 465, x0: 665, x1: 850, slots: 1, own: true }, { y0: 520, y1: 610, x0: 665, x1: 850, slots: 1, own: true }], fixed: [{ kind: "hu", x: 250, y: 500, d: 160 }, { kind: "state", x: 455, y: 500, d: 200 }] };
+  PLATE_ART["germany:moto-season"] = { ...b, src: "/plates/germany/season-moto.png", split: "de-season-two", rows: [b.rows[0], b.rows[1], { y0: 432, y1: 512, x0: 665, x1: 850, slots: 1, own: true }, { y0: 580, y1: 660, x0: 665, x1: 850, slots: 1, own: true }], fixed: [{ kind: "hu", x: 305, y: 550, d: 150 }, { kind: "state", x: 490, y: 550, d: 190 }] };
 }
 for (const k of ["", "-two", "-us"]) PLATE_ART[`germany:export${k}`] = { ...PLATE_ART[`germany:transit${k}`], src: `/plates/germany/export${k}.png`, space: 0.3 };
 // Germany: shortened plates (480 … 340 mm) — the 520 mm plate with a slice cut from the middle of the face (scripts/build-germany-art.py)
