@@ -304,3 +304,44 @@ export function DeleteGenerationButton({ genId }: { genId: number }) {
     </button>
   );
 }
+
+// ─── Edit the model from its own page (rename / delete) ───────────────────────
+export function ModelPageControls({ modelId, current, brandSlug }: { modelId: number; current: string; brandSlug: string }) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(current);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const slug = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    const n = name.trim();
+    if (!n || n === current) { setEditing(false); return; }
+    setBusy(true); setErr("");
+    const res = await fetch(`/api/catalog/models/${modelId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: n }) });
+    if (!res.ok) { const d = await res.json().catch(() => ({})); setErr(d.error ?? "Could not rename."); setBusy(false); return; }
+    window.location.href = `/catalog/${brandSlug}/${slug(n)}`;                 // the address changes with the name
+  }
+  async function remove() {
+    if (!confirm("Delete this model and ALL its generations? Spots keep their text but lose the catalog link. This cannot be undone.")) return;
+    setBusy(true);
+    await fetch(`/api/catalog/models/${modelId}`, { method: "DELETE" });
+    window.location.href = `/catalog/${brandSlug}`;
+  }
+
+  if (editing) return (
+    <form onSubmit={save} className="flex flex-wrap items-center gap-2">
+      <input autoFocus value={name} onChange={(e) => setName(e.target.value)}
+        className="min-w-0 rounded-lg border border-indigo-800/60 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-indigo-600" />
+      <button type="submit" disabled={busy || !name.trim()} className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-medium text-white hover:bg-indigo-500 disabled:opacity-40">{busy ? "…" : "Save"}</button>
+      <button type="button" onClick={() => { setEditing(false); setName(current); }} className="rounded-lg px-2 py-2 text-xs text-zinc-500 hover:text-zinc-300">Cancel</button>
+      {err && <span className="text-xs text-red-400">{err}</span>}
+    </form>
+  );
+  return (
+    <div className="flex items-center gap-2">
+      <button onClick={() => setEditing(true)} className="rounded-lg border border-zinc-700/60 bg-zinc-900/40 px-3 py-2 text-xs text-zinc-300 transition-colors hover:border-indigo-700/50 hover:text-white">✏ Edit model</button>
+      <button onClick={remove} disabled={busy} className="rounded-lg border border-red-900/60 bg-red-950/30 px-3 py-2 text-xs text-red-400 transition-colors hover:bg-red-950/60 hover:text-red-300 disabled:opacity-40">Delete</button>
+    </div>
+  );
+}

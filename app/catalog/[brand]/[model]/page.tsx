@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import SpotCard, { PhotoPill } from "@/app/components/SpotCard";
 import GenerationLink from "@/app/components/GenerationLink";
 import { codeSlug, codesOf, hasCode, toSlug, yearSpan } from "@/app/lib/chassis";
-import { AddGenerationButton, DeleteGenerationButton, RenameGenerationButton } from "../../CatalogAdminControls";
+import { AddGenerationButton, DeleteGenerationButton, ModelPageControls, RenameGenerationButton } from "../../CatalogAdminControls";
 
 export const dynamic = "force-dynamic";
 
@@ -219,9 +219,12 @@ export default async function ModelPage({ params, searchParams }: {
               {span && <> · {span}</>}
             </p>
           </div>
-          <a href="/upload" className="shrink-0 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-500">
-            ↑ Upload a spot
-          </a>
+          <div className="flex flex-wrap items-center gap-2">
+            {isSuperAdmin && <ModelPageControls modelId={modelData.id} current={modelData.name} brandSlug={brandSlug} />}
+            <a href="/upload" className="shrink-0 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-500">
+              ↑ Upload a spot
+            </a>
+          </div>
         </div>
       </header>
 
