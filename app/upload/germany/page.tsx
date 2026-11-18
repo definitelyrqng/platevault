@@ -157,7 +157,7 @@ function RegionPicker({
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 /** Plate kinds drawn with the realistic single-row artwork, and the colours of the inspection stickers by year. */
-const HU_TYPES = /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-(single|double|us|moto|moto-old)|de-din-din-(single|double|us))$/;
+const HU_TYPES = /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable|official)-(single|double|us|moto|moto-old)|de-(din|official)-din-(single|double|us))$/;
 const OLD_MOTO: string[] = ["regular"];                // the old motorcycle plate has no seasonal, historic (H), electric, transferable, 5-day or export versions
 const HU_YEARS = ["19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31"];
 const HU_COLORS = ["#1ab0ee", "#f5ef12", "#d85c4c", "#f7a0b8", "#18b082", "#e89000"];
@@ -415,7 +415,7 @@ export default function GermanyUploadPage() {
   // the DIN categories have their own formats: pick a matching one when the category changes (otherwise there is no preview)
   useEffect(() => {
     if (category === "din" && !plateFormat.startsWith("din-")) setPlateFormat("din-single");
-    else if (category !== "din" && category !== "red" && plateFormat.startsWith("din-")) setPlateFormat("single");
+    else if (category !== "din" && category !== "red" && category !== "official" && plateFormat.startsWith("din-")) setPlateFormat("single");
   }, [category, plateFormat]);
   useEffect(() => { if ((plateFormat === "moto-old" && !OLD_MOTO.includes(category)) || (category === "red" && plateFormat === "moto-old")) setPlateFormat("moto"); }, [category, plateFormat]);
   const dinFormats     = GERMANY_PLATE_FORMATS.filter((f) => f.group === "din");
@@ -609,7 +609,7 @@ export default function GermanyUploadPage() {
                   <div>
                     <span className="block text-sm text-zinc-300 mb-2">Format</span>
                     <div className="grid grid-cols-2 gap-2">
-                      {(isDIN ? dinFormats : category === "red" ? [...regularFormats.filter((f) => ["single", "double", "us", "moto"].includes(f.id)), ...dinFormats] : (category === "transit-5day" || category === "export") ? regularFormats.filter((f) => ["single", "double", "us"].includes(f.id)) : regularFormats.filter((f) => f.id !== "moto-old" || OLD_MOTO.includes(category))).map((fmt) => (
+                      {(isDIN ? dinFormats : (category === "red" || category === "official") ? [...regularFormats.filter((f) => ["single", "double", "us", "moto"].includes(f.id)), ...dinFormats] : (category === "transit-5day" || category === "export") ? regularFormats.filter((f) => ["single", "double", "us"].includes(f.id)) : regularFormats.filter((f) => f.id !== "moto-old" || OLD_MOTO.includes(category))).map((fmt) => (
                         <button
                           key={fmt.id}
                           type="button"

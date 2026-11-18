@@ -353,6 +353,8 @@ export const PLATE_ART: Record<string, PlateArt> = {
   PLATE_ART["germany:red-din"] = { ...din, src: "/plates/germany/red-din.png", textColor: "#b81f26", emboss: false, huSeals: { ...din.huSeals!, noSticker: true, dash: { ...din.huSeals!.dash!, src: "/plates/germany/red-dash.png" } } };
   PLATE_ART["germany:red-din-two"] = { ...PLATE_ART["germany:din-two"], src: "/plates/germany/red-din-two.png", textColor: "#b81f26", emboss: false, fixed: [{ kind: "state", x: 800, y: 165, d: 140 }] };
   PLATE_ART["germany:red-din-us"] = { ...PLATE_ART["germany:din-us"], src: "/plates/germany/red-din-us.png", textColor: "#b81f26", emboss: false, fixed: [{ kind: "state", x: 840, y: 140, d: 120 }] };
+  // official plates in two-row DIN: the sticker on the left, the seal on the right
+  PLATE_ART["germany:official-din-two"] = { ...PLATE_ART["germany:din-two"], fixed: [{ kind: "hu", x: 140, y: 165, d: 130 }, { kind: "state", x: 820, y: 165, d: 130 }] };
   PLATE_ART["germany:red-two"] = { src: "/plates/germany/red-two.png", w: 700, h: 500, rows: [{ y0: 36, y1: 252, x0: 130, x1: 500, slots: 1 }, { y0: 300, y1: 478, x0: 40, x1: 660, slots: 1 }], split: "de-two", ...red, fixed: [{ kind: "state", x: 590, y: 150, d: 118 }] };
   PLATE_ART["germany:red-us"] = { src: "/plates/germany/red-us.png", w: 1000, h: 590, rows: [{ y0: 56, y1: 277, x0: 240, x1: 700, slots: 1 }, { y0: 313, y1: 540, x0: 80, x1: 930, slots: 1 }], split: "de-two", ...red, fixed: [{ kind: "state", x: 840, y: 160, d: 130 }] };
   PLATE_ART["germany:red-moto"] = { src: "/plates/germany/red-moto.png", w: 900, h: 1000, rows: [{ y0: 70, y1: 320, x0: 300, x1: 760, slots: 1 }, { y0: 670, y1: 940, x0: 60, x1: 840, slots: 1 }], split: "de-two", ...red, fixed: [{ kind: "state", x: 610, y: 500, d: 200 }] };
@@ -479,18 +481,19 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
     if (ex) return PLATE_ART[ex[1] === "single" ? "germany:export" : ex[1] === "double" ? "germany:export-two" : "germany:export-us"] ?? null;
     const tr = (plateType ?? "").match(/^de-transit-5day-(single|double|us)$/);                    // 5-day plates
     if (tr) return PLATE_ART[tr[1] === "single" ? "germany:transit" : tr[1] === "double" ? "germany:transit-two" : "germany:transit-us"] ?? null;
-    const din = (plateType ?? "").match(/^de-din-(?:din-)?(single|double|us)(-hu(\d\d|0))?$/);              // historical DIN plates
+    const din = (plateType ?? "").match(/^de-(?:din-(?:din-)?|official-din-)(single|double|us)(-hu(\d\d|0))?$/);              // historical DIN plates
+    if (din && /^de-official-din-double/.test(plateType ?? "")) return PLATE_ART["germany:official-din-two"] ?? null;
     if (din) return PLATE_ART[din[1] === "single" ? "germany:din" : din[1] === "double" ? "germany:din-two" : "germany:din-us"] ?? null;
     if (/^de-transferable-single(-hu(\d\d|0))?$/.test(plateType ?? "")) return PLATE_ART["germany:transferable"] ?? null;                  // Wechselkennzeichen
     const trf = (plateType ?? "").match(/^de-transferable-(double|us|moto)(-hu(\d\d|0))?$/);                  // two-row, US-size and motorcycle Wechselkennzeichen
     if (trf) return PLATE_ART[trf[1] === "double" ? "germany:transferable-two" : trf[1] === "us" ? "germany:transferable-us" : "germany:transferable-moto"] ?? null;
     const red = (plateType ?? "").match(/^de-red-\d\d(?:-(single|double|us|moto|din-single|din-double|din-us))?$/);                    // red plates
     if (red) return PLATE_ART[`germany:red${{ double: "-two", us: "-us", moto: "-moto", "din-single": "-din", "din-double": "-din-two", "din-us": "-din-us" }[red[1] ?? ""] ?? ""}`] ?? null;
-    const reg = (plateType ?? "").match(/^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-(double|us|moto|moto-old)(-hu(\d\d|0))?$/);      // two-row, US-size and motorcycle plates
+    const reg = (plateType ?? "").match(/^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable|official)-(double|us|moto|moto-old)(-hu(\d\d|0))?$/);      // two-row, US-size and motorcycle plates
     if (reg && /^seasonal/.test(reg[1])) return PLATE_ART[`germany:${reg[2] === "double" ? "two" : reg[2]}-season`] ?? null;
     if (reg) return PLATE_ART[reg[2] === "double" ? "germany:two" : reg[2] === "us" ? "germany:us" : reg[2] === "moto" ? "germany:moto" : "germany:moto-old"] ?? null;
     if (/^de-seasonal(-h)?-single(-hu(\d\d|0))?$/.test(plateType ?? "")) return PLATE_ART["germany:season"] ?? null;
-    return !plateType || /^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)(-single)?(-short)?(-hu(\d\d|0))?$/.test(plateType) ? PLATE_ART["germany:single"] ?? null : null;
+    return !plateType || /^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable|official)(-single)?(-short)?(-hu(\d\d|0))?$/.test(plateType) ? PLATE_ART["germany:single"] ?? null : null;
   }
   if (key === "austria") {
     const k = austriaArtKey(plateType);
