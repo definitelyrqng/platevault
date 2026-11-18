@@ -1099,9 +1099,9 @@ export function buildGermanyPlateText(opts: {
     case "federal": {
       const sub = opts.federalSub ?? "bd";
       if (sub === "thw") return num ? `THW-${num}` : "THW-";
-      if (sub === "bd")  return opts.federalBdNum && num ? `BD ${opts.federalBdNum}-${num}` : "BD-";
-      if (sub === "bp")  return opts.federalBpCode && num ? `BP ${opts.federalBpCode}-${num}` : "BP-";
-      if (sub === "bw")  return opts.federalBwBranch && num ? `BW ${opts.federalBwBranch}-${num}` : "BW-";
+      if (sub === "bd")  return opts.federalBdNum ? `BD ${opts.federalBdNum}-${num}` : "BD-";
+      if (sub === "bp")  return opts.federalBpCode ? `BP ${opts.federalBpCode}-${num}` : "BP-";
+      if (sub === "bw")  return opts.federalBwBranch ? `BW ${opts.federalBwBranch}-${num}` : "BW-";
       return "";
     }
     case "diplomatic": {
@@ -1210,3 +1210,4 @@ export const PLATE_TYPE_LABELS: Record<string, string> = {
 
 // federal agency plates exist in the same formats as the official plates
 for (const sub of ["bd", "bp", "bw", "thw"]) for (const f of ["single", "double", "us", "moto", "din-single", "din-double", "din-us"]) PLATE_TYPE_LABELS[`de-federal-${sub}-${f}`] = `${PLATE_TYPE_LABELS[`de-federal-${sub}`]} — ${f.replace("din-", "DIN ")}`;
+for (const f of ["moto", "din-single", "din-double", "din-us"]) PLATE_TYPE_LABELS[`de-diplomatic-${f}`] ??= `Diplomatic — ${f.replace("din-", "DIN ")}`;

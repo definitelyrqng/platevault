@@ -157,7 +157,7 @@ function RegionPicker({
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 /** Plate kinds drawn with the realistic single-row artwork, and the colours of the inspection stickers by year. */
-const HU_TYPES = /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable|official|state-authority)-(single|double|us|moto|moto-old)|de-(din|official|state-authority)-din-(single|double|us))$/;
+const HU_TYPES = /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable|official|state-authority|diplomatic)-(single|double|us|moto|moto-old)|de-(din|official|state-authority|diplomatic)-din-(single|double|us))$/;
 const OLD_MOTO: string[] = ["regular"];                // the old motorcycle plate has no seasonal, historic (H), electric, transferable, 5-day or export versions
 const HU_YEARS = ["19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31"];
 const HU_COLORS = ["#1ab0ee", "#f5ef12", "#d85c4c", "#f7a0b8", "#18b082", "#e89000"];
@@ -414,7 +414,7 @@ export default function GermanyUploadPage() {
   // the DIN categories have their own formats: pick a matching one when the category changes (otherwise there is no preview)
   useEffect(() => {
     if (category === "din" && !plateFormat.startsWith("din-")) setPlateFormat("din-single");
-    else if (category !== "din" && category !== "red" && category !== "official" && category !== "state-authority" && category !== "federal" && plateFormat.startsWith("din-")) setPlateFormat("single");
+    else if (category !== "din" && category !== "red" && category !== "official" && category !== "state-authority" && category !== "federal" && category !== "diplomatic" && plateFormat.startsWith("din-")) setPlateFormat("single");
   }, [category, plateFormat]);
   useEffect(() => { if ((plateFormat === "moto-old" && !OLD_MOTO.includes(category)) || (category === "red" && plateFormat === "moto-old")) setPlateFormat("moto"); }, [category, plateFormat]);
   const dinFormats     = GERMANY_PLATE_FORMATS.filter((f) => f.group === "din");
@@ -458,6 +458,10 @@ export default function GermanyUploadPage() {
   // motorcycle plates hold fewer characters in the lower row: shorten the sample to match
   const placeholderText = (plateFormat === "moto-old" || plateFormat === "moto") && /^[A-ZÄÖÜ]{1,3}-/.test(placeholderBase)
     ? placeholderBase.replace(/^([A-ZÄÖÜ]{1,3}-)(\S+)/, (_m, d: string, rest: string) => { const [, body, tag] = rest.match(/^(.*?)([EH])?$/)!; return d + body.slice(0, plateFormat === "moto-old" ? 3 : 4) + (tag ?? ""); }) : placeholderBase;
+
+  // the number is not typed yet: the preview shows a sample number after the code ("BP 29-" → BP 29 | seal | 123456)
+  const typed = plateText.trim();
+  const previewText = typed && /-$/.test(typed) && ["federal", "official", "state-authority", "military"].includes(category) ? `${typed}123456` : typed && category === "diplomatic" && /-$/.test(typed) ? `${typed}73-14` : typed || placeholderText;
 
   return (
     <>
@@ -608,7 +612,7 @@ export default function GermanyUploadPage() {
                   <div>
                     <span className="block text-sm text-zinc-300 mb-2">Format</span>
                     <div className="grid grid-cols-2 gap-2">
-                      {(isDIN ? dinFormats : (category === "red" || category === "official" || category === "state-authority" || category === "federal") ? [...regularFormats.filter((f) => ["single", "double", "us", "moto"].includes(f.id)), ...dinFormats] : (category === "transit-5day" || category === "export") ? regularFormats.filter((f) => ["single", "double", "us"].includes(f.id)) : regularFormats.filter((f) => f.id !== "moto-old" || OLD_MOTO.includes(category))).map((fmt) => (
+                      {(isDIN ? dinFormats : (category === "red" || category === "official" || category === "state-authority" || category === "federal" || category === "diplomatic") ? [...regularFormats.filter((f) => ["single", "double", "us", "moto"].includes(f.id)), ...dinFormats] : (category === "transit-5day" || category === "export") ? regularFormats.filter((f) => ["single", "double", "us"].includes(f.id)) : regularFormats.filter((f) => f.id !== "moto-old" || OLD_MOTO.includes(category))).map((fmt) => (
                         <button
                           key={fmt.id}
                           type="button"
@@ -1099,7 +1103,7 @@ export default function GermanyUploadPage() {
                 <div className="text-xs uppercase tracking-wider text-zinc-500 mb-3">Live preview</div>
                 {drawn || transitDrawn || redDrawn ? (
                   <div className="flex justify-center rounded-xl bg-zinc-900/60 px-3 py-5">
-                    <PlateBadge country="germany" text={plateText.trim() || placeholderText} plateType={plateTypeStored} size="xl" />
+                    <PlateBadge country="germany" text={previewText} plateType={plateTypeStored} size="xl" />
                   </div>
                 ) : (
                 <div className={`rounded-xl border px-4 py-5 text-center ${previewBg}`}>

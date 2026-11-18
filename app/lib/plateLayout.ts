@@ -483,19 +483,19 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
     if (tr) return PLATE_ART[tr[1] === "single" ? "germany:transit" : tr[1] === "double" ? "germany:transit-two" : "germany:transit-us"] ?? null;
     const fed = (plateType ?? "").match(/^de-federal-(?:bd|bp|bw|thw)(?:-(.+))?$/);                // federal agencies: the official plate layouts, split before the serial number
     if (fed) { const fa = plateArtFor(country, `de-official-${fed[1] ?? "single"}`); return fa ? { ...fa, split: "de-federal" } : null; }
-    const din = (plateType ?? "").match(/^de-(?:din-(?:din-)?|(?:official|state-authority)-din-)(single|double|us)(-hu(\d\d|0))?$/);              // historical DIN plates
-    if (din && /^de-(?:official|state-authority)-din-double/.test(plateType ?? "")) return PLATE_ART["germany:official-din-two"] ?? null;
+    const din = (plateType ?? "").match(/^de-(?:din-(?:din-)?|(?:official|state-authority|diplomatic)-din-)(single|double|us)(-hu(\d\d|0))?$/);              // historical DIN plates
+    if (din && /^de-(?:official|state-authority|diplomatic)-din-double/.test(plateType ?? "")) return PLATE_ART["germany:official-din-two"] ?? null;
     if (din) return PLATE_ART[din[1] === "single" ? "germany:din" : din[1] === "double" ? "germany:din-two" : "germany:din-us"] ?? null;
     if (/^de-transferable-single(-hu(\d\d|0))?$/.test(plateType ?? "")) return PLATE_ART["germany:transferable"] ?? null;                  // Wechselkennzeichen
     const trf = (plateType ?? "").match(/^de-transferable-(double|us|moto)(-hu(\d\d|0))?$/);                  // two-row, US-size and motorcycle Wechselkennzeichen
     if (trf) return PLATE_ART[trf[1] === "double" ? "germany:transferable-two" : trf[1] === "us" ? "germany:transferable-us" : "germany:transferable-moto"] ?? null;
     const red = (plateType ?? "").match(/^de-red-\d\d(?:-(single|double|us|moto|din-single|din-double|din-us))?$/);                    // red plates
     if (red) return PLATE_ART[`germany:red${{ double: "-two", us: "-us", moto: "-moto", "din-single": "-din", "din-double": "-din-two", "din-us": "-din-us" }[red[1] ?? ""] ?? ""}`] ?? null;
-    const reg = (plateType ?? "").match(/^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable|official|state-authority)-(double|us|moto|moto-old)(-hu(\d\d|0))?$/);      // two-row, US-size and motorcycle plates
+    const reg = (plateType ?? "").match(/^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable|official|state-authority|diplomatic)-(double|us|moto|moto-old)(-hu(\d\d|0))?$/);      // two-row, US-size and motorcycle plates
     if (reg && /^seasonal/.test(reg[1])) return PLATE_ART[`germany:${reg[2] === "double" ? "two" : reg[2]}-season`] ?? null;
     if (reg) return PLATE_ART[reg[2] === "double" ? "germany:two" : reg[2] === "us" ? "germany:us" : reg[2] === "moto" ? "germany:moto" : "germany:moto-old"] ?? null;
     if (/^de-seasonal(-h)?-single(-hu(\d\d|0))?$/.test(plateType ?? "")) return PLATE_ART["germany:season"] ?? null;
-    return !plateType || /^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable|official|state-authority)(-single)?(-short)?(-hu(\d\d|0))?$/.test(plateType) ? PLATE_ART["germany:single"] ?? null : null;
+    return !plateType || /^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable|official|state-authority|diplomatic)(-single)?(-short)?(-hu(\d\d|0))?$/.test(plateType) ? PLATE_ART["germany:single"] ?? null : null;
   }
   if (key === "austria") {
     const k = austriaArtKey(plateType);
@@ -878,7 +878,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
       const hu = (plateType ?? "").match(/-hu(\d\d|0)$/);
       const yy = hu ? (hu[1] === "0" ? null : hu[1]) : "25";
       const district = printed.split(" ")[0];
-      const st = germanStateOf(district);
+      const st = /^de-diplomatic/.test(plateType ?? "") ? "BE" : germanStateOf(district);                 // diplomatic plates carry the Berlin seal
       const kind = /^de-export/.test(plateType ?? "") ? "-export" : /^de-transit/.test(plateType ?? "") ? "-temp" : "";      // export plates: red seal, short-term plates: blue seal
       const sealSrc = `/plates/germany/seals/${DISTRICT_SEALS.has(district) ? "d-" + district + kind : st ? st + kind : "XX"}.png`;
       const huSrc = `/plates/germany/hu/${yy}.png`;
