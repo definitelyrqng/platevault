@@ -192,17 +192,26 @@ export async function GET(req: Request) {
 
   const color = layout.art?.textColor ?? "#111";
   const dd = layout.font === "dd" ? await getDD() : null;
-  const runs = layout.runs.map((r) => layout.font === "dd"
-    ? runSvg(dd!, r, color)
+  const runsIn = (c: string) => layout.runs.map((r) => layout.font === "dd"
+    ? runSvg(dd!, r, c)
     : layout.font !== "fe"
-    ? runSvgTraced(r, color, layout.font as Exclude<PlateFont, "fe" | "dd">)
-    : runSvg(font, r, color)).join("");
+    ? runSvgTraced(r, c, layout.font as Exclude<PlateFont, "fe" | "dd">)
+    : runSvg(font, r, c)).join("");
+  let runs = runsIn(color);
+  // embossed plates (stamped letters, raised seals): a soft shadow falls to the lower right
+  let sealShadow = "";
+  if (layout.art?.emboss) {
+    const dx = h * 0.008, dy = h * 0.012;
+    runs = `<g transform="translate(${dx.toFixed(2)} ${dy.toFixed(2)})" filter="url(#sh)" opacity="0.42">${runsIn("#000")}</g>${runs}`;
+    sealShadow = layout.seals.map((k) => `<ellipse cx="${(k.cx + dx * 0.7).toFixed(2)}" cy="${(k.cy + dy * 0.9).toFixed(2)}" rx="${(k.d / 2).toFixed(2)}" ry="${((k.h ?? k.d) / 2).toFixed(2)}" fill="#000" opacity="0.38" filter="url(#sh)"/>`).join("");
+  }
+  const defs = layout.art?.emboss ? `<defs><filter id="sh" x="-10%" y="-10%" width="120%" height="125%"><feGaussianBlur stdDeviation="${(h * 0.007).toFixed(2)}"/></filter></defs>` : "";
   let stickers = "";
   if (layout.stickers.length) {
     stickers = (await Promise.all(layout.stickers.map(async (k) => `<image href="${await getArtDataUri(k.src)}" x="${k.x.toFixed(2)}" y="${k.y.toFixed(2)}" width="${k.w.toFixed(2)}" height="${k.h.toFixed(2)}"/>`))).join("");
   }
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${h}" viewBox="0 0 ${width} ${h}">`
-    + `<title>${esc(layout.printed)}</title>${background}${seals}${stickers}${runs}</svg>`;
+    + `<title>${esc(layout.printed)}</title>${defs}${background}${sealShadow}${seals}${stickers}${runs}</svg>`;
 
   const png = await sharp(Buffer.from(svg)).png({ compressionLevel: 9 }).toBuffer();
   // ASCII-only filename (HTTP headers can't carry Ä/Ö/Ü)

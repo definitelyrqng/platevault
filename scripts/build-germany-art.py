@@ -13,17 +13,34 @@ W, H = src.size
 OUT = os.path.join(ROOT, "public/plates/germany")
 os.makedirs(OUT, exist_ok=True)
 
-# blank face: everything right of the euroband and inside the border becomes white
-face = src.copy()
-d = ImageDraw.Draw(face)
-d.rectangle([156, 22, 1898, 369], fill=(255, 255, 255, 255))
-# the face has rounded corners on the right (the border's inner edge is round), so no white pokes into the border
-R = 22
-for (cx, cy, x0, y0, x1, y1) in [(1904 - R, 16 + R, 1904 - R, 16, 1904, 16 + R), (1904 - R, 374 - R, 1904 - R, 374 - R, 1904, 374)]:
-    for y in range(y0, y1 + 1):
-        for x in range(x0, x1 + 1):
-            if (x - cx) ** 2 + (y - cy) ** 2 > R * R and face.getpixel((x, y))[:3] == (255, 255, 255):
-                face.putpixel((x, y), (0, 0, 0, 255))
+# blank face: the border and the face are drawn fresh (clean rounded corners, a faint gradient and an inner rim), the euroband comes from the photo
+SS = 4
+big = Image.new("RGBA", (W * SS, H * SS), (0, 0, 0, 0))
+bd = ImageDraw.Draw(big)
+bd.rounded_rectangle([0, 0, W * SS - 1, H * SS - 1], radius=30 * SS, fill=(0, 0, 0, 255))
+FX0, FY0, FX1, FY1 = 150, 16, 1904, 373
+face_mask = Image.new("L", big.size, 0)
+ImageDraw.Draw(face_mask).rounded_rectangle([FX0 * SS - 40 * SS, FY0 * SS, FX1 * SS, FY1 * SS], radius=15 * SS, fill=255)
+grad = Image.new("RGBA", big.size, (255, 255, 255, 255))
+gd = ImageDraw.Draw(grad)
+for y in range(FY0 * SS, FY1 * SS + 1):
+    t = (y - FY0 * SS) / ((FY1 - FY0) * SS)
+    v = round(255 - 14 * t)                                   # white at the top, a touch greyer at the bottom
+    gd.line([(0, y), (big.size[0], y)], fill=(v, v, v, 255))
+big.paste(grad, (0, 0), face_mask)
+# faint inner rim just inside the border
+ImageDraw.Draw(big).rounded_rectangle([FX0 * SS, FY0 * SS + 2 * SS, FX1 * SS - 2 * SS, FY1 * SS - 2 * SS], radius=13 * SS, outline=(222, 222, 222, 255), width=2 * SS)
+face = big.resize((W, H), Image.LANCZOS)
+# a fine grain in the face (stamped sheet metal, not a flat fill)
+import random
+random.seed(7)
+from PIL import ImageChops
+noise = Image.effect_noise((W, H), 14).point(lambda p: max(0, min(255, p // 5)))       # 0..51, mean ~25
+grain = Image.merge("RGB", (noise, noise, noise))
+fmask = face_mask.resize((W, H), Image.LANCZOS)
+fr = ImageChops.add(face.convert("RGB"), grain, 1, -25)
+face.paste(fr, (0, 0), fmask)
+face.paste(src.crop((0, 0, 156, H)), (0, 0))                  # border corners and euroband (stars, D) from the photo
 face.save(os.path.join(OUT, "single.png"))
 
 # shortened plates: the same plate with a slice cut out of the middle of the white face (lengths in mm as the shops offer them)

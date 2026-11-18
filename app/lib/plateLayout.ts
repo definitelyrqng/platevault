@@ -115,8 +115,10 @@ export type PlateArt = {
   stickers?: { src: string; x: number; y: number; w: number; h: number; bit: number }[];
   /** Lettering colour (default near-black). */
   textColor?: string;
+  /** Stamped lettering and raised seals: draw a soft shadow under them. */
+  emboss?: boolean;
   /** Germany: the seal slot holds an inspection sticker over the state seal (art-pixel centres and diameters). */
-  huSeals?: { stickerY: number; sealY: number; stickerD: number; sealD: number };
+  huSeals?: { stickerY: number; sealY: number; stickerD: number; sealD: number; frontY: number };
   /** Width of a word space in em (FE-Schrift; default 0.5). */
   space?: number;
 };
@@ -248,7 +250,7 @@ export const PLATE_ART: Record<string, PlateArt> = {
   "czech:two-euro": { src: "/plates/czech/two-euro.png", w: 560, h: 400, rows: [{ y0: 28, y1: 190, x0: 112, x1: 420, slots: 1, align: "left" }, { y0: 212, y1: 378, x0: 112, x1: 520, slots: 1, align: "left" }], split: "at-two", font: "cz", fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 436, y: 22, w: 82, h: 82, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 436, y: 108, w: 82, h: 82, bit: 2 }] },
   "czech:two": { src: "/plates/czech/two.png", w: 560, h: 400, rows: [{ y0: 28, y1: 190, x0: 40, x1: 420, slots: 1, align: "left" }, { y0: 212, y1: 378, x0: 40, x1: 520, slots: 1, align: "left" }], split: "at-two", font: "cz", fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 436, y: 22, w: 82, h: 82, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 436, y: 108, w: 82, h: 82, bit: 2 }] },
   // ── Germany: the full 520 mm plate (FE-Schrift); the stacked inspection sticker + seal sits between the district and the letters/digits ──
-  "germany:single": { src: "/plates/germany/single.png", w: 1920, h: 390, rows: [{ y0: 50, y1: 328, x0: 172, x1: 1885, slots: 2, seal: true, gap: 0.1 }], split: "at-seal", seal: "/plates/germany/seals/XX.png", sealAspect: 162 / 322, sealH: 1.16, fill: 0.98, space: 0.2, huSeals: { stickerY: 112, sealY: 285, stickerD: 134, sealD: 158 } },
+  "germany:single": { src: "/plates/germany/single.png", w: 1920, h: 390, rows: [{ y0: 50, y1: 328, x0: 172, x1: 1885, slots: 2, seal: true, gap: 0.1 }], split: "at-seal", seal: "/plates/germany/seals/XX.png", sealAspect: 162 / 322, sealH: 1.16, fill: 0.98, space: 0.2, emboss: true, condense: 0.88, tracking: 0.015, huSeals: { stickerY: 112, sealY: 285, stickerD: 134, sealD: 158, frontY: 195 } },
   // ── Croatia: the supplied plate photo with the lettering removed; the coat of arms is part of the artwork (region on its left, digits on its right). D-DIN lettering. ──
   // two-row car plate: region on top (left of the coat of arms), number below
   "croatia:two-line-euroband": { src: "/plates/croatia/two-euroband.png", w: 1024, h: 700, rows: [{ y0: 76, y1: 326, x0: 220, x1: 790, slots: 1 }, { y0: 346, y1: 626, x0: 50, x1: 974, slots: 1 }], split: "at-two", font: "dd", fill: 0.92, condense: 0.9, tracking: 0.03, thin: -0.02 },
@@ -770,7 +772,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
       const slots = seals.splice(0, seals.length);
       for (const e of slots) {
         if (yy) seals.push({ cx: e.cx, cy: b.stickerY * s, d: b.stickerD * s, h: b.stickerD * s, src: `/plates/germany/hu/${yy}.png` });
-        seals.push({ cx: e.cx, cy: b.sealY * s, d: b.sealD * s, h: b.sealD * s, src: sealSrc });
+        seals.push({ cx: e.cx, cy: (yy ? b.sealY : b.frontY) * s, d: b.sealD * s, h: b.sealD * s, src: sealSrc });
       }
     }
     return { width, height: h, printed, art, font, chip: null, runs, seals, stickers };
