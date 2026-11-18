@@ -463,7 +463,7 @@ export default function GermanyUploadPage() {
 
   // the number is not typed yet: the preview shows a sample number after the code ("BP 29-" → BP 29 | seal | 123456)
   const typed = plateText.trim();
-  const previewText = typed && /-$/.test(typed) && ["federal", "official", "state-authority", "military"].includes(category) ? `${typed}123456` : typed && category === "diplomatic" && /-$/.test(typed) ? `${typed}73-14` : typed || placeholderText;
+  const previewText = typed && /-$/.test(typed) && ["federal", "official", "state-authority", "military"].includes(category) ? `${typed}${category === "military" && militaryPrefix === "X" ? "1234" : "123456"}` : typed && category === "diplomatic" && /-$/.test(typed) ? `${typed}73-14` : typed || placeholderText;
 
   return (
     <>
