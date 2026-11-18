@@ -348,12 +348,12 @@ export const PLATE_ART: Record<string, PlateArt> = {
 // Germany: seasonal plates — the regular plate with the season months (small, stacked over a line) at the right end
 {
   const b = PLATE_ART["germany:single"];
-  PLATE_ART["germany:season"] = { ...b, src: "/plates/germany/season.png", rows: [{ ...b.rows[0], x1: 1735 }, { y0: 44, y1: 106, x0: 1765, x1: 1875, slots: 1, own: true, font: "dd" }, { y0: 244, y1: 306, x0: 1765, x1: 1875, slots: 1, own: true, font: "dd" }], split: "de-season" };
+  PLATE_ART["germany:season"] = { ...b, src: "/plates/germany/season.png", rows: [{ ...b.rows[0], x1: 1715 }, { y0: 40, y1: 108, x0: 1745, x1: 1880, slots: 1, own: true }, { y0: 242, y1: 310, x0: 1745, x1: 1880, slots: 1, own: true }], split: "de-season" };
 }
 // seasonal plates in the other formats: the months go stacked at the right end of the lower row (scripts/build-germany-art.py draws the line)
 for (const k of ["two", "us", "moto", "moto-old"]) {
   const b = PLATE_ART[`germany:${k}`], r = b.rows[1], h = r.y1 - r.y0, cw = Math.round(h * 0.42), mh = Math.round(h * 0.3), mx = r.x1 - cw;
-  PLATE_ART[`germany:${k}-season`] = { ...b, src: `/plates/germany/season-${k}.png`, split: "de-season-two", rows: [b.rows[0], { ...r, x1: mx - Math.round(h * 0.08) }, { y0: r.y0, y1: r.y0 + mh, x0: mx, x1: r.x1, slots: 1, own: true, font: "dd" }, { y0: r.y1 - mh, y1: r.y1, x0: mx, x1: r.x1, slots: 1, own: true, font: "dd" }] };
+  PLATE_ART[`germany:${k}-season`] = { ...b, src: `/plates/germany/season-${k}.png`, split: "de-season-two", rows: [b.rows[0], { ...r, x1: mx - Math.round(h * 0.08) }, { y0: r.y0, y1: r.y0 + mh, x0: mx, x1: r.x1, slots: 1, own: true }, { y0: r.y1 - mh, y1: r.y1, x0: mx, x1: r.x1, slots: 1, own: true }] };
 }
 for (const k of ["", "-two", "-us"]) PLATE_ART[`germany:export${k}`] = { ...PLATE_ART[`germany:transit${k}`], src: `/plates/germany/export${k}.png`, space: 0.3 };
 // Germany: shortened plates (480 … 340 mm) — the 520 mm plate with a slice cut from the middle of the face (scripts/build-germany-art.py)
