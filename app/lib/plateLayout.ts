@@ -764,7 +764,8 @@ export function plateLayout(country: string, rawText: string, height: number, pl
       const hu = (plateType ?? "").match(/-hu(\d\d|0)$/);
       const yy = hu ? (hu[1] === "0" ? null : hu[1]) : "25";
       const st = germanStateOf(printed.split(" ")[0]);
-      const sealSrc = `/plates/germany/seals/${st ?? "XX"}.png`;
+      const kind = /^de-export/.test(plateType ?? "") ? "-export" : /^de-transit/.test(plateType ?? "") ? "-temp" : "";      // export plates: red seal, short-term plates: blue seal
+      const sealSrc = `/plates/germany/seals/${st ? st + kind : "XX"}.png`;
       const b = art.huSeals;
       const slots = seals.splice(0, seals.length);
       for (const e of slots) {
