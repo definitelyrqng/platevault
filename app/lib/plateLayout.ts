@@ -348,11 +348,11 @@ export const PLATE_ART: Record<string, PlateArt> = {
 // Germany: red plates (dealer / test plates): red border and lettering, the state seal without an inspection sticker
 {
   const red = { textColor: "#b81f26", fill: 0.98, condense: 0.9, tracking: 0.015 };
-  PLATE_ART["germany:red"] = { src: "/plates/germany/red.png", w: 1920, h: 390, rows: [{ y0: 69, y1: 326, x0: 215, x1: 1862, slots: 2, seal: true, gap: 0.3 }], split: "at-seal", ...red, condense: 0.88, seal: "/plates/germany/seals/XX.png", sealAspect: 1, sealH: 0.58, huSeals: { noSticker: true, stickerY: 0, sealY: 215, stickerD: 0, sealD: 150, frontY: 215 } };
-  const din = PLATE_ART["germany:din"], dot = "/plates/germany/red-dot.png";
-  PLATE_ART["germany:red-din"] = { ...din, src: "/plates/germany/red-din.png", textColor: "#b81f26", emboss: false, huSeals: { ...din.huSeals!, topSrc: dot, dash: { ...din.huSeals!.dash!, src: "/plates/germany/red-dash.png" } } };
-  PLATE_ART["germany:red-din-two"] = { ...PLATE_ART["germany:din-two"], src: "/plates/germany/red-din-two.png", textColor: "#b81f26", emboss: false, fixed: [{ kind: "img", src: dot, x: 140, y: 165, d: 100 }, { kind: "state", x: 820, y: 165, d: 130 }] };
-  PLATE_ART["germany:red-din-us"] = { ...PLATE_ART["germany:din-us"], src: "/plates/germany/red-din-us.png", textColor: "#b81f26", emboss: false, fixed: [{ kind: "img", src: dot, x: 140, y: 140, d: 90 }, { kind: "state", x: 860, y: 140, d: 110 }] };
+  PLATE_ART["germany:red"] = { src: "/plates/germany/red.png", w: 1920, h: 390, rows: [{ y0: 60, y1: 332, x0: 205, x1: 1890, slots: 2, seal: true, gap: 0.12 }], split: "at-seal", ...red, condense: 0.96, seal: "/plates/germany/seals/XX.png", sealAspect: 1, sealH: 0.72, huSeals: { noSticker: true, stickerY: 0, sealY: 235, stickerD: 0, sealD: 200, frontY: 245 } };
+  const din = PLATE_ART["germany:din"];
+  PLATE_ART["germany:red-din"] = { ...din, src: "/plates/germany/red-din.png", textColor: "#b81f26", emboss: false, huSeals: { ...din.huSeals!, noSticker: true, dash: { ...din.huSeals!.dash!, src: "/plates/germany/red-dash.png" } } };
+  PLATE_ART["germany:red-din-two"] = { ...PLATE_ART["germany:din-two"], src: "/plates/germany/red-din-two.png", textColor: "#b81f26", emboss: false, fixed: [{ kind: "state", x: 800, y: 165, d: 140 }] };
+  PLATE_ART["germany:red-din-us"] = { ...PLATE_ART["germany:din-us"], src: "/plates/germany/red-din-us.png", textColor: "#b81f26", emboss: false, fixed: [{ kind: "state", x: 840, y: 140, d: 120 }] };
   PLATE_ART["germany:red-two"] = { src: "/plates/germany/red-two.png", w: 700, h: 500, rows: [{ y0: 36, y1: 252, x0: 130, x1: 500, slots: 1 }, { y0: 300, y1: 478, x0: 40, x1: 660, slots: 1 }], split: "de-two", ...red, fixed: [{ kind: "state", x: 590, y: 150, d: 118 }] };
   PLATE_ART["germany:red-us"] = { src: "/plates/germany/red-us.png", w: 1000, h: 590, rows: [{ y0: 56, y1: 277, x0: 240, x1: 700, slots: 1 }, { y0: 313, y1: 540, x0: 80, x1: 930, slots: 1 }], split: "de-two", ...red, fixed: [{ kind: "state", x: 840, y: 160, d: 130 }] };
   PLATE_ART["germany:red-moto"] = { src: "/plates/germany/red-moto.png", w: 900, h: 1000, rows: [{ y0: 70, y1: 320, x0: 300, x1: 760, slots: 1 }, { y0: 670, y1: 940, x0: 60, x1: 840, slots: 1 }], split: "de-two", ...red, fixed: [{ kind: "state", x: 610, y: 500, d: 200 }] };
@@ -374,7 +374,7 @@ for (const k of ["moto-old"]) {
 }
 { // two-row: district, the two stickers, then the months at the far right (all of the upper row is used)
   const b = PLATE_ART["germany:two"];
-  PLATE_ART["germany:two-season"] = { ...b, src: "/plates/germany/season-two.png", split: "de-season-two", rows: [{ ...b.rows[0], x0: 130, x1: 420 }, b.rows[1], { y0: 40, y1: 122, x0: 605, x1: 690, slots: 1, own: true }, { y0: 176, y1: 258, x0: 605, x1: 690, slots: 1, own: true }], fixed: [{ kind: "hu", x: 490, y: 98, d: 106 }, { kind: "state", x: 490, y: 214, d: 106 }] };
+  PLATE_ART["germany:two-season"] = { ...b, src: "/plates/germany/season-two.png", split: "de-season-two", rows: [{ ...b.rows[0], x0: 125, x1: 410 }, b.rows[1], { y0: 42, y1: 114, x0: 586, x1: 664, slots: 1, own: true }, { y0: 182, y1: 254, x0: 586, x1: 664, slots: 1, own: true }], fixed: [{ kind: "hu", x: 480, y: 98, d: 104 }, { kind: "state", x: 480, y: 212, d: 104 }] };
 }
 { // motorcycle: the months sit right of the stickers, between the two rows
   const b = PLATE_ART["germany:moto"];
