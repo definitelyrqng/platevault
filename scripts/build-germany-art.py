@@ -74,3 +74,34 @@ S.alpha_composite(sticker, (162 // 2 - 67, 0))
 S.alpha_composite(seal, (162 // 2 - 79, 322 - 158))
 S.save(os.path.join(OUT, "seals.png"))
 print("ok", S.size)
+
+
+# ── Historical DIN plates (before 1994): white face, black border, no euroband ──
+def din_plate(w, h, border, radius, name):
+    SS = 4
+    big = Image.new("RGBA", (w * SS, h * SS), (0, 0, 0, 0))
+    bd = ImageDraw.Draw(big)
+    bd.rounded_rectangle([0, 0, w * SS - 1, h * SS - 1], radius=radius * SS, fill=(0, 0, 0, 255))
+    fm = Image.new("L", big.size, 0)
+    ImageDraw.Draw(fm).rounded_rectangle([border * SS, border * SS, (w - border) * SS, (h - border) * SS], radius=max(4, radius - border) * SS, fill=255)
+    grad = Image.new("RGBA", big.size, (255, 255, 255, 255))
+    gd = ImageDraw.Draw(grad)
+    for y in range(border * SS, (h - border) * SS + 1):
+        t = (y - border * SS) / ((h - 2 * border) * SS)
+        v = round(255 - 14 * t)
+        gd.line([(0, y), (big.size[0], y)], fill=(v, v, v, 255))
+    big.paste(grad, (0, 0), fm)
+    ImageDraw.Draw(big).rounded_rectangle([border * SS, border * SS + 2 * SS, (w - border) * SS - 2 * SS, (h - border) * SS - 2 * SS], radius=max(4, radius - border - 2) * SS, outline=(222, 222, 222, 255), width=2 * SS)
+    im = big.resize((w, h), Image.LANCZOS)
+    n = Image.effect_noise((w, h), 14).point(lambda p: max(0, min(255, p // 5)))
+    fr = ImageChops.add(im.convert("RGB"), Image.merge("RGB", (n, n, n)), 1, -25)
+    im.paste(fr, (0, 0), fm.resize((w, h), Image.LANCZOS))
+    im.save(os.path.join(OUT, name))
+din_plate(1920, 390, 14, 26, "din.png")
+din_plate(960, 600, 14, 24, "din-two.png")
+din_plate(1000, 500, 14, 24, "din-us.png")
+# the dash between district and letters
+dash = Image.new("RGBA", (200, 40), (0, 0, 0, 0))
+ImageDraw.Draw(dash).rounded_rectangle([0, 0, 199, 39], radius=4, fill=(17, 17, 17, 255))
+dash.save(os.path.join(OUT, "dash.png"))
+print("din ok")

@@ -30,7 +30,7 @@ export default function PlateEditor({ value, onChange, canMove }: {
   const shortMatch = (huMatch ? huMatch[1] : value.plateType).match(/^(.*?)-short$/);           // German plates: "-short" = cut down to the registration (3–8 characters)
   const split = splitSticker(shortMatch ? shortMatch[1] : huMatch ? huMatch[1] : value.plateType);
   const base = split.base === "cz-vanity-single" ? "cz-vanity-single-euro" : split.base;
-  const isDeHu = value.country === "germany" && /^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-single$/.test(base);
+  const isDeHu = value.country === "germany" && /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-single|de-din-(din-)?(single|double|us))$/.test(base);
   const huVal = huMatch ? huMatch[2] : "25";
   const isShort = !!shortMatch;
   const deType = (short: boolean, hu: string) => `${base}${short && base === "de-regular-single" ? "-short" : ""}-hu${hu}`;
@@ -45,7 +45,7 @@ export default function PlateEditor({ value, onChange, canMove }: {
   }
   function setType(id: string) {
     const a = plateArtFor(value.country, id);
-    onChange({ ...value, plateType: a?.stickers?.length ? `${id}-st${mask}` : /^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-single$/.test(id) && value.country === "germany" ? `${id}-hu${huVal}` : id });
+    onChange({ ...value, plateType: a?.stickers?.length ? `${id}-st${mask}` : /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-single|de-din-(din-)?(single|double|us))$/.test(id) && value.country === "germany" ? `${id}-hu${huVal}` : id });
   }
   function toggle(bit: number) {
     const next = mask ^ bit;

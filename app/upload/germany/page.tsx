@@ -157,7 +157,7 @@ function RegionPicker({
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 /** Plate kinds drawn with the realistic single-row artwork, and the colours of the inspection stickers by year. */
-const HU_TYPES = /^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-single$/;
+const HU_TYPES = /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-single|de-din-din-(single|double|us))$/;
 const HU_YEARS = ["19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31"];
 const HU_COLORS = ["#1ab0ee", "#f5ef12", "#d85c4c", "#f7a0b8", "#18b082", "#e89000"];
 

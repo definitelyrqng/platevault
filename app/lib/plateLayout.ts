@@ -79,7 +79,7 @@ export type ArtRow = {
  *  - "al-moto":    letters | digits                    ("AB 123" → AB | 123)
  *  - "al-trailer-two": letters | "R" + digits          ("AB R 456" → AB | R 456)
  */
-export type SplitRule = "hr-three" | "bg-moto" | "bg-two" | "bg-year" | "ba-two-eu" | "ba-two" | "be-seal" | "be-two" | "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
+export type SplitRule = "hr-three" | "bg-moto" | "bg-two" | "bg-year" | "ba-two-eu" | "ba-two" | "be-seal" | "be-two" | "at47-two" | "at-prov" | "at-prov-two" | "at-two" | "at-seal" | "de-two" | "whole" | "seal" | "al-double" | "al-twoline" | "al-moto" | "al-trailer-two";
 
 export type PlateArt = {
   src: string;          // path under /public
@@ -115,10 +115,12 @@ export type PlateArt = {
   stickers?: { src: string; x: number; y: number; w: number; h: number; bit: number }[];
   /** Lettering colour (default near-black). */
   textColor?: string;
+  /** Germany (DIN two-row / US): seals at fixed spots (art pixels): the state seal or the inspection sticker. */
+  fixed?: { kind: "state" | "hu"; x: number; y: number; d: number }[];
   /** Stamped lettering and raised seals: draw a soft shadow under them. */
   emboss?: boolean;
   /** Germany: the seal slot holds an inspection sticker over the state seal (art-pixel centres and diameters). */
-  huSeals?: { stickerY: number; sealY: number; stickerD: number; sealD: number; frontY: number };
+  huSeals?: { stickerY: number; sealY: number; stickerD: number; sealD: number; frontY: number; dash?: { y: number; w: number; h: number } };
   /** Width of a word space in em (FE-Schrift; default 0.5). */
   space?: number;
 };
@@ -251,6 +253,10 @@ export const PLATE_ART: Record<string, PlateArt> = {
   "czech:two": { src: "/plates/czech/two.png", w: 560, h: 400, rows: [{ y0: 28, y1: 190, x0: 40, x1: 420, slots: 1, align: "left" }, { y0: 212, y1: 378, x0: 40, x1: 520, slots: 1, align: "left" }], split: "at-two", font: "cz", fill: 0.92, stickers: [{ src: "/plates/czech/sticker-red.png", x: 436, y: 22, w: 82, h: 82, bit: 1 }, { src: "/plates/czech/sticker-green.png", x: 436, y: 108, w: 82, h: 82, bit: 2 }] },
   // ── Germany: the full 520 mm plate (FE-Schrift); the stacked inspection sticker + seal sits between the district and the letters/digits ──
   "germany:single": { src: "/plates/germany/single.png", w: 1920, h: 390, rows: [{ y0: 50, y1: 328, x0: 172, x1: 1885, slots: 2, seal: true, gap: 0.1 }], split: "at-seal", seal: "/plates/germany/seals/XX.png", sealAspect: 162 / 322, sealH: 1.16, fill: 0.98, space: 0.2, emboss: true, condense: 0.88, tracking: 0.015, huSeals: { stickerY: 112, sealY: 285, stickerD: 134, sealD: 158, frontY: 285 } },
+  // ── Germany, historical DIN plates (before 1994): no euroband, dash between district and letters, DIN lettering ──
+  "germany:din": { src: "/plates/germany/din.png", w: 1920, h: 390, rows: [{ y0: 50, y1: 340, x0: 60, x1: 1860, slots: 2, seal: true, gap: 0.06 }], split: "at-seal", font: "dd", fill: 0.92, condense: 0.92, tracking: 0.02, emboss: true, seal: "/plates/germany/seals/XX.png", sealAspect: 1, sealH: 0.42, huSeals: { stickerY: 82, sealY: 318, stickerD: 96, sealD: 120, frontY: 318, dash: { y: 195, w: 100, h: 20 } } },
+  "germany:din-two": { src: "/plates/germany/din-two.png", w: 960, h: 600, rows: [{ y0: 40, y1: 290, x0: 280, x1: 680, slots: 1 }, { y0: 310, y1: 565, x0: 50, x1: 910, slots: 1 }], split: "de-two", font: "dd", fill: 0.92, condense: 0.92, tracking: 0.02, emboss: true, fixed: [{ kind: "state", x: 140, y: 165, d: 130 }, { kind: "hu", x: 820, y: 165, d: 130 }] },
+  "germany:din-us": { src: "/plates/germany/din-us.png", w: 1000, h: 500, rows: [{ y0: 40, y1: 235, x0: 300, x1: 700, slots: 1 }, { y0: 255, y1: 465, x0: 50, x1: 950, slots: 1 }], split: "de-two", font: "dd", fill: 0.92, condense: 0.92, tracking: 0.02, emboss: true, fixed: [{ kind: "hu", x: 140, y: 140, d: 110 }, { kind: "state", x: 860, y: 140, d: 110 }] },
   // ── Croatia: the supplied plate photo with the lettering removed; the coat of arms is part of the artwork (region on its left, digits on its right). D-DIN lettering. ──
   // two-row car plate: region on top (left of the coat of arms), number below
   "croatia:two-line-euroband": { src: "/plates/croatia/two-euroband.png", w: 1024, h: 700, rows: [{ y0: 76, y1: 326, x0: 220, x1: 790, slots: 1 }, { y0: 346, y1: 626, x0: 50, x1: 974, slots: 1 }], split: "at-two", font: "dd", fill: 0.92, condense: 0.9, tracking: 0.03, thin: -0.02 },
@@ -412,6 +418,8 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
   }
   if (key === "germany") {
     // single-row plates of the ordinary kinds (E, H, seasonal and exchange plates look the same); the other kinds are not drawn yet
+    const din = (plateType ?? "").match(/^de-din-(?:din-)?(single|double|us)(-hu(\d\d|0))?$/);              // historical DIN plates
+    if (din) return PLATE_ART[din[1] === "single" ? "germany:din" : din[1] === "double" ? "germany:din-two" : "germany:din-us"] ?? null;
     return !plateType || /^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)(-single)?(-short)?(-hu(\d\d|0))?$/.test(plateType) ? PLATE_ART["germany:single"] ?? null : null;
   }
   if (key === "austria") {
@@ -606,6 +614,10 @@ function splitText(rule: SplitRule, text: string): string[] | null {
     if (rule === "at-prov") return t.length >= 2 ? [t[0], t.slice(1).join(" "), month] : null;
     return t.length >= 2 ? [t[0], t.slice(1).join(" "), month] : null;
   }
+  if (rule === "de-two") {                                                              // A BC 1234 → A | BC1234 (DIN two-row: no space in the lower row)
+    const m = text.trim().match(/^(\S+?)[\s-]+(.+)$/);
+    return m ? [m[1], m[2].replace(/\s+/g, "")] : null;
+  }
   if (rule === "at-two" || rule === "at-seal") {
     const m = text.trim().match(/^(\S+?)[\s-]+(.+)$/);                                 // "W 12345 A" → W | 12345 A ; "12R-3456" → 12R | 3456
     return m ? [m[1], m[2]] : null;
@@ -762,18 +774,26 @@ export function plateLayout(country: string, rawText: string, height: number, pl
 
     const mask = czechStickerMask(plateType);
     const stickers = (art.stickers ?? []).filter((k) => mask & k.bit).map((k) => ({ src: k.src, x: k.x * s, y: k.y * s, w: k.w * s, h: k.h * s }));
-    if (art.huSeals) {                                    // the seal slot: inspection sticker above the state seal; "-hu0" (front plates) leaves only the seal
+    if (art.huSeals || art.fixed) {                       // German seals: inspection sticker + state seal ("-hu0" = no sticker, front plates)
       const hu = (plateType ?? "").match(/-hu(\d\d|0)$/);
       const yy = hu ? (hu[1] === "0" ? null : hu[1]) : "25";
-      const st = germanStateOf(printed.split(" ")[0]);
-      const kind = /^de-export/.test(plateType ?? "") ? "-export" : /^de-transit/.test(plateType ?? "") ? "-temp" : "";      // export plates: red seal, short-term plates: blue seal
       const district = printed.split(" ")[0];
+      const st = germanStateOf(district);
+      const kind = /^de-export/.test(plateType ?? "") ? "-export" : /^de-transit/.test(plateType ?? "") ? "-temp" : "";      // export plates: red seal, short-term plates: blue seal
       const sealSrc = `/plates/germany/seals/${DISTRICT_SEALS.has(district) ? "d-" + district + kind : st ? st + kind : "XX"}.png`;
-      const b = art.huSeals;
-      const slots = seals.splice(0, seals.length);
-      for (const e of slots) {
-        if (yy) seals.push({ cx: e.cx, cy: b.stickerY * s, d: b.stickerD * s, h: b.stickerD * s, src: `/plates/germany/hu/${yy}.png` });
-        seals.push({ cx: e.cx, cy: (yy ? b.sealY : b.frontY) * s, d: b.sealD * s, h: b.sealD * s, src: sealSrc });
+      const huSrc = `/plates/germany/hu/${yy}.png`;
+      if (art.huSeals) {
+        const b = art.huSeals;
+        const slots = seals.splice(0, seals.length);
+        for (const e of slots) {
+          if (yy) seals.push({ cx: e.cx, cy: b.stickerY * s, d: b.stickerD * s, h: b.stickerD * s, src: huSrc });
+          if (b.dash) seals.push({ cx: e.cx, cy: b.dash.y * s, d: b.dash.w * s, h: b.dash.h * s, src: "/plates/germany/dash.png" });
+          seals.push({ cx: e.cx, cy: (yy ? b.sealY : b.frontY) * s, d: b.sealD * s, h: b.sealD * s, src: sealSrc });
+        }
+      }
+      for (const f of art.fixed ?? []) {
+        if (f.kind === "hu" && !yy) continue;
+        seals.push({ cx: f.x * s, cy: f.y * s, d: f.d * s, h: f.d * s, src: f.kind === "hu" ? huSrc : sealSrc });
       }
     }
     return { width, height: h, printed, art, font, chip: null, runs, seals, stickers };
