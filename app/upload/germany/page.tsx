@@ -268,7 +268,7 @@ export default function GermanyUploadPage() {
     transferSuffix: category === "transferable" ? transferSuffix : undefined,
     redCode:  category === "red" ? redCode : undefined,
     numbers:  category === "red" ? redNumbers
-            : category === "transit-5day" ? officialNumbers
+            : category === "transit-5day" ? officialNumbers.slice(0, Math.max(1, Math.min(plateFormat === "us" ? 5 : 6, 8 - regionCode.length)))
             : category === "official" ? officialNumbers
             : category === "state-authority" ? officialNumbers
             : category === "federal" ? federalNumbers
@@ -284,7 +284,7 @@ export default function GermanyUploadPage() {
     diplomCountryCode: category === "diplomatic" ? diplomCountryCode : undefined,
     diplomSerial: category === "diplomatic" ? diplomSerial : undefined,
     diplomCheckLetter: category === "diplomatic" ? diplomCheckLetter : undefined,
-  }), [category, regionCode, plateSuffix, transitDate, exportDate, exportCheckLetter,
+  }), [category, plateFormat, regionCode, plateSuffix, transitDate, exportDate, exportCheckLetter,
        seasonStart, seasonEnd, transferSuffix, redCode, redNumbers, officialNumbers,
        stateCode, federalSub, federalBdNum, federalBpCode, federalBwBranch, federalNumbers,
        diplomPrefix, diplomCountryCode, diplomSerial, diplomCheckLetter, militaryPrefix]);
@@ -296,7 +296,10 @@ export default function GermanyUploadPage() {
     const base = `de-${category}-${plateFormat}`;
     return HU_TYPES.test(base) ? `${base}${shortPlate && base === "de-regular-single" ? "-short" : ""}-hu${frontPlate ? "0" : huYear}` : base;
   }, [category, plateFormat, redCode, federalSub, huYear, frontPlate, shortPlate]);
-  const drawn = HU_TYPES.test(`de-${category}-${plateFormat}`);               // the plate kinds we have artwork for
+  const drawn = HU_TYPES.test(`de-${category}-${plateFormat}`);
+  const transitDrawn = category === "transit-5day" && ["single", "double", "us"].includes(plateFormat);
+  // plates have 8 characters at most: a long district code leaves fewer digits (5-day plates: 6 digits, 5 on the US size)
+  const transitMax = Math.max(1, Math.min(plateFormat === "us" ? 5 : 6, 8 - regionCode.length));               // the plate kinds we have artwork for
 
   const plateTypeLabel = PLATE_TYPE_LABELS[plateTypeStored] ?? plateTypeStored;
 
@@ -588,7 +591,7 @@ export default function GermanyUploadPage() {
                   <div>
                     <span className="block text-sm text-zinc-300 mb-2">Format</span>
                     <div className="grid grid-cols-2 gap-2">
-                      {(isDIN ? dinFormats : regularFormats).map((fmt) => (
+                      {(isDIN ? dinFormats : category === "transit-5day" ? regularFormats.filter((f) => f.id !== "moto") : regularFormats).map((fmt) => (
                         <button
                           key={fmt.id}
                           type="button"
@@ -736,11 +739,11 @@ export default function GermanyUploadPage() {
                     {/* Transit serial numbers */}
                     {category === "transit-5day" && (
                       <label className="grid gap-1.5">
-                        <span className="text-sm text-zinc-300">Serial number <span className="text-zinc-600 text-xs">(6 digits)</span></span>
+                        <span className="text-sm text-zinc-300">Serial number <span className="text-zinc-600 text-xs">(up to {transitMax} digits — 8 characters in total with the district code)</span></span>
                         <input
                           value={officialNumbers}
-                          onChange={(e) => setOfficialNumbers(e.target.value.replace(/\D/g,"").slice(0,6))}
-                          placeholder="123456"
+                          onChange={(e) => setOfficialNumbers(e.target.value.replace(/\D/g,"").slice(0,transitMax))}
+                          placeholder={"123456".slice(0, transitMax)}
                           className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono outline-none focus:border-zinc-600"
                         />
                       </label>
@@ -1068,7 +1071,7 @@ export default function GermanyUploadPage() {
               {/* Live preview */}
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5">
                 <div className="text-xs uppercase tracking-wider text-zinc-500 mb-3">Live preview</div>
-                {drawn ? (
+                {drawn || transitDrawn ? (
                   <div className="flex justify-center rounded-xl bg-zinc-900/60 px-3 py-5">
                     <PlateBadge country="germany" text={plateText.trim() || placeholderText} plateType={plateTypeStored} size="xl" />
                   </div>

@@ -105,3 +105,19 @@ dash = Image.new("RGBA", (200, 40), (0, 0, 0, 0))
 ImageDraw.Draw(dash).rounded_rectangle([0, 0, 199, 39], radius=4, fill=(17, 17, 17, 255))
 dash.save(os.path.join(OUT, "dash.png"))
 print("din ok")
+
+
+# ── 5-day (short-term) plates: white face, no euroband, yellow strip with the expiry date at the right ──
+YEL = (250, 184, 0, 255)
+def transit_plate(w, h, border, radius, name, box):
+    base = Image.open(os.path.join(OUT, name.replace("transit", "din"))).convert("RGBA")
+    ov = Image.new("RGBA", base.size, (0, 0, 0, 0))
+    ImageDraw.Draw(ov).rectangle(box, fill=YEL)
+    face_only = Image.new("L", base.size, 0)
+    ImageDraw.Draw(face_only).rounded_rectangle([border + 2, border + 2, w - border - 3, h - border - 3], radius=max(4, radius - border - 2), fill=255)
+    base.paste(ov, (0, 0), ImageChops.multiply(ov.getchannel("A"), face_only))
+    base.save(os.path.join(OUT, name))
+transit_plate(1920, 390, 14, 26, "transit.png", [1700, 0, 1920, 390])
+transit_plate(960, 600, 14, 24, "transit-two.png", [770, 0, 960, 310])
+transit_plate(1000, 500, 14, 24, "transit-us.png", [800, 0, 1000, 260])
+print("transit ok")
