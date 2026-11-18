@@ -11,6 +11,7 @@ import ZoomImage from "@/app/components/ZoomImage";
 import TagPicker from "@/app/components/TagPicker";
 import MilestonePopup from "@/app/components/MilestonePopup";
 import OcrHint from "@/app/components/OcrHint";
+import { diplomaticCountry } from "@/app/lib/germanyDiplomatic";
 import PlateBadge from "@/app/components/PlateBadge";
 import DescriptionInput from "@/app/components/DescriptionInput";
 import {
@@ -1001,6 +1002,11 @@ export default function GermanyUploadPage() {
                           placeholder="42"
                           className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono outline-none focus:border-zinc-600"
                         />
+                        {diplomCountryCode && (
+                          <p className={`text-xs ${diplomaticCountry(diplomCountryCode) ? "text-emerald-400" : "text-amber-400"}`}>
+                            {diplomaticCountry(diplomCountryCode) ?? "No country assigned to this code"}
+                          </p>
+                        )}
                       </label>
                       <label className="grid gap-1.5">
                         <span className="text-sm text-zinc-300">Serial <span className="text-zinc-600 text-xs">(up to 6 digits)</span></span>

@@ -18,6 +18,7 @@ import AddToRoadTripButton from "./AddToRoadTripButton";
 import { tagById, withAutoTags } from "@/app/lib/tags";
 import { getAlbaniaRegion } from "@/app/lib/albaniaRegions";
 import { plateTypeLabel } from "@/app/lib/plateTypes";
+import { diplomaticCountryOfPlate } from "@/app/lib/germanyDiplomatic";
 import Flag from "@/app/components/Flag";
 import PlateBadge, { formatPlateText } from "@/app/components/PlateBadge";
 import SpotCard from "@/app/components/SpotCard";
@@ -35,22 +36,22 @@ function getGermanyFederalInfo(plateText: string, plateType: string | null): str
   if (!plateType) return null;
   const numMatch = plateText.match(/(?:BD|BP|BW)\s+(\d+)/i);
   const num = numMatch ? parseInt(numMatch[1], 10) : null;
-  if (plateType === "de-federal-bd") {
+  if (/^de-federal-bd(-|$)/.test(plateType)) {
     if (num === null) return "Federal Ministry Vehicles (BD)";
     const agency = GERMANY_FEDERAL_BD.find((a) => a.num === num);
     return agency ? `${agency.short} — ${agency.name}` : `BD ${num}`;
   }
-  if (plateType === "de-federal-bp") {
+  if (/^de-federal-bp(-|$)/.test(plateType)) {
     if (num === null) return "Federal Police (BP)";
     const vtype = GERMANY_BP_VEHICLE_TYPES.find((v) => v.code === num);
     return vtype ? `Federal Police · ${vtype.label}` : `Federal Police · BP ${num}`;
   }
-  if (plateType === "de-federal-bw") {
+  if (/^de-federal-bw(-|$)/.test(plateType)) {
     if (num === null) return "Federal Waterways (BW)";
     const branch = GERMANY_BW_BRANCHES.find((b) => b.num === num);
     return branch ? `Federal Waterways · ${branch.name} (${branch.city})` : `Federal Waterways · BW ${num}`;
   }
-  if (plateType === "de-federal-thw") return "Federal Relief (THW)";
+  if (/^de-federal-thw(-|$)/.test(plateType)) return "Federal Relief (THW)";
   return null;
 }
 
@@ -274,6 +275,11 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
     ? getGermanyFederalInfo(upload.plateText, upload.plateType)
     : null;
 
+  // Germany diplomatic plates: the country (or organisation) behind the country code
+  const germanyDiplomat = upload.country === "germany" && upload.plateType?.startsWith("de-diplomatic")
+    ? diplomaticCountryOfPlate(upload.plateText)
+    : null;
+
   // Czech region lookup
   const czechRegion = upload.country === "czech"
     ? getCzechRegion(upload.plateRegion, upload.plateType)
@@ -319,7 +325,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                   <a href={`/c/${upload.country}`} className="inline-flex items-center gap-2 font-semibold text-zinc-100 transition-colors hover:text-indigo-300">
                     <Flag iso={meta.iso} /> {meta.name}
                   </a>
-                  {[albaniaRegion?.city, germanyDistrict, germanyFederal, czechRegion].filter(Boolean).map((r) => (
+                  {[albaniaRegion?.city, germanyDistrict, germanyFederal, germanyDiplomat, czechRegion].filter(Boolean).map((r) => (
                     <span key={r as string} className="text-zinc-500">· {r}</span>
                   ))}
                 </div>
@@ -538,6 +544,9 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
               )}
               {germanyFederal && (
                 <Detail label="Federal" value={germanyFederal} />
+              )}
+              {germanyDiplomat && (
+                <Detail label="Country" value={germanyDiplomat} />
               )}
               {czechRegion && (
                 <Detail label="Region" value={czechRegion} />
