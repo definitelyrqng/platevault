@@ -118,13 +118,13 @@ export type PlateArt = {
   /** Lettering colour (default near-black). */
   textColor?: string;
   /** Germany (DIN two-row / US): seals at fixed spots (art pixels): the state seal or the inspection sticker. */
-  fixed?: { kind: "state" | "hu" | "temp" | "w"; x: number; y: number; d: number }[];
+  fixed?: { kind: "state" | "hu" | "temp" | "w" | "img"; x: number; y: number; d: number; src?: string }[];
   /** Germany 5-day plates: the blue seal in the gap between the district and the number (art-pixel centre height and diameter). */
   tempSeal?: { y: number; d: number };
   /** Stamped lettering and raised seals: draw a soft shadow under them. */
   emboss?: boolean;
   /** Germany: the seal slot holds an inspection sticker over the state seal (art-pixel centres and diameters). */
-  huSeals?: { stickerY: number; sealY: number; stickerD: number; sealD: number; frontY: number; dash?: { y: number; w: number; h: number }; topSrc?: string };
+  huSeals?: { stickerY: number; sealY: number; stickerD: number; sealD: number; frontY: number; dash?: { y: number; w: number; h: number; src?: string }; topSrc?: string; noSticker?: boolean };
   /** Width of a word space in em (FE-Schrift; default 0.5). */
   space?: number;
 };
@@ -268,7 +268,7 @@ export const PLATE_ART: Record<string, PlateArt> = {
   "germany:transferable-us": { src: "/plates/germany/transferable-us.png", w: 1220, h: 590, rows: [{ y0: 56, y1: 277, x0: 300, x1: 640, slots: 1 }, { y0: 313, y1: 540, x0: 80, x1: 930, slots: 1 }, { y0: 313, y1: 540, x0: 1040, x1: 1200, slots: 1, own: true }], split: "de-wechsel", fill: 0.98, condense: 0.9, tracking: 0.015, emboss: true, fixed: [{ kind: "w", x: 815, y: 100, d: 60 }, { kind: "state", x: 815, y: 224, d: 134 }, { kind: "hu", x: 1120, y: 150, d: 130 }] },
   "germany:transferable-moto": { src: "/plates/germany/transferable-moto.png", w: 1160, h: 1000, rows: [{ y0: 60, y1: 340, x0: 230, x1: 860, slots: 1 }, { y0: 690, y1: 970, x0: 50, x1: 850, slots: 1 }, { y0: 690, y1: 970, x0: 940, x1: 1140, slots: 1, own: true }], split: "de-wechsel", fill: 0.86, condense: 0.9, tracking: 0.015, emboss: true, fixed: [{ kind: "state", x: 420, y: 500, d: 180 }, { kind: "w", x: 600, y: 500, d: 90 }, { kind: "hu", x: 1040, y: 330, d: 170 }] },
   // ── Germany, regular two-row, US-size and motorcycle plates: euroband top-left, inspection sticker and state seal at fixed spots ──
-  "germany:us": { src: "/plates/germany/us.png", w: 1000, h: 590, rows: [{ y0: 56, y1: 277, x0: 300, x1: 640, slots: 1 }, { y0: 313, y1: 540, x0: 80, x1: 930, slots: 1 }], split: "de-two", fill: 0.98, condense: 0.9, tracking: 0.015, emboss: true, fixed: [{ kind: "hu", x: 815, y: 100, d: 104 }, { kind: "state", x: 815, y: 224, d: 134 }] },
+  "germany:us": { src: "/plates/germany/us.png", w: 1000, h: 590, rows: [{ y0: 56, y1: 277, x0: 300, x1: 640, slots: 1 }, { y0: 313, y1: 540, x0: 80, x1: 930, slots: 1 }], split: "de-two", fill: 0.98, condense: 0.9, tracking: 0.015, emboss: true, fixed: [{ kind: "hu", x: 815, y: 80, d: 98 }, { kind: "state", x: 815, y: 208, d: 122 }] },
   "germany:two": { src: "/plates/germany/two.png", w: 700, h: 500, rows: [{ y0: 36, y1: 252, x0: 150, x1: 520, slots: 1 }, { y0: 300, y1: 478, x0: 40, x1: 660, slots: 1 }], split: "de-two", fill: 0.86, condense: 0.9, tracking: 0.015, emboss: true, fixed: [{ kind: "hu", x: 590, y: 96, d: 118 }, { kind: "state", x: 590, y: 240, d: 128 }] },
   "germany:moto": { src: "/plates/germany/moto.png", w: 900, h: 1000, rows: [{ y0: 70, y1: 320, x0: 340, x1: 700, slots: 1 }, { y0: 670, y1: 940, x0: 60, x1: 840, slots: 1 }], split: "de-two", fill: 0.98, condense: 0.9, tracking: 0.015, emboss: true, fixed: [{ kind: "hu", x: 290, y: 530, d: 160 }, { kind: "state", x: 510, y: 520, d: 210 }] },
   "germany:moto-old": { src: "/plates/germany/moto-old.png", w: 1100, h: 1000, rows: [{ y0: 100, y1: 470, x0: 275, x1: 990, slots: 1 }, { y0: 530, y1: 930, x0: 280, x1: 990, slots: 1 }], split: "de-two", fill: 0.98, condense: 0.9, tracking: 0.015, emboss: true, fixed: [{ kind: "hu", x: 165, y: 560, d: 150 }, { kind: "state", x: 165, y: 770, d: 190 }] },
@@ -345,16 +345,40 @@ export const PLATE_ART: Record<string, PlateArt> = {
 };
 
 // Germany: export plates = the 5-day plates with a red strip (the number ends in one letter, with a gap before it)
+// Germany: red plates (dealer / test plates): red border and lettering, the state seal without an inspection sticker
+{
+  const red = { textColor: "#b81f26", fill: 0.98, condense: 0.9, tracking: 0.015 };
+  PLATE_ART["germany:red"] = { src: "/plates/germany/red.png", w: 1920, h: 390, rows: [{ y0: 69, y1: 326, x0: 215, x1: 1862, slots: 2, seal: true, gap: 0.3 }], split: "at-seal", ...red, condense: 0.88, seal: "/plates/germany/seals/XX.png", sealAspect: 1, sealH: 0.58, huSeals: { noSticker: true, stickerY: 0, sealY: 215, stickerD: 0, sealD: 150, frontY: 215 } };
+  const din = PLATE_ART["germany:din"], dot = "/plates/germany/red-dot.png";
+  PLATE_ART["germany:red-din"] = { ...din, src: "/plates/germany/red-din.png", textColor: "#b81f26", emboss: false, huSeals: { ...din.huSeals!, topSrc: dot, dash: { ...din.huSeals!.dash!, src: "/plates/germany/red-dash.png" } } };
+  PLATE_ART["germany:red-din-two"] = { ...PLATE_ART["germany:din-two"], src: "/plates/germany/red-din-two.png", textColor: "#b81f26", emboss: false, fixed: [{ kind: "img", src: dot, x: 140, y: 165, d: 100 }, { kind: "state", x: 820, y: 165, d: 130 }] };
+  PLATE_ART["germany:red-din-us"] = { ...PLATE_ART["germany:din-us"], src: "/plates/germany/red-din-us.png", textColor: "#b81f26", emboss: false, fixed: [{ kind: "img", src: dot, x: 140, y: 140, d: 90 }, { kind: "state", x: 860, y: 140, d: 110 }] };
+  PLATE_ART["germany:red-two"] = { src: "/plates/germany/red-two.png", w: 700, h: 500, rows: [{ y0: 36, y1: 252, x0: 130, x1: 500, slots: 1 }, { y0: 300, y1: 478, x0: 40, x1: 660, slots: 1 }], split: "de-two", ...red, fixed: [{ kind: "state", x: 590, y: 150, d: 118 }] };
+  PLATE_ART["germany:red-us"] = { src: "/plates/germany/red-us.png", w: 1000, h: 590, rows: [{ y0: 56, y1: 277, x0: 240, x1: 700, slots: 1 }, { y0: 313, y1: 540, x0: 80, x1: 930, slots: 1 }], split: "de-two", ...red, fixed: [{ kind: "state", x: 840, y: 160, d: 130 }] };
+  PLATE_ART["germany:red-moto"] = { src: "/plates/germany/red-moto.png", w: 900, h: 1000, rows: [{ y0: 70, y1: 320, x0: 300, x1: 760, slots: 1 }, { y0: 670, y1: 940, x0: 60, x1: 840, slots: 1 }], split: "de-two", ...red, fixed: [{ kind: "state", x: 610, y: 500, d: 200 }] };
+}
 // Germany: seasonal plates — the regular plate with the season months (small, stacked over a line) at the right end
 {
   const b = PLATE_ART["germany:single"];
-  PLATE_ART["germany:season"] = { ...b, src: "/plates/germany/season.png", rows: [{ ...b.rows[0], x1: 1715 }, { y0: 40, y1: 108, x0: 1745, x1: 1880, slots: 1, own: true }, { y0: 242, y1: 310, x0: 1745, x1: 1880, slots: 1, own: true }], split: "de-season" };
+  PLATE_ART["germany:season"] = { ...b, src: "/plates/germany/season.png", rows: [{ ...b.rows[0], x1: 1715 }, { y0: 56, y1: 124, x0: 1745, x1: 1880, slots: 1, own: true }, { y0: 256, y1: 324, x0: 1745, x1: 1880, slots: 1, own: true }], split: "de-season" };
 }
 // seasonal plates in the other formats: the months (start over end) go stacked at the right end of the upper row (scripts/build-germany-art.py draws the line)
-for (const k of ["two", "us", "moto", "moto-old"]) {
+for (const k of ["moto-old"]) {
   const b = PLATE_ART[`germany:${k}`], low = k === "us", r = b.rows[low ? 1 : 0], h = r.y1 - r.y0, cw = Math.round(h * 0.42), mh = Math.round(h * 0.3), mx = r.x1 - cw;       // US-size: lower row, the others: upper row
   const main = { ...r, x1: mx - Math.round(h * 0.08) };
   PLATE_ART[`germany:${k}-season`] = { ...b, src: `/plates/germany/season-${k}.png`, split: "de-season-two", rows: [low ? b.rows[0] : main, low ? main : b.rows[1], { y0: r.y0, y1: r.y0 + mh, x0: mx, x1: r.x1, slots: 1, own: true }, { y0: r.y1 - mh, y1: r.y1, x0: mx, x1: r.x1, slots: 1, own: true }] };
+}
+{ // US-size: stickers side by side right of the district, small months at the end of the lower row
+  const b = PLATE_ART["germany:us"];
+  PLATE_ART["germany:us-season"] = { ...b, src: "/plates/germany/season-us.png", split: "de-season-two", rows: [{ ...b.rows[0], x0: 200, x1: 620 }, { ...b.rows[1], x1: 825 }, { y0: 340, y1: 398, x0: 845, x1: 935, slots: 1, own: true }, { y0: 452, y1: 510, x0: 845, x1: 935, slots: 1, own: true }], fixed: [{ kind: "hu", x: 700, y: 140, d: 120 }, { kind: "state", x: 840, y: 140, d: 120 }] };
+}
+{ // two-row: district, the two stickers, then the months at the far right (all of the upper row is used)
+  const b = PLATE_ART["germany:two"];
+  PLATE_ART["germany:two-season"] = { ...b, src: "/plates/germany/season-two.png", split: "de-season-two", rows: [{ ...b.rows[0], x0: 130, x1: 420 }, b.rows[1], { y0: 40, y1: 122, x0: 605, x1: 690, slots: 1, own: true }, { y0: 176, y1: 258, x0: 605, x1: 690, slots: 1, own: true }], fixed: [{ kind: "hu", x: 490, y: 98, d: 106 }, { kind: "state", x: 490, y: 214, d: 106 }] };
+}
+{ // motorcycle: the months sit right of the stickers, between the two rows
+  const b = PLATE_ART["germany:moto"];
+  PLATE_ART["germany:moto-season"] = { ...b, src: "/plates/germany/season-moto.png", split: "de-season-two", rows: [b.rows[0], b.rows[1], { y0: 375, y1: 465, x0: 665, x1: 850, slots: 1, own: true }, { y0: 520, y1: 610, x0: 665, x1: 850, slots: 1, own: true }], fixed: [{ kind: "hu", x: 250, y: 500, d: 160 }, { kind: "state", x: 455, y: 500, d: 200 }] };
 }
 for (const k of ["", "-two", "-us"]) PLATE_ART[`germany:export${k}`] = { ...PLATE_ART[`germany:transit${k}`], src: `/plates/germany/export${k}.png`, space: 0.3 };
 // Germany: shortened plates (480 … 340 mm) — the 520 mm plate with a slice cut from the middle of the face (scripts/build-germany-art.py)
@@ -460,6 +484,8 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
     if (/^de-transferable-single(-hu(\d\d|0))?$/.test(plateType ?? "")) return PLATE_ART["germany:transferable"] ?? null;                  // Wechselkennzeichen
     const trf = (plateType ?? "").match(/^de-transferable-(double|us|moto)(-hu(\d\d|0))?$/);                  // two-row, US-size and motorcycle Wechselkennzeichen
     if (trf) return PLATE_ART[trf[1] === "double" ? "germany:transferable-two" : trf[1] === "us" ? "germany:transferable-us" : "germany:transferable-moto"] ?? null;
+    const red = (plateType ?? "").match(/^de-red-\d\d(?:-(single|double|us|moto|din-single|din-double|din-us))?$/);                    // red plates
+    if (red) return PLATE_ART[`germany:red${{ double: "-two", us: "-us", moto: "-moto", "din-single": "-din", "din-double": "-din-two", "din-us": "-din-us" }[red[1] ?? ""] ?? ""}`] ?? null;
     const reg = (plateType ?? "").match(/^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-(double|us|moto|moto-old)(-hu(\d\d|0))?$/);      // two-row, US-size and motorcycle plates
     if (reg && /^seasonal/.test(reg[1])) return PLATE_ART[`germany:${reg[2] === "double" ? "two" : reg[2]}-season`] ?? null;
     if (reg) return PLATE_ART[reg[2] === "double" ? "germany:two" : reg[2] === "us" ? "germany:us" : reg[2] === "moto" ? "germany:moto" : "germany:moto-old"] ?? null;
@@ -853,8 +879,8 @@ export function plateLayout(country: string, rawText: string, height: number, pl
         const slots = seals.splice(0, seals.length);
         for (const e of slots) {
           if (b.topSrc) seals.push({ cx: e.cx, cy: b.stickerY * s, d: b.stickerD * s, h: b.stickerD * s, src: b.topSrc });
-          else if (yy) seals.push({ cx: e.cx, cy: b.stickerY * s, d: b.stickerD * s, h: b.stickerD * s, src: huSrc });
-          if (b.dash) seals.push({ cx: e.cx, cy: b.dash.y * s, d: b.dash.w * s, h: b.dash.h * s, src: "/plates/germany/dash.png" });
+          else if (yy && !b.noSticker) seals.push({ cx: e.cx, cy: b.stickerY * s, d: b.stickerD * s, h: b.stickerD * s, src: huSrc });
+          if (b.dash) seals.push({ cx: e.cx, cy: b.dash.y * s, d: b.dash.w * s, h: b.dash.h * s, src: b.dash.src ?? "/plates/germany/dash.png" });
           seals.push({ cx: e.cx, cy: (yy ? b.sealY : b.frontY) * s, d: b.sealD * s, h: b.sealD * s, src: sealSrc });
         }
       }
@@ -865,6 +891,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
       }
       for (const f of art.fixed ?? []) {
         if (f.kind === "hu" && !yy) continue;
+        if (f.kind === "img") { seals.push({ cx: f.x * s, cy: f.y * s, d: f.d * s, h: f.d * s, src: f.src }); continue; }
         if (f.kind === "w") { seals.push({ cx: f.x * s, cy: f.y * s, d: f.d * s, h: f.d * s, src: "/plates/germany/w.png" }); continue; }
         const blue = `/plates/germany/seals/${DISTRICT_SEALS.has(district) ? "d-" + district : st ?? "XX"}${tempKind}.png`;
         seals.push({ cx: f.x * s, cy: f.y * s, d: f.d * s, h: f.d * s, src: f.kind === "hu" ? huSrc : f.kind === "temp" ? (st || DISTRICT_SEALS.has(district) ? blue : "/plates/germany/seals/XX.png") : sealSrc });

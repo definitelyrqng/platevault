@@ -158,7 +158,7 @@ function RegionPicker({
 // ── Main page ─────────────────────────────────────────────────────────────────
 /** Plate kinds drawn with the realistic single-row artwork, and the colours of the inspection stickers by year. */
 const HU_TYPES = /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-(single|double|us|moto|moto-old)|de-din-din-(single|double|us))$/;
-const OLD_MOTO: string[] = ["regular", "seasonal"];                // no historic (H), electric, transferable, 5-day or export versions
+const OLD_MOTO: string[] = ["regular"];                // the old motorcycle plate has no seasonal, historic (H), electric, transferable, 5-day or export versions
 const HU_YEARS = ["19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31"];
 const HU_COLORS = ["#1ab0ee", "#f5ef12", "#d85c4c", "#f7a0b8", "#18b082", "#e89000"];
 
@@ -293,7 +293,7 @@ export default function GermanyUploadPage() {
 
   // ── Plate type stored in DB
   const plateTypeStored = useMemo(() => {
-    if (category === "red") return `de-red-${redCode}`;
+    if (category === "red") { const f = ["single", "double", "us", "moto", "din-single", "din-double", "din-us"].includes(plateFormat) ? plateFormat : "single"; return `de-red-${redCode}-${f}${noSeals ? "-ns" : ""}`; }
     if (category === "federal") return `de-federal-${federalSub}`;
     const base = `de-${category}-${plateFormat}`;
     const stripPlate = (category === "transit-5day" || category === "export") && ["single", "double", "us"].includes(plateFormat);
@@ -301,13 +301,14 @@ export default function GermanyUploadPage() {
     return noSeals && (HU_TYPES.test(base) || stripPlate) ? `${t}-ns` : t;                // "-ns": no seals or stickers
   }, [category, plateFormat, redCode, federalSub, huYear, frontPlate, shortPlate, noSeals]);
   const drawn = HU_TYPES.test(`de-${category}-${plateFormat}`);
+  const redDrawn = category === "red";
   const transitDrawn = (category === "transit-5day" || category === "export") && ["single", "double", "us"].includes(plateFormat);
   // export plates: 1–4 digits and a letter (8 characters in total with the district code)
   const exportMax = Math.max(1, Math.min(plateFormat === "us" ? 4 : 5, 7 - regionCode.length));
   // plates have 8 characters at most: a long district code leaves fewer digits (5-day plates: 6 digits, 5 on the US size)
   const transitMax = Math.max(1, Math.min(plateFormat === "us" ? 5 : 6, 8 - regionCode.length));               // the plate kinds we have artwork for
 
-  const plateTypeLabel = PLATE_TYPE_LABELS[plateTypeStored] ?? plateTypeStored;
+  const plateTypeLabel = PLATE_TYPE_LABELS[plateTypeStored] ?? PLATE_TYPE_LABELS[plateTypeStored.replace(/-(single|double|us|moto|din-single|din-double|din-us)(-ns)?$/, "")] ?? plateTypeStored;
 
   const locationWarning = useMemo(() => {
     if (!location.trim()) return "";
@@ -414,9 +415,9 @@ export default function GermanyUploadPage() {
   // the DIN categories have their own formats: pick a matching one when the category changes (otherwise there is no preview)
   useEffect(() => {
     if (category === "din" && !plateFormat.startsWith("din-")) setPlateFormat("din-single");
-    else if (category !== "din" && plateFormat.startsWith("din-")) setPlateFormat("single");
+    else if (category !== "din" && category !== "red" && plateFormat.startsWith("din-")) setPlateFormat("single");
   }, [category, plateFormat]);
-  useEffect(() => { if (plateFormat === "moto-old" && !OLD_MOTO.includes(category)) setPlateFormat("moto"); }, [category, plateFormat]);
+  useEffect(() => { if ((plateFormat === "moto-old" && !OLD_MOTO.includes(category)) || (category === "red" && plateFormat === "moto-old")) setPlateFormat("moto"); }, [category, plateFormat]);
   const dinFormats     = GERMANY_PLATE_FORMATS.filter((f) => f.group === "din");
   const selectedCat = GERMANY_CATEGORIES.find((c) => c.id === category)!;
 
@@ -448,7 +449,7 @@ export default function GermanyUploadPage() {
     category === "seasonal-h"     ? "B-AB1234H 04/10" :
     category === "electric"       ? "B-AB1234E" :
     category === "transferable"   ? "B-AB1234-0" :
-    category === "red"            ? "B-041234" :
+    category === "red"            ? `ND-${redCode}${redNumbers || "485"}` :
     category === "official"       ? "B-123456" :
     category === "state-authority"? "THL-123456" :
     category === "federal"        ? "BD 5-123456" :
@@ -604,11 +605,11 @@ export default function GermanyUploadPage() {
                 </div>
 
                 {/* ── Plate format (all categories) ── */}
-                {category !== "red" && category !== "federal" && (
+                {category !== "federal" && (
                   <div>
                     <span className="block text-sm text-zinc-300 mb-2">Format</span>
                     <div className="grid grid-cols-2 gap-2">
-                      {(isDIN ? dinFormats : (category === "transit-5day" || category === "export") ? regularFormats.filter((f) => ["single", "double", "us"].includes(f.id)) : regularFormats.filter((f) => f.id !== "moto-old" || OLD_MOTO.includes(category))).map((fmt) => (
+                      {(isDIN ? dinFormats : category === "red" ? [...regularFormats.filter((f) => ["single", "double", "us", "moto"].includes(f.id)), ...dinFormats] : (category === "transit-5day" || category === "export") ? regularFormats.filter((f) => ["single", "double", "us"].includes(f.id)) : regularFormats.filter((f) => f.id !== "moto-old" || OLD_MOTO.includes(category))).map((fmt) => (
                         <button
                           key={fmt.id}
                           type="button"
@@ -657,7 +658,7 @@ export default function GermanyUploadPage() {
                 )}
 
                 {/* ── Remove the seals ── */}
-                {(drawn || transitDrawn) && (
+                {(drawn || transitDrawn || redDrawn) && (
                   <label className="flex items-center gap-2 text-sm text-zinc-300">
                     <input type="checkbox" checked={noSeals} onChange={(e) => setNoSeals(e.target.checked)} className="accent-indigo-500" />
                     No seals <span className="text-xs text-zinc-500">(remove the state seal and the stickers from the plate)</span>
@@ -1097,7 +1098,7 @@ export default function GermanyUploadPage() {
               {/* Live preview */}
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5">
                 <div className="text-xs uppercase tracking-wider text-zinc-500 mb-3">Live preview</div>
-                {drawn || transitDrawn ? (
+                {drawn || transitDrawn || redDrawn ? (
                   <div className="flex justify-center rounded-xl bg-zinc-900/60 px-3 py-5">
                     <PlateBadge country="germany" text={plateText.trim() || placeholderText} plateType={plateTypeStored} size="xl" />
                   </div>

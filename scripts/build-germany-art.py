@@ -31,12 +31,12 @@ def _band_overlay():
             op[x, y] = (col[0], col[1], col[2], round(al * 255))
     return ov
 BAND_OV = _band_overlay()
-def flat_plate(w, h, radius, name, band=None, stretch=False):
+def flat_plate(w, h, radius, name, band=None, stretch=False, border=BORDER, edge=(0, 0, 0, 255)):
     SS = 4
     big = Image.new("RGBA", (w * SS, h * SS), (0, 0, 0, 0))
-    ImageDraw.Draw(big).rounded_rectangle([0, 0, w * SS - 1, h * SS - 1], radius=radius * SS, fill=(0, 0, 0, 255))
+    ImageDraw.Draw(big).rounded_rectangle([0, 0, w * SS - 1, h * SS - 1], radius=radius * SS, fill=edge)
     fm = Image.new("L", big.size, 0)
-    ImageDraw.Draw(fm).rounded_rectangle([BORDER * SS, BORDER * SS, (w - BORDER) * SS - 1, (h - BORDER) * SS - 1], radius=max(4, radius - BORDER) * SS, fill=255)
+    ImageDraw.Draw(fm).rounded_rectangle([border * SS, border * SS, (w - border) * SS - 1, (h - border) * SS - 1], radius=max(4, radius - border) * SS, fill=255)
     big.paste(Image.new("RGBA", big.size, (255, 255, 255, 255)), (0, 0), fm)
     if band:
         x0, y0, x1, y1 = band
@@ -56,7 +56,7 @@ face = flat_plate(W, H, 38, "single.png", band=(BORDER, BORDER, 190, H - BORDER)
 
 # seasonal plates: the plate with a short line between the two month numbers at the right end
 season = face.copy()
-ImageDraw.Draw(season).rectangle([1745, 168, 1880, 177], fill=(17, 17, 17, 255))
+ImageDraw.Draw(season).rectangle([1745, 185, 1880, 194], fill=(17, 17, 17, 255))
 season.save(os.path.join(OUT, "season.png"))
 
 # shortened plates: the same plate with a slice cut out of the middle of the white face (lengths in mm as the shops offer them)
@@ -183,9 +183,35 @@ print("transferable variants ok")
 
 
 # seasonal plates (two-row / US / motorcycle): a line between the two month numbers at the right end of the upper row (same formula as plateLayout.ts)
-for name, (x0, y0, x1, y1) in {"two": (150, 36, 520, 252), "us": (80, 313, 930, 540), "moto": (340, 70, 700, 320), "moto-old": (275, 100, 990, 470)}.items():
+for name, (x0, y0, x1, y1) in {"moto-old": (275, 100, 990, 470)}.items():
     im = Image.open(os.path.join(OUT, name + ".png")).convert("RGBA")
     h = y1 - y0; cw = round(h * 0.42); t = max(5, round(h * 0.04)); cy = (y0 + y1) // 2
     ImageDraw.Draw(im).rectangle([x1 - cw, cy - t // 2, x1, cy + t // 2], fill=(17, 17, 17, 255))
     im.save(os.path.join(OUT, f"season-{name}.png"))
+im = Image.open(os.path.join(OUT, "us.png")).convert("RGBA")
+ImageDraw.Draw(im).rectangle([845, 421, 935, 429], fill=(17, 17, 17, 255))
+im.save(os.path.join(OUT, "season-us.png"))
+im = Image.open(os.path.join(OUT, "two.png")).convert("RGBA")
+ImageDraw.Draw(im).rectangle([605, 143, 690, 155], fill=(17, 17, 17, 255))
+im.save(os.path.join(OUT, "season-two.png"))
+im = Image.open(os.path.join(OUT, "moto.png")).convert("RGBA")
+ImageDraw.Draw(im).rectangle([665, 485, 850, 501], fill=(17, 17, 17, 255))
+im.save(os.path.join(OUT, "season-moto.png"))
 print("season variants ok")
+
+
+# red plates (dealer / test plates): red border and red lettering on the white face, the usual euroband
+RB = 10
+red_face = Image.new("RGBA", (1, 1))
+for name, (w, h, r, band) in {"red": (1920, 390, 38, (RB, RB, 186, 390 - RB)), "red-two": (700, 500, 44, (RB, RB, 112, 240)), "red-us": (1000, 590, 44, (RB, RB, 154, 290)), "red-moto": (900, 1000, 56, (RB, RB, 200, 450))}.items():
+    flat_plate(w, h, r, name + ".png", band, stretch=(name == "red"), border=RB, edge=(190, 30, 38, 255))
+print("red ok")
+
+# historical DIN red plates: red border, no euroband
+for name, (w, h, r) in {"red-din": (1920, 390, 36), "red-din-two": (960, 600, 52), "red-din-us": (1000, 500, 44)}.items():
+    flat_plate(w, h, r, name + ".png", None, border=RB, edge=(190, 30, 38, 255))
+dot = Image.new("RGBA", (200, 200), (0, 0, 0, 0)); dd_ = ImageDraw.Draw(dot)
+dd_.ellipse([2, 2, 197, 197], fill=(160, 40, 48, 255)); dd_.ellipse([14, 14, 185, 185], fill=(214, 70, 78, 255)); dd_.ellipse([40, 40, 160, 160], outline=(160, 40, 48, 255), width=5)
+dot.save(os.path.join(OUT, "red-dot.png"))
+rd = Image.new("RGBA", (200, 40), (0, 0, 0, 0)); ImageDraw.Draw(rd).rounded_rectangle([0, 0, 199, 39], radius=4, fill=(184, 31, 38, 255)); rd.save(os.path.join(OUT, "red-dash.png"))
+print("red din ok")
