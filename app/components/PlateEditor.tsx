@@ -98,7 +98,8 @@ export default function PlateEditor({ value, onChange, canMove }: {
               Shortened plate — cut to the length of the registration
             </label>
           )}
-          <span className={LABEL}>Inspection sticker</span>
+          <span className={LABEL}>Inspection sticker (TÜV / HU) — optional</span>
+          <p className="mb-2 text-xs text-zinc-500">Choosing the right colour and year is optional and not required.</p>
           <label className="mb-2 flex items-center gap-2 text-xs text-zinc-400">
             <input type="checkbox" checked={huVal === "0"} onChange={(e) => onChange({ ...value, plateType: deType(isShort, e.target.checked ? "0" : "25") })} className="accent-indigo-500" />
             Front plate — no inspection sticker, only the state seal

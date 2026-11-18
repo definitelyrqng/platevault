@@ -624,7 +624,8 @@ export default function GermanyUploadPage() {
                         Shortened plate <span className="text-xs text-zinc-500">(as short as the registration allows, 340–520 mm)</span>
                       </label>
                     )}
-                    <span className="block text-sm text-zinc-300 mb-2">Inspection sticker <span className="text-zinc-600 text-xs">(optional)</span></span>
+                    <span className="block text-sm text-zinc-300 mb-1">Inspection sticker (TÜV / HU) <span className="text-zinc-600 text-xs">(optional)</span></span>
+                    <p className="mb-2 text-xs text-zinc-500">Picking the right colour and year for the TÜV sticker is optional — you don't have to, it only changes how the plate preview looks.</p>
                     <label className="mb-2 flex items-center gap-2 text-xs text-zinc-400">
                       <input type="checkbox" checked={frontPlate} onChange={(e) => setFrontPlate(e.target.checked)} className="accent-indigo-500" />
                       Front plate — no inspection sticker, only the state seal
