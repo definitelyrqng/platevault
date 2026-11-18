@@ -21,6 +21,7 @@ const CODES: Record<string, string> = {
 
 const STATE_OF = new Map<string, string>();
 for (const [state, codes] of Object.entries(CODES)) for (const c of codes.split(" ")) STATE_OF.set(c, state);
+STATE_OF.set("NRW", "NW");                                   // state authority code (no district)
 
 /** Districts with a seal of their own (normal, export, short-term) instead of the state seal: files "d-<code>*.png". */
 export const DISTRICT_SEALS = new Set(["S"]);
