@@ -60,12 +60,13 @@ export default async function CountryPage({
   const validDate = (v?: string) => (v && /^d{4}-d{2}-d{2}$/.test(v) && !isNaN(Date.parse(v)) ? new Date(v) : null);
   const fromD = validDate(sp.from);
   const toD = validDate(sp.to);
-  const regionQ = (sp.region ?? "").trim().slice(0, 10).toUpperCase();
-  const regionName = regionQ && country === "germany" ? GERMANY_REGIONS.find((r) => r.code === regionQ)?.name ?? null : null;
+  const regionQ = (sp.region ?? "").trim().slice(0, 120).toUpperCase();
+  const regionList = regionQ.split(",").map((r) => r.trim()).filter(Boolean);       // one code, or several for a district with more than one
+  const regionName = regionList.length && country === "germany" ? [...new Set(regionList.map((c) => GERMANY_REGIONS.find((r) => r.code === c)?.name).filter(Boolean))].join(" / ") || null : null;
   const lookupActive = !!(q || brandQ || userQ || fromD || toD || regionQ);
   const where: Record<string, unknown> = { ...base };
   if (selectedTypes.length) where.plateType = { in: selectedTypes };
-  if (regionQ) where.plateRegion = { equals: regionQ, mode: "insensitive" };
+  if (regionList.length) where.plateRegion = { in: regionList };
   if (q) where.plateText = { contains: q, mode: "insensitive" };
   if (brandQ) where.brand = { contains: brandQ, mode: "insensitive" };
   if (userQ) where.user = { username: { contains: userQ, mode: "insensitive" } };
@@ -176,15 +177,23 @@ export default async function CountryPage({
             </p>
           </div>
         </div>
-        <a href={uploadHref}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-500">
-          ↑ Upload a spot
-        </a>
+        <div className="flex flex-wrap items-center gap-2">
+          {country === "germany" && (
+            <a href="/c/germany/map"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-zinc-100 transition-colors hover:border-indigo-500 hover:text-white">
+              🗺 Map view
+            </a>
+          )}
+          <a href={uploadHref}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-500">
+            ↑ Upload a spot
+          </a>
+        </div>
       </div>
 
       {regionQ && (
         <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-4 py-3 text-sm text-indigo-200">
-          <span>📍 Plates from <strong className="text-white">{regionName ?? regionQ}</strong>{regionName ? ` (${regionQ})` : ""} · {filteredCount.toLocaleString()} spot{filteredCount === 1 ? "" : "s"}</span>
+          <span>📍 Plates from <strong className="text-white">{regionName ?? regionQ}</strong>{regionName ? ` (${regionList.join(", ")})` : ""} · {filteredCount.toLocaleString()} spot{filteredCount === 1 ? "" : "s"}</span>
           <a href={`/c/${country}`} className="ml-auto text-xs text-indigo-300 underline hover:text-white">Show all {meta.name} plates ✕</a>
         </div>
       )}
