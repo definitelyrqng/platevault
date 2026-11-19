@@ -806,7 +806,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
   let art = plateArtFor(key, plateType);
   const capH = CAP_BOTTOM - CAP_TOP; // em
   // German plates are made as short as the registration allows: 7–8 characters 520 mm, 6 → 460, 5 → 400, 4 → 360, 3 → 340 (only for plates marked "-short")
-  if (key === "germany" && art === PLATE_ART["germany:single"] && /^de-regular-single-short(-hu(\d\d|0))?$/.test(plateType ?? "")) {
+  if (key === "germany" && art === PLATE_ART["germany:single"] && /^de-(regular|electric|oldtimer)-single-short(-hu(\d\d|0))?$/.test(plateType ?? "")) {
     const n = printed.replace(/[^A-Z0-9ÄÖÜ]/g, "").length;
     const mm = n >= 7 ? 520 : n === 6 ? 460 : n === 5 ? 400 : n === 4 ? 360 : 340;
     if (mm < 520) art = PLATE_ART[`germany:w${mm}`] ?? art;

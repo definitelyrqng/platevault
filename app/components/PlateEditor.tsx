@@ -12,6 +12,22 @@ const COUNTRIES = Object.entries(COUNTRY_META).map(([slug, m]) => ({ slug, name:
 const INPUT = "h-9 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2.5 text-sm text-zinc-100 outline-none transition-colors placeholder:text-zinc-600 focus:border-indigo-500 disabled:opacity-50";
 const LABEL = "mb-1 block text-[11px] font-medium uppercase tracking-wide text-zinc-500";
 
+/** German plate types that are drawn with a state seal and an inspection sticker. */
+const DE_HU = /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable|official|state-authority|diplomatic)-(single|double|us|moto|moto-old)|de-(din|official|state-authority|diplomatic)-din-(single|double|us))$/;
+const DE_CATS = "regular|electric|oldtimer|seasonal|seasonal-h|transferable|official|state-authority|diplomatic";
+const DE_FORMAT_LABELS: Record<string, string> = {
+  single: "Single-line", double: "Two-line", us: "US-style", moto: "Motorcycle", "moto-old": "Motorcycle (old, until 2011)",
+  "din-single": "Single-line DIN", "din-double": "Two-line DIN", "din-us": "US-style DIN",
+};
+/** Which layouts each German category exists in. */
+function deFormats(cat: string): string[] {
+  if (cat === "din") return ["din-single", "din-double", "din-us"];
+  if (cat === "regular") return ["single", "moto-old", "double", "us", "moto"];
+  if (cat === "official" || cat === "state-authority" || cat === "diplomatic") return ["single", "double", "us", "moto", "din-single", "din-double", "din-us"];
+  return ["single", "double", "us", "moto"];
+}
+const deCompose = (cat: string, fmt: string) => (cat === "din" ? `de-din-${fmt.startsWith("din-") ? fmt : "din-" + fmt}` : `de-${cat}-${fmt}`);
+
 /** Czech plate types end in "-st0".."-st3" (which inspection stickers are on the plate: 1 = red, 2 = green). */
 const splitSticker = (t: string) => { const m = t.match(/^(.*?)-st([0-3])$/); return m ? { base: m[1], mask: Number(m[2]) } : { base: t, mask: 3 }; };
 
@@ -31,15 +47,22 @@ export default function PlateEditor({ value, onChange, canMove }: {
   const huMatch = pt.match(/^(.*)-hu(\d\d|0)$/);                          // German plates: "-hu24" = inspection sticker of 2024, "-hu0" = none (front plate)
   const shortMatch = (huMatch ? huMatch[1] : pt).match(/^(.*?)-short$/);           // German plates: "-short" = cut down to the registration (3–8 characters)
   const split = splitSticker(shortMatch ? shortMatch[1] : huMatch ? huMatch[1] : pt);
-  const base = split.base === "cz-vanity-single" ? "cz-vanity-single-euro" : split.base;
-  const isDeHu = value.country === "germany" && /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-(single|double|us|moto|moto-old)|de-din-(din-)?(single|double|us))$/.test(base);
+  const rawBase = split.base === "cz-vanity-single" ? "cz-vanity-single-euro" : split.base;
+  const deMatch = value.country === "germany"
+    ? rawBase.match(new RegExp(`^de-(${DE_CATS})(?:-(single|double|us|moto|moto-old|din-single|din-double|din-us))?$`)) ?? rawBase.match(/^de-(din)(?:-din)?-(single|double|us)$/)
+    : null;
+  const deCat = deMatch ? deMatch[1] : null;
+  const deFmt = deMatch ? (deMatch[1] === "din" ? `din-${deMatch[2]}` : deMatch[2] ?? "single") : null;
+  const base = deCat && deFmt ? deCompose(deCat, deFmt) : rawBase;
+  const isDeHu = value.country === "germany" && DE_HU.test(base);
   const huVal = huMatch ? huMatch[2] : "25";
   const isShort = !!shortMatch;
-  const deType = (short: boolean, hu: string) => `${base}${short && base === "de-regular-single" ? "-short" : ""}-hu${hu}${isNs ? "-ns" : ""}`;
+  const SHORTABLE = /^de-(regular|electric|oldtimer)-single$/;
+  const deType = (short: boolean, hu: string) => `${base}${short && SHORTABLE.test(base) ? "-short" : ""}-hu${hu}${isNs ? "-ns" : ""}`;
   const mask = split.mask;
   const art = plateArtFor(value.country, base);
   const stickers = art?.stickers ?? [];
-  const known = options?.some((o) => o.id === base);
+  const known = options?.some((o) => o.id === base) || !!deCat;
 
   function setCountry(c: string) {
     const opts = plateTypeOptions(c);
@@ -47,7 +70,7 @@ export default function PlateEditor({ value, onChange, canMove }: {
   }
   function setType(id: string) {
     const a = plateArtFor(value.country, id);
-    onChange({ ...value, plateType: a?.stickers?.length ? `${id}-st${mask}` : /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable)-(single|double|us|moto|moto-old)|de-din-(din-)?(single|double|us))$/.test(id) && value.country === "germany" ? `${id}-hu${huVal}` : id });
+    onChange({ ...value, plateType: a?.stickers?.length ? `${id}-st${mask}` : DE_HU.test(id) && value.country === "germany" ? `${id}-hu${huVal}` : id });
   }
   function toggle(bit: number) {
     const next = mask ^ bit;
@@ -84,6 +107,20 @@ export default function PlateEditor({ value, onChange, canMove }: {
           <input className={`${INPUT} font-mono uppercase`} value={value.plateRegion} maxLength={10} onChange={(e) => onChange({ ...value, plateRegion: e.target.value.toUpperCase() })} /></label>
       </div>
 
+      {deCat && deFmt && (
+        <div>
+          <span className={LABEL}>Layout</span>
+          <div className="flex flex-wrap gap-1.5 text-xs">
+            {deFormats(deCat).map((f) => (
+              <button key={f} type="button" aria-pressed={deFmt === f}
+                onClick={() => onChange({ ...value, plateType: `${deCompose(deCat, f)}${DE_HU.test(deCompose(deCat, f)) ? `${isShort && SHORTABLE.test(deCompose(deCat, f)) ? "-short" : ""}-hu${huVal}` : ""}${isNs ? "-ns" : ""}` })}
+                className={`rounded-lg border px-2.5 py-1 transition-colors ${deFmt === f ? "border-indigo-500 bg-indigo-950/50 text-indigo-200" : "border-zinc-800 text-zinc-400 hover:border-zinc-600"}`}>
+                {DE_FORMAT_LABELS[f]}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {value.country === "germany" && (
         <label className="flex items-center gap-2 text-xs text-zinc-400">
           <input type="checkbox" checked={isNs} onChange={(e) => onChange({ ...value, plateType: e.target.checked ? `${pt}-ns` : pt })} className="accent-indigo-500" />
@@ -92,7 +129,7 @@ export default function PlateEditor({ value, onChange, canMove }: {
       )}
       {isDeHu && (
         <div>
-          {base === "de-regular-single" && (
+          {SHORTABLE.test(base) && (
             <label className="mb-3 flex items-center gap-2 text-xs text-zinc-400">
               <input type="checkbox" checked={isShort} onChange={(e) => onChange({ ...value, plateType: deType(e.target.checked, huVal) })} className="accent-indigo-500" />
               Shortened plate — cut to the length of the registration
