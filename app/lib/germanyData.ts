@@ -1009,10 +1009,10 @@ export const GERMANY_BW_BRANCHES: WaterwayBranch[] = [
 
 // ── Season months ─────────────────────────────────────────────────────────────
 export const MONTHS = [
-  { num: "01", label: "Jan" }, { num: "02", label: "Feb" }, { num: "03", label: "Mar" },
-  { num: "04", label: "Apr" }, { num: "05", label: "May" }, { num: "06", label: "Jun" },
-  { num: "07", label: "Jul" }, { num: "08", label: "Aug" }, { num: "09", label: "Sep" },
-  { num: "10", label: "Oct" }, { num: "11", label: "Nov" }, { num: "12", label: "Dec" },
+  { num: "01", label: "01 – January" }, { num: "02", label: "02 – February" }, { num: "03", label: "03 – March" },
+  { num: "04", label: "04 – April" }, { num: "05", label: "05 – May" }, { num: "06", label: "06 – June" },
+  { num: "07", label: "07 – July" }, { num: "08", label: "08 – August" }, { num: "09", label: "09 – September" },
+  { num: "10", label: "10 – October" }, { num: "11", label: "11 – November" }, { num: "12", label: "12 – December" },
 ];
 
 // ── Plate text builder ────────────────────────────────────────────────────────

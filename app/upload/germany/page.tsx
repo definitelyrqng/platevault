@@ -225,6 +225,15 @@ export default function GermanyUploadPage() {
   // ── Seasonal
   const [seasonStart, setSeasonStart] = useState("04");
   const [seasonEnd, setSeasonEnd]     = useState("10");
+  // the season can be typed ("04/11") or picked from the two lists; both stay in sync
+  const [seasonText, setSeasonText]   = useState("04/10");
+  useEffect(() => { setSeasonText(`${seasonStart}/${seasonEnd}`); }, [seasonStart, seasonEnd]);
+  function typeSeason(v: string) {
+    const t = v.replace(/[^0-9/]/g, "").slice(0, 5);
+    setSeasonText(t);
+    const m = t.match(/^(\d{2})\/(\d{2})$/);
+    if (m && +m[1] >= 1 && +m[1] <= 12 && +m[2] >= 1 && +m[2] <= 12) { setSeasonStart(m[1]); setSeasonEnd(m[2]); }
+  }
 
   // ── Transferable
   const [transferSuffix, setTransferSuffix] = useState("0");
@@ -747,6 +756,11 @@ export default function GermanyUploadPage() {
                     {/* Seasonal months */}
                     {(category === "seasonal" || category === "seasonal-h") && (
                       <div className="grid grid-cols-2 gap-3">
+                        <label className="col-span-2 grid gap-1.5">
+                          <span className="text-sm text-zinc-300">Season <span className="text-xs text-zinc-600">(type it as 04/11 — start month first — or pick the months below)</span></span>
+                          <input value={seasonText} onChange={(e) => typeSeason(e.target.value)} placeholder="04/11" inputMode="numeric"
+                            className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono outline-none focus:border-zinc-600" />
+                        </label>
                         <label className="grid gap-1.5">
                           <span className="text-sm text-zinc-300">Season start</span>
                           <select value={seasonStart} onChange={(e) => setSeasonStart(e.target.value)}

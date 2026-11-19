@@ -719,9 +719,9 @@ function splitText(rule: SplitRule, text: string): string[] | null {
     const m = text.trim().match(/^(\S+?)[\s-]+(.+?)(?:\s+(\d\d)\/(\d\d))?$/);
     return m ? [m[1], m[2].replace(/\s+/g, " "), m[3] ?? "", m[4] ?? ""] : null;
   }
-  if (rule === "de-season") {                                                          // B AB 1234 04/10 → B | AB 1234 | 10 | 04 (district, rest, last month over first month)
+  if (rule === "de-season") {                                                          // B AB 1234 04/10 → B | AB 1234 | 04 | 10 (district, rest, first month over last month)
     const m = text.trim().match(/^(\S+)\s+(.+?)(?:\s+(\d\d)\/(\d\d))?$/);
-    return m ? [m[1], m[2], m[4] ?? "", m[3] ?? ""] : null;
+    return m ? [m[1], m[2], m[3] ?? "", m[4] ?? ""] : null;
   }
   if (rule === "de-transit") {                                                         // A 123456 20.04.15 → A | 123456 | 20 | 04 | 15 (district, number, day, month, year of the expiry date)
     const m = text.trim().match(/^(\S+)\s+(\d+(?:\s?[A-Z])?)(?:\s+(\d\d)\.(\d\d)\.(\d\d))?$/);             // export plates: the number ends in one letter (458 C)
