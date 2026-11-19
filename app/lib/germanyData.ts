@@ -804,6 +804,7 @@ export type GermanyCategoryId =
   | "oldtimer"        // REGION-AB1234H
   | "seasonal"        // REGION-AB1234 MM/MM
   | "seasonal-h"      // REGION-AB1234H MM/MM
+  | "seasonal-electric" // REGION-AB1234E MM/MM
   | "electric"        // REGION-AB1234E
   | "transferable"    // REGION-AB1234-0  (suffix 0–9, 0H–9H, 0E–9E)
   | "red"             // REGION-XX1234    (XX = 04/05/06/07)
@@ -833,6 +834,7 @@ export const GERMANY_CATEGORIES: GermanyCategory[] = [
   { id: "oldtimer",        label: "Oldtimer (H)",         emoji: "🏛️", desc: "H-Kennzeichen — historic vehicle 30+ years old",                       group: "special"   },
   { id: "seasonal",        label: "Seasonal",             emoji: "📅", desc: "Saisonkennzeichen — valid only certain months per year",                group: "special"   },
   { id: "seasonal-h",      label: "Seasonal Oldtimer",    emoji: "🗓️", desc: "Seasonal H-Kennzeichen — seasonal historic vehicle plate",              group: "special"   },
+  { id: "seasonal-electric", label: "Seasonal Electric", emoji: "⚡", desc: "Seasonal electric vehicle plate — E suffix plus the season", group: "special"   },
   { id: "electric",        label: "Electric (E)",         emoji: "⚡", desc: "E-Kennzeichen — electric or hydrogen vehicle, E suffix",                group: "special"   },
   { id: "red",             label: "Red Plate",            emoji: "🔴", desc: "Rotes Kennzeichen — dealer / inspection / trade / oldtimer collector",  group: "special"   },
   { id: "official",        label: "Official / Consulate", emoji: "🏢", desc: "Official services & consulates — REGION-123456",                        group: "special"   },
@@ -1067,6 +1069,10 @@ export function buildGermanyPlateText(opts: {
       const s = opts.seasonStart && opts.seasonEnd ? ` ${opts.seasonStart}/${opts.seasonEnd}` : "";
       return rc && sfx ? `${rc}-${sfx}${s}` : rc ? `${rc}-` : "";
     }
+    case "seasonal-electric": {
+      const s = opts.seasonStart && opts.seasonEnd ? ` ${opts.seasonStart}/${opts.seasonEnd}` : "";
+      return rc && sfx ? `${rc}-${sfx}E${s}` : rc ? `${rc}-` : "";
+    }
     case "seasonal-h": {
       const s = opts.seasonStart && opts.seasonEnd ? ` ${opts.seasonStart}/${opts.seasonEnd}` : "";
       return rc && sfx ? `${rc}-${sfx}H${s}` : rc ? `${rc}-` : "";
@@ -1162,6 +1168,11 @@ export const PLATE_TYPE_LABELS: Record<string, string> = {
   "de-seasonal-h-us":       "Seasonal Oldtimer — US-Style",
   "de-seasonal-h-moto":     "Seasonal Oldtimer — Motorcycle",
   "de-seasonal-h":          "Seasonal Oldtimer (Saison-H)",
+  "de-seasonal-electric-single": "Seasonal Electric — Single-line",
+  "de-seasonal-electric-double": "Seasonal Electric — Two-line",
+  "de-seasonal-electric-us":     "Seasonal Electric — US-Style",
+  "de-seasonal-electric-moto":   "Seasonal Electric — Motorcycle",
+  "de-seasonal-electric":        "Seasonal Electric",
   "de-electric-single":     "Electric — Single-line (E-Kennzeichen)",
   "de-electric-double":     "Electric — Two-line (E-Kennzeichen)",
   "de-electric-us":         "Electric — US-Style (E-Kennzeichen)",

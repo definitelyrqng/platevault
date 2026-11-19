@@ -29,6 +29,7 @@ const EXACT: Record<string, Record<string, string>> = {
 /** Category part of the ID → name. Longest keys are matched first. */
 const CATEGORIES: Record<string, string> = {
   "seasonal-h":    "Seasonal Oldtimer",
+  "seasonal-electric": "Seasonal Electric",
   "transit-5day":  "Short-term",
   "electric-vanity": "Electric Personalised",
   "federal-bd":    "Federal Agency",

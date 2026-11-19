@@ -501,11 +501,11 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
     if (mil) return PLATE_ART[`germany:military${mil[1] ? "-nato" : ""}${mil[2] === "double" ? "-two" : mil[2] === "us" ? "-us" : mil[2] === "moto" ? "-moto" : ""}`] ?? null;
     const red = (plateType ?? "").match(/^de-red-\d\d(?:-(single|double|us|moto|din-single|din-double|din-us))?$/);                    // red plates
     if (red) return PLATE_ART[`germany:red${{ double: "-two", us: "-us", moto: "-moto", "din-single": "-din", "din-double": "-din-two", "din-us": "-din-us" }[red[1] ?? ""] ?? ""}`] ?? null;
-    const reg = (plateType ?? "").match(/^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable|official|state-authority|diplomatic)-(double|us|moto|moto-old)(-hu(\d\d|0))?$/);      // two-row, US-size and motorcycle plates
+    const reg = (plateType ?? "").match(/^de-(regular|electric|oldtimer|seasonal|seasonal-h|seasonal-electric|transferable|official|state-authority|diplomatic)-(double|us|moto|moto-old)(-hu(\d\d|0))?$/);      // two-row, US-size and motorcycle plates
     if (reg && /^seasonal/.test(reg[1])) return PLATE_ART[`germany:${reg[2] === "double" ? "two" : reg[2]}-season`] ?? null;
     if (reg) return PLATE_ART[reg[2] === "double" ? "germany:two" : reg[2] === "us" ? "germany:us" : reg[2] === "moto" ? "germany:moto" : "germany:moto-old"] ?? null;
-    if (/^de-seasonal(-h)?(-single)?(-hu(\d\d|0))?$/.test(plateType ?? "")) return PLATE_ART["germany:season"] ?? null;
-    return !plateType || /^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable|official|state-authority|diplomatic)(-single)?(-short)?(-hu(\d\d|0))?$/.test(plateType) ? PLATE_ART["germany:single"] ?? null : null;
+    if (/^de-seasonal(-h|-electric)?(-single)?(-hu(\d\d|0))?$/.test(plateType ?? "")) return PLATE_ART["germany:season"] ?? null;
+    return !plateType || /^de-(regular|electric|oldtimer|seasonal|seasonal-h|seasonal-electric|transferable|official|state-authority|diplomatic)(-single)?(-short)?(-hu(\d\d|0))?$/.test(plateType) ? PLATE_ART["germany:single"] ?? null : null;
   }
   if (key === "austria") {
     const k = austriaArtKey(plateType);

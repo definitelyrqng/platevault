@@ -159,7 +159,7 @@ function RegionPicker({
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 /** Plate kinds drawn with the realistic single-row artwork, and the colours of the inspection stickers by year. */
-const HU_TYPES = /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable|official|state-authority|diplomatic)-(single|double|us|moto|moto-old)|de-(din|official|state-authority|diplomatic)-din-(single|double|us))$/;
+const HU_TYPES = /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|seasonal-electric|transferable|official|state-authority|diplomatic)-(single|double|us|moto|moto-old)|de-(din|official|state-authority|diplomatic)-din-(single|double|us))$/;
 const OLD_MOTO: string[] = ["regular"];                // the old motorcycle plate has no seasonal, historic (H), electric, transferable, 5-day or export versions
 const HU_YEARS = ["19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31"];
 const HU_COLORS = ["#1ab0ee", "#f5ef12", "#d85c4c", "#f7a0b8", "#18b082", "#e89000"];
@@ -175,6 +175,7 @@ const CATEGORY_TILE: Record<string, { type: string; text: string }> = {
   oldtimer:          { type: "de-oldtimer-single-hu25",      text: "B-AB123H" },
   seasonal:          { type: "de-seasonal-single-hu25",      text: "B-AB123 04/10" },
   "seasonal-h":      { type: "de-seasonal-h-single-hu25",    text: "B-AB12H 04/10" },
+  "seasonal-electric": { type: "de-seasonal-electric-single-hu25", text: "B-AB12E 04/10" },
   electric:          { type: "de-electric-single-hu25",      text: "B-AB123E" },
   red:               { type: "de-red-06-single",             text: "B-06123" },
   official:          { type: "de-official-single-hu25",      text: "B-1234" },
@@ -310,8 +311,8 @@ export default function GermanyUploadPage() {
     plateSuffix: plateFormat === "moto-old" ? plateSuffix.slice(0, 3) : plateFormat === "moto" ? plateSuffix.slice(0, 4) : plateSuffix,
     date: category === "transit-5day" ? transitDate : category === "export" ? exportDate : undefined,
     exportCheckLetter: category === "export" ? exportCheckLetter : undefined,
-    seasonStart: (category === "seasonal" || category === "seasonal-h") ? seasonStart : undefined,
-    seasonEnd:   (category === "seasonal" || category === "seasonal-h") ? seasonEnd   : undefined,
+    seasonStart: (category === "seasonal" || category === "seasonal-h" || category === "seasonal-electric") ? seasonStart : undefined,
+    seasonEnd:   (category === "seasonal" || category === "seasonal-h" || category === "seasonal-electric") ? seasonEnd   : undefined,
     transferSuffix: category === "transferable" ? transferSuffix : undefined,
     redCode:  category === "red" ? redCode : undefined,
     numbers:  category === "red" ? redNumbers
@@ -453,7 +454,7 @@ export default function GermanyUploadPage() {
   }
 
   // ── Helpers
-  const isRegionBased = ["regular","din","transit-5day","export","oldtimer","seasonal","seasonal-h","electric","transferable","red","official"].includes(category);
+  const isRegionBased = ["regular","din","transit-5day","export","oldtimer","seasonal","seasonal-h","seasonal-electric","electric","transferable","red","official"].includes(category);
   const isDIN     = category === "din";
   const regularFormats = GERMANY_PLATE_FORMATS.filter((f) => f.group === "regular");
   // the old motorcycle plate (until 2011) exists only for regular and seasonal plates: no historic, transferable, electric, 5-day or export versions
@@ -492,6 +493,7 @@ export default function GermanyUploadPage() {
     category === "oldtimer"       ? "B-AB1234H" :
     category === "seasonal"       ? "B-AB1234 04/10" :
     category === "seasonal-h"     ? "B-AB1234H 04/10" :
+    category === "seasonal-electric" ? "B-AB123E 04/10" :
     category === "electric"       ? "B-AB1234E" :
     category === "transferable"   ? "B-AB1234-0" :
     category === "red"            ? `ND-${redCode}${redNumbers || "485"}` :
@@ -754,7 +756,7 @@ export default function GermanyUploadPage() {
                     )}
 
                     {/* Seasonal months */}
-                    {(category === "seasonal" || category === "seasonal-h") && (
+                    {(category === "seasonal" || category === "seasonal-h" || category === "seasonal-electric") && (
                       <div className="grid grid-cols-2 gap-3">
                         <label className="col-span-2 grid gap-1.5">
                           <span className="text-sm text-zinc-300">Season <span className="text-xs text-zinc-600">(type it as 04/11 — start month first — or pick the months below)</span></span>
@@ -1235,6 +1237,10 @@ export default function GermanyUploadPage() {
                   {category === "seasonal-h" && <>
                     <p><span className="font-mono text-zinc-200">B-AB1234H 04/10</span></p>
                     <p className="text-zinc-600">Historic + seasonal · H before season</p>
+                  </>}
+                  {category === "seasonal-electric" && <>
+                    <p><span className="font-mono text-zinc-200">B-AB123E 04/10</span></p>
+                    <p className="text-zinc-600">E suffix directly attached · season months on the right</p>
                   </>}
                   {category === "electric" && <>
                     <p><span className="font-mono text-zinc-200">B-AB1234E</span></p>
