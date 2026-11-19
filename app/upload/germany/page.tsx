@@ -1096,13 +1096,13 @@ export default function GermanyUploadPage() {
 
                 {/* ── Tags ── */}
                 <div className="pt-2 border-t border-zinc-800 space-y-2">
-                  <div className="text-sm text-zinc-300">Tags <span className="text-zinc-600 text-xs">(optional, up to 6)</span></div>
+                  <div className="text-sm text-zinc-300">Tags <span className="text-zinc-600 text-xs">(optional)</span></div>
                   <div>
                     <p className="text-xs font-medium uppercase tracking-wider text-zinc-500 mb-1.5">Transport company</p>
                     <CompanyPicker value={companyId} onChange={(id) => setCompanyId(id)} />
                   </div>
                   
-                  <TagPicker selected={tags} onChange={setTags} max={6} />
+                  <TagPicker selected={tags} onChange={setTags} />
                 </div>
 
               </section>

@@ -362,7 +362,7 @@ export default function AlbaniaUploadPage() {
                     <CompanyPicker value={companyId} onChange={(id) => setCompanyId(id)} />
                   </div>
                   
-                  <TagPicker selected={tags} onChange={setTags} max={6} />
+                  <TagPicker selected={tags} onChange={setTags} />
                 </div>
               </div>
             </section>

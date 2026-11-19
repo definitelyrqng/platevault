@@ -216,7 +216,7 @@ export default function SpotModPanel({ uploadId, role, initial, initialHidden }:
             </>
           )}
 
-          <div><span className={LABEL}>Tags</span><TagPicker selected={f.tags} onChange={(t) => set("tags", t)} max={6} /></div>
+          <div><span className={LABEL}>Tags</span><TagPicker selected={f.tags} onChange={(t) => set("tags", t)} /></div>
 
           <div className="flex gap-2 border-t border-zinc-800 pt-4">
             <button type="button" onClick={save} disabled={busy}

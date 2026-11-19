@@ -485,10 +485,10 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
   }
   if (key === "germany") {
     // single-row plates of the ordinary kinds (E, H, seasonal and exchange plates look the same); the other kinds are not drawn yet
-    const ex = (plateType ?? "").match(/^de-export-(single|double|us)$/);                          // export plates: the 5-day plate with a red strip
-    if (ex) return PLATE_ART[ex[1] === "single" ? "germany:export" : ex[1] === "double" ? "germany:export-two" : "germany:export-us"] ?? null;
-    const tr = (plateType ?? "").match(/^de-transit-5day-(single|double|us)$/);                    // 5-day plates
-    if (tr) return PLATE_ART[tr[1] === "single" ? "germany:transit" : tr[1] === "double" ? "germany:transit-two" : "germany:transit-us"] ?? null;
+    const ex = (plateType ?? "").match(/^de-export(?:-(single|double|us))?$/);                          // export plates: the 5-day plate with a red strip
+    if (ex) return PLATE_ART[ex[1] === "double" ? "germany:export-two" : ex[1] === "us" ? "germany:export-us" : "germany:export"] ?? null;
+    const tr = (plateType ?? "").match(/^de-transit-5day(?:-(single|double|us))?$/);                    // 5-day plates
+    if (tr) return PLATE_ART[tr[1] === "double" ? "germany:transit-two" : tr[1] === "us" ? "germany:transit-us" : "germany:transit"] ?? null;
     const fed = (plateType ?? "").match(/^de-federal-(?:bd|bp|bw|thw)(?:-(.+))?$/);                // federal agencies: the official plate layouts, split before the serial number
     if (fed) { const fa = plateArtFor(country, `de-official-${fed[1] ?? "single"}`); return fa ? { ...fa, split: "de-federal" } : null; }
     const din = (plateType ?? "").match(/^de-(?:din-(?:din-)?|(?:official|state-authority|diplomatic)-din-)(single|double|us)(-hu(\d\d|0))?$/);              // historical DIN plates
@@ -504,7 +504,7 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
     const reg = (plateType ?? "").match(/^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable|official|state-authority|diplomatic)-(double|us|moto|moto-old)(-hu(\d\d|0))?$/);      // two-row, US-size and motorcycle plates
     if (reg && /^seasonal/.test(reg[1])) return PLATE_ART[`germany:${reg[2] === "double" ? "two" : reg[2]}-season`] ?? null;
     if (reg) return PLATE_ART[reg[2] === "double" ? "germany:two" : reg[2] === "us" ? "germany:us" : reg[2] === "moto" ? "germany:moto" : "germany:moto-old"] ?? null;
-    if (/^de-seasonal(-h)?-single(-hu(\d\d|0))?$/.test(plateType ?? "")) return PLATE_ART["germany:season"] ?? null;
+    if (/^de-seasonal(-h)?(-single)?(-hu(\d\d|0))?$/.test(plateType ?? "")) return PLATE_ART["germany:season"] ?? null;
     return !plateType || /^de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable|official|state-authority|diplomatic)(-single)?(-short)?(-hu(\d\d|0))?$/.test(plateType) ? PLATE_ART["germany:single"] ?? null : null;
   }
   if (key === "austria") {

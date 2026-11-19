@@ -8,7 +8,7 @@ interface Props {
   max?: number;
 }
 
-export default function TagPicker({ selected, onChange, max = 6 }: Props) {
+export default function TagPicker({ selected, onChange, max = Infinity }: Props) {
   function toggle(id: string) {
     if (selected.includes(id)) {
       onChange(selected.filter((t) => t !== id));
@@ -52,7 +52,7 @@ export default function TagPicker({ selected, onChange, max = 6 }: Props) {
         );
       })}
       {selected.length > 0 && (
-        <p className="text-xs text-zinc-500">{selected.length}/{max} selected</p>
+        <p className="text-xs text-zinc-500">{selected.length} selected</p>
       )}
     </div>
   );
