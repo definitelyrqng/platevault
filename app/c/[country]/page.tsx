@@ -5,7 +5,8 @@ import { getCountryMeta } from "@/app/lib/countries";
 import { plateTypeLabel } from "@/app/lib/plateTypes";
 import { catalogPlateTypes } from "@/app/lib/countryPlateTypes";
 import { prisma } from "@/app/lib/prisma";
-import { GERMANY_REGIONS } from "@/app/lib/germanyData";
+import { isRegionMapCountry, REGION_FROM_TEXT, regionCodeOf } from "@/app/lib/regionMaps";
+import { regionNamesOf } from "@/app/lib/regionMapsServer";
 import { cookies } from "next/headers";
 import LikeButton from "./LikeButton";
 
@@ -62,11 +63,16 @@ export default async function CountryPage({
   const toD = validDate(sp.to);
   const regionQ = (sp.region ?? "").trim().slice(0, 120).toUpperCase();
   const regionList = regionQ.split(",").map((r) => r.trim()).filter(Boolean);       // one code, or several for a district with more than one
-  const regionName = regionList.length && country === "germany" ? [...new Set(regionList.map((c) => GERMANY_REGIONS.find((r) => r.code === c)?.name).filter(Boolean))].join(" / ") || null : null;
+  const regionName = regionList.length ? regionNamesOf(country, regionList).join(" / ") || null : null;
   const lookupActive = !!(q || brandQ || userQ || fromD || toD || regionQ);
   const where: Record<string, unknown> = { ...base };
   if (selectedTypes.length) where.plateType = { in: selectedTypes };
-  if (regionList.length) where.plateRegion = { in: regionList };
+  if (regionList.length) {
+    if (REGION_FROM_TEXT.has(country)) {                               // these countries do not store a region: read it from the plate
+      const cand = await prisma.upload.findMany({ where: base, select: { id: true, plateText: true, plateRegion: true } });
+      where.id = { in: cand.filter((u) => regionList.includes(regionCodeOf(country, u.plateText, u.plateRegion) ?? "")).map((u) => u.id) };
+    } else where.plateRegion = { in: regionList };
+  }
   if (q) where.plateText = { contains: q, mode: "insensitive" };
   if (brandQ) where.brand = { contains: brandQ, mode: "insensitive" };
   if (userQ) where.user = { username: { contains: userQ, mode: "insensitive" } };
@@ -178,8 +184,8 @@ export default async function CountryPage({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {country === "germany" && (
-            <a href="/c/germany/map"
+          {isRegionMapCountry(country) && (
+            <a href={`/c/${country}/map`}
               className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-zinc-100 transition-colors hover:border-indigo-500 hover:text-white">
               🗺 Map view
             </a>

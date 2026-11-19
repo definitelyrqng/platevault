@@ -3,25 +3,34 @@ import type { Metadata } from "next";
 import Flag from "@/app/components/Flag";
 import { getCountryMeta } from "@/app/lib/countries";
 import { prisma } from "@/app/lib/prisma";
-import GermanyMap from "./GermanyMap";
+import { isRegionMapCountry, REGION_MAP_FILE, REGION_UNIT, regionCodeOf } from "@/app/lib/regionMaps";
+import RegionMap from "./RegionMap";
 
 export const revalidate = 300;
 
-export const metadata: Metadata = { title: "Germany plate map", description: "Every German district on one map: click a district to see the plates spotted there." };
+export async function generateMetadata({ params }: { params: Promise<{ country: string }> }): Promise<Metadata> {
+  const { country } = await params;
+  return isRegionMapCountry(country.toLowerCase())
+    ? { title: REGION_UNIT[country.toLowerCase() as keyof typeof REGION_UNIT].title, description: "Every region on one map: click one to see the plates spotted there." }
+    : {};
+}
 
 export default async function CountryMapPage({ params }: { params: Promise<{ country: string }> }) {
   const { country: raw } = await params;
   const country = raw.toLowerCase();
-  if (country !== "germany") notFound();            // only Germany has a map for now
+  if (!isRegionMapCountry(country)) notFound();
   const meta = getCountryMeta(country);
+  const unit = REGION_UNIT[country];
 
-  const groups = await prisma.upload.groupBy({
-    by: ["plateRegion"],
-    where: { country, deletedAt: null, hidden: false, plateRegion: { not: null } },
-    _count: { id: true },
+  const uploads = await prisma.upload.findMany({
+    where: { country, deletedAt: null, hidden: false },
+    select: { plateText: true, plateRegion: true },
   });
   const counts: Record<string, number> = {};
-  for (const g of groups) if (g.plateRegion) counts[g.plateRegion.toUpperCase()] = (counts[g.plateRegion.toUpperCase()] ?? 0) + g._count.id;
+  for (const u of uploads) {
+    const code = regionCodeOf(country, u.plateText, u.plateRegion);
+    if (code) counts[code] = (counts[code] ?? 0) + 1;
+  }
 
   return (
     <main className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6">
@@ -36,13 +45,13 @@ export default async function CountryMapPage({ params }: { params: Promise<{ cou
         <div className="flex items-center gap-4">
           <span className="leading-none shadow-md ring-1 ring-black/30"><Flag iso={meta.iso} size="lg" /></span>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">Plate map of {meta.name}</h1>
-            <p className="mt-1 text-sm text-zinc-400">Every district, coloured by how many plates we have from there.</p>
+            <h1 className="text-3xl font-bold tracking-tight text-white">{unit.title}</h1>
+            <p className="mt-1 text-sm text-zinc-400">Every {unit.singular}, coloured by how many plates we have from there.</p>
           </div>
         </div>
         <a href={`/c/${country}`} className="text-sm text-zinc-400 transition-colors hover:text-white">All {meta.name} plates →</a>
       </div>
-      <GermanyMap counts={counts} />
+      <RegionMap country={country} dataUrl={REGION_MAP_FILE[country]} counts={counts} unit={unit} />
     </main>
   );
 }

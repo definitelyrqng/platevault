@@ -843,8 +843,9 @@ export function plateLayout(country: string, rawText: string, height: number, pl
         : row.seal === "right" ? (texts.length >= 1 ? "right" : null)
         : (texts.length === 2 ? "between" : null);
       const sealH = mode && (stateSrc || art.sealAspect) ? rowH * (art.sealH ?? 0.8) : 0;
-      const sealD = !mode ? 0 : stateSrc ? sealH * sealAspect(stateSrc) : art.sealAspect ? sealH * art.sealAspect : rowH * SEAL_DIAMETER;
-      const gap = mode ? rowH * (row.gap ?? SEAL_GAP) : 0;
+      const noSealGap = noSeals && !art.huSeals?.dash;                                            // "no seals": the district and the rest sit a normal word apart
+      const sealD = !mode || noSealGap ? 0 : stateSrc ? sealH * sealAspect(stateSrc) : art.sealAspect ? sealH * art.sealAspect : rowH * SEAL_DIAMETER;
+      const gap = mode ? rowH * (noSealGap ? 0.16 : (row.gap ?? SEAL_GAP)) : 0;
       const gaps = mode === "between" ? 2 : mode === "left" || mode === "right" ? 1 : 0;   // gaps touching the seal
       const ems = texts.map((t) => textWidthEm(art.dots ? t.replace(/-/g, "·") : t, rowFont, art.condense ?? (rowFont === "dd" ? 1 : CONDENSE)) + (art.tracking ?? 0) * [...t].length + (art.space !== undefined && rowFont === "fe" ? [...t].filter((c) => c === " ").length * (art.space - 0.5) * (art.condense ?? CONDENSE) : 0));
       return { row, texts, rowH, mode, sealD, sealH, gap, gaps, ems, rowFont, rowCap, avail: (row.x1 - row.x0) * s };

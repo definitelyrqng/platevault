@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-type Area = { n: string; c: string[]; s: string; k: "kreis" | "stadt"; d: string };
+type Area = { n: string; c: string[]; s?: string; k?: string; d: string };
 type MapData = { w: number; h: number; areas: Area[] };
 
 const STATES: Record<string, string> = {
@@ -19,7 +19,7 @@ function colour(count: number, max: number) {
   return `hsl(${238 - t * 18} ${55 + t * 25}% ${l}%)`;
 }
 
-export default function GermanyMap({ counts }: { counts: Record<string, number> }) {
+export default function RegionMap({ country, dataUrl, counts, unit }: { country: string; dataUrl: string; counts: Record<string, number>; unit: { singular: string; plural: string } }) {
   const [data, setData] = useState<MapData | null>(null);
   const [hover, setHover] = useState<{ a: Area; x: number; y: number } | null>(null);
   const [query, setQuery] = useState("");
@@ -28,8 +28,8 @@ export default function GermanyMap({ counts }: { counts: Record<string, number> 
   const drag = useRef<{ px: number; py: number; vx: number; vy: number; moved: boolean } | null>(null);
 
   useEffect(() => {
-    fetch("/data/germany-districts.json").then((r) => r.json()).then((d: MapData) => { setData(d); setView({ x: 0, y: 0, w: d.w, h: d.h }); }).catch(() => {});
-  }, []);
+    fetch(dataUrl).then((r) => r.json()).then((d: MapData) => { setData(d); setView({ x: 0, y: 0, w: d.w, h: d.h }); }).catch(() => {});
+  }, [dataUrl]);
 
   const countOf = useMemo(() => (a: Area) => a.c.reduce((n, c) => n + (counts[c] ?? 0), 0), [counts]);
   const max = useMemo(() => (data ? Math.max(0, ...data.areas.map(countOf)) : 0), [data, countOf]);
@@ -49,7 +49,7 @@ export default function GermanyMap({ counts }: { counts: Record<string, number> 
   const total = useMemo(() => Object.values(counts).reduce((n, c) => n + c, 0), [counts]);
   const covered = useMemo(() => groups.filter((g) => g.n > 0).length, [groups]);
 
-  const hrefOf = (a: Area) => `/c/germany?region=${encodeURIComponent(a.c.join(","))}`;
+  const hrefOf = (a: Area) => `/c/${country}?region=${encodeURIComponent(a.c.join(","))}`;
 
   function zoom(factor: number, cx?: number, cy?: number) {
     if (!view || !data) return;
@@ -90,7 +90,7 @@ export default function GermanyMap({ counts }: { counts: Record<string, number> 
           <button type="button" aria-label="Reset" onClick={() => setView({ x: 0, y: 0, w: data.w, h: data.h })} className="h-9 w-9 rounded-lg border border-zinc-700 bg-zinc-900/90 text-xs text-zinc-300 hover:border-zinc-500">⤢</button>
         </div>
 
-        <div ref={wrap} className="aspect-[584/785] max-h-[78vh] w-full cursor-grab touch-none select-none active:cursor-grabbing sm:mx-auto sm:max-w-[640px]"
+        <div ref={wrap} className="mx-auto w-full cursor-grab touch-none select-none active:cursor-grabbing" style={{ aspectRatio: `${data.w} / ${data.h}`, maxWidth: `min(100%, calc(78vh * ${data.w / data.h}))` }}
           onPointerDown={(e) => { drag.current = { px: e.clientX, py: e.clientY, vx: view.x, vy: view.y, moved: false }; }}
           onPointerMove={(e) => {
             const d = drag.current;
@@ -103,7 +103,7 @@ export default function GermanyMap({ counts }: { counts: Record<string, number> 
           }}
           onPointerUp={() => { setTimeout(() => { drag.current = null; }, 0); }}
           onPointerLeave={() => setHover(null)}>
-          <svg viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`} className="h-full w-full" role="img" aria-label="Map of German districts">
+          <svg viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`} className="h-full w-full" preserveAspectRatio="xMidYMid meet" role="img" aria-label={`Map of ${country}`}>
             {data.areas.map((a, i) => {
               const n = countOf(a);
               const hit = matches(a);
@@ -125,13 +125,13 @@ export default function GermanyMap({ counts }: { counts: Record<string, number> 
             <div className="text-sm font-semibold text-white">{hover.a.n}</div>
             <div className="mt-0.5 font-mono text-zinc-400">{hover.a.c.join(" · ")}</div>
             <div className="mt-1 text-zinc-300">{countOf(hover.a) ? <><strong className="text-indigo-300">{countOf(hover.a)}</strong> spot{countOf(hover.a) === 1 ? "" : "s"}</> : "No spots yet"}</div>
-            <div className="text-zinc-500">{STATES[hover.a.s]}</div>
+            {country === "germany" && hover.a.s && <div className="text-zinc-500">{STATES[hover.a.s]}</div>}
           </div>
         )}
 
         {/* legend */}
         <div className="flex items-center justify-between gap-3 border-t border-zinc-800 bg-zinc-900/60 px-4 py-2 text-xs text-zinc-500">
-          <span>Click a district to see its plates · scroll to zoom · drag to move</span>
+          <span>Click a {unit.singular} to see its plates · scroll to zoom · drag to move</span>
           <span className="flex items-center gap-1.5">
             <span className="h-2.5 w-2.5 rounded-sm" style={{ background: colour(0, max) }} /> none
             <span className="ml-2 h-2.5 w-16 rounded-sm" style={{ background: `linear-gradient(90deg, ${colour(1, max)}, ${colour(max, max)})` }} /> more
@@ -143,7 +143,7 @@ export default function GermanyMap({ counts }: { counts: Record<string, number> 
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
           <div className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Coverage</div>
           <div className="mt-2 text-3xl font-bold tabular-nums text-white">{covered}<span className="text-lg font-medium text-zinc-500"> / {groups.length}</span></div>
-          <div className="text-sm text-zinc-400">districts spotted · {total.toLocaleString()} plates on the map</div>
+          <div className="text-sm text-zinc-400">{unit.plural} spotted · {total.toLocaleString()} plates on the map</div>
           <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-zinc-800"><div className="h-full rounded-full bg-indigo-500" style={{ width: `${(covered / groups.length) * 100}%` }} /></div>
         </div>
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
@@ -161,7 +161,7 @@ export default function GermanyMap({ counts }: { counts: Record<string, number> 
             </ul>
           )}
         </div>
-        <p className="px-1 text-[11px] leading-relaxed text-zinc-600">Map data: © GeoBasis-DE / BKG (Datenlizenz Deutschland – Namensnennung 2.0), simplified.</p>
+        <p className="px-1 text-[11px] leading-relaxed text-zinc-600">{country === "germany" ? "Map data: © GeoBasis-DE / BKG (Datenlizenz Deutschland – Namensnennung 2.0), simplified." : country === "austria" ? "Map data: Statistik Austria, CC BY 4.0 (via ginseng666), simplified." : "Map data: Natural Earth (public domain), simplified."}</p>
       </aside>
     </div>
   );
