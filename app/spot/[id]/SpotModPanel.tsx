@@ -20,7 +20,7 @@ type Fields = {
   color: string; badge: string; companyId: string | null; tags: string[];
 };
 type View = null | "edit" | "hide" | "delete";
-type Row = { id: number; name: string };
+type Row = { id: number; name: string; gapBefore?: boolean };
 
 const COUNTRIES = Object.entries(COUNTRY_META).map(([slug, m]) => ({ slug, name: m.name })).sort((a, b) => a.name.localeCompare(b.name));
 
@@ -198,7 +198,7 @@ export default function SpotModPanel({ uploadId, role, initial, initialHidden }:
                   <select className={INPUT} value={f.generation} disabled={!f.model} onChange={(e) => set("generation", e.target.value)}>
                     <option value="">—</option>
                     {f.generation && !gens.some((g) => g.name === f.generation) && <option value={f.generation}>{f.generation}</option>}
-                    {gens.map((g) => <option key={g.id} value={g.name}>{g.name}</option>)}
+                    {gens.map((g) => [g.gapBefore ? <option key={"gap" + g.id} disabled>{" "}</option> : null, <option key={g.id} value={g.name}>{g.name}</option>])}
                   </select></label>
               </div>
 

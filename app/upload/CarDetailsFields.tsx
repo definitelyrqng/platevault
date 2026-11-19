@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 
 type Brand = { id: number; name: string };
 type Model = { id: number; name: string };
-type Gen   = { id: number; name: string };
+type Gen   = { id: number; name: string; gapBefore?: boolean };
 
 type Props = {
   onChange: (details: {
@@ -118,7 +118,7 @@ export default function CarDetailsFields({ onChange }: Props) {
           <Label>Generation</Label>
           <select value={generationId} onChange={handleGenChange} disabled={!modelId} className={FIELD}>
             <option value="">{modelId && generations.length === 0 ? "No generations for this model (optional)" : "Select generation... (optional)"}</option>
-            {generations.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+            {generations.map((g) => [g.gapBefore ? <option key={"gap" + g.id} disabled>{" "}</option> : null, <option key={g.id} value={g.id}>{g.name}</option>])}
           </select>
         </div>
 

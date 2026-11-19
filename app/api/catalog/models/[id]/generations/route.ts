@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
+import { orderGenerations } from "@/app/lib/generationOrder";
 
 async function getSessionUser() {
   const cookieStore = await cookies();
@@ -21,7 +22,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     where: { modelId: Number(id) },
     orderBy: { name: "asc" },
   });
-  return NextResponse.json(generations);
+  return NextResponse.json(orderGenerations(generations as { name: string }[]));
 }
 
 // POST /api/catalog/models/[id]/generations — add generation (superadmin only)

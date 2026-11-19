@@ -1,3 +1,4 @@
+import { orderGenerations } from "@/app/lib/generationOrder";
 import { prisma } from "@/app/lib/prisma";
 import { plateTypeLabel } from "@/app/lib/plateTypes";
 import { getSessionUser } from "@/app/lib/session";
@@ -182,7 +183,7 @@ export default async function ModelPage({ params, searchParams }: {
   /* ───────────────────────────────────────────────────────────────────────────
      Gallery view — every generation of the model, newest spots first
      ─────────────────────────────────────────────────────────────────────────── */
-  const gens = modelData.generations;
+  const gens = orderGenerations(modelData.generations);                      // newest first
   const spots = await prisma.upload.findMany({
     where: { brand: brandData.name, model: modelData.name, deletedAt: null, hidden: false },
     orderBy: { createdAt: "desc" },
