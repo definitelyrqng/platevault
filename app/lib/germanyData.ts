@@ -1211,3 +1211,9 @@ export const PLATE_TYPE_LABELS: Record<string, string> = {
 // federal agency plates exist in the same formats as the official plates
 for (const sub of ["bd", "bp", "bw", "thw"]) for (const f of ["single", "double", "us", "moto", "din-single", "din-double", "din-us"]) PLATE_TYPE_LABELS[`de-federal-${sub}-${f}`] = `${PLATE_TYPE_LABELS[`de-federal-${sub}`]} — ${f.replace("din-", "DIN ")}`;
 for (const f of ["moto", "din-single", "din-double", "din-us"]) PLATE_TYPE_LABELS[`de-diplomatic-${f}`] ??= `Diplomatic — ${f.replace("din-", "DIN ")}`;
+// red plates (04 / 05 / 06 / 07) and Bundeswehr / NATO plates exist in the same formats as the others
+for (const code of ["04", "05", "06", "07"]) for (const f of ["single", "double", "us", "moto", "din-single", "din-double", "din-us"]) PLATE_TYPE_LABELS[`de-red-${code}-${f}`] = `${PLATE_TYPE_LABELS[`de-red-${code}`]} — ${f.replace("din-", "DIN ")}`;
+for (const f of ["single", "double", "us", "moto"]) {
+  PLATE_TYPE_LABELS[`de-military-${f}`] ??= `Bundeswehr (Y) — ${f}`;
+  PLATE_TYPE_LABELS[`de-military-nato-${f}`] ??= `NATO (X) — ${f}`;
+}

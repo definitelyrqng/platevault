@@ -13,8 +13,8 @@ const INPUT = "h-9 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2.5 t
 const LABEL = "mb-1 block text-[11px] font-medium uppercase tracking-wide text-zinc-500";
 
 /** German plate types that are drawn with a state seal and an inspection sticker. */
-const DE_HU = /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable|official|state-authority|diplomatic)-(single|double|us|moto|moto-old)|de-(din|official|state-authority|diplomatic)-din-(single|double|us))$/;
-const DE_CATS = "regular|electric|oldtimer|seasonal|seasonal-h|transferable|official|state-authority|diplomatic";
+const DE_HU = /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|transferable|official|state-authority|diplomatic|federal-(?:bd|bp|bw|thw))-(single|double|us|moto|moto-old)|de-(din|official|state-authority|diplomatic|federal-(?:bd|bp|bw|thw))-din-(single|double|us))$/;
+const DE_CATS = "regular|electric|oldtimer|seasonal|seasonal-h|transferable|official|state-authority|diplomatic|red-\\d\\d|federal-(?:bd|bp|bw|thw)|military(?:-nato)?";
 const DE_FORMAT_LABELS: Record<string, string> = {
   single: "Single-line", double: "Two-line", us: "US-style", moto: "Motorcycle", "moto-old": "Motorcycle (old, until 2011)",
   "din-single": "Single-line DIN", "din-double": "Two-line DIN", "din-us": "US-style DIN",
@@ -23,7 +23,7 @@ const DE_FORMAT_LABELS: Record<string, string> = {
 function deFormats(cat: string): string[] {
   if (cat === "din") return ["din-single", "din-double", "din-us"];
   if (cat === "regular") return ["single", "moto-old", "double", "us", "moto"];
-  if (cat === "official" || cat === "state-authority" || cat === "diplomatic") return ["single", "double", "us", "moto", "din-single", "din-double", "din-us"];
+  if (/^(official|state-authority|diplomatic|red-\d\d|federal-)/.test(cat)) return ["single", "double", "us", "moto", "din-single", "din-double", "din-us"];
   return ["single", "double", "us", "moto"];
 }
 const deCompose = (cat: string, fmt: string) => (cat === "din" ? `de-din-${fmt.startsWith("din-") ? fmt : "din-" + fmt}` : `de-${cat}-${fmt}`);
