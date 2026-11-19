@@ -118,7 +118,7 @@ export type PlateArt = {
   /** Lettering colour (default near-black). */
   textColor?: string;
   /** Germany (DIN two-row / US): seals at fixed spots (art pixels): the state seal or the inspection sticker. */
-  fixed?: { kind: "state" | "hu" | "temp" | "w" | "img"; x: number; y: number; d: number; src?: string }[];
+  fixed?: { kind: "state" | "hu" | "temp" | "w" | "img"; x: number; y: number; d: number; src?: string; fy?: number }[];
   /** Germany 5-day plates: the blue seal in the gap between the district and the number (art-pixel centre height and diameter). */
   tempSeal?: { y: number; d: number };
   /** Stamped lettering and raised seals: draw a soft shadow under them. */
@@ -269,7 +269,7 @@ export const PLATE_ART: Record<string, PlateArt> = {
   "germany:transferable-moto": { src: "/plates/germany/transferable-moto.png", w: 1160, h: 1000, rows: [{ y0: 60, y1: 340, x0: 230, x1: 860, slots: 1 }, { y0: 690, y1: 970, x0: 50, x1: 850, slots: 1 }, { y0: 690, y1: 970, x0: 940, x1: 1140, slots: 1, own: true }], split: "de-wechsel", fill: 0.86, condense: 0.9, tracking: 0.015, emboss: true, fixed: [{ kind: "state", x: 420, y: 500, d: 180 }, { kind: "w", x: 600, y: 500, d: 90 }, { kind: "hu", x: 1040, y: 330, d: 170 }] },
   // ── Germany, regular two-row, US-size and motorcycle plates: euroband top-left, inspection sticker and state seal at fixed spots ──
   "germany:us": { src: "/plates/germany/us.png", w: 1000, h: 590, rows: [{ y0: 56, y1: 277, x0: 300, x1: 640, slots: 1 }, { y0: 313, y1: 540, x0: 80, x1: 930, slots: 1 }], split: "de-two", fill: 0.98, condense: 0.9, tracking: 0.015, emboss: true, fixed: [{ kind: "hu", x: 815, y: 80, d: 98 }, { kind: "state", x: 815, y: 208, d: 122 }] },
-  "germany:two": { src: "/plates/germany/two.png", w: 700, h: 500, rows: [{ y0: 36, y1: 252, x0: 150, x1: 520, slots: 1 }, { y0: 300, y1: 478, x0: 40, x1: 660, slots: 1 }], split: "de-two", fill: 0.86, condense: 0.9, tracking: 0.015, emboss: true, fixed: [{ kind: "hu", x: 590, y: 96, d: 118 }, { kind: "state", x: 590, y: 240, d: 128 }] },
+  "germany:two": { src: "/plates/germany/two.png", w: 700, h: 500, rows: [{ y0: 36, y1: 252, x0: 130, x1: 410, slots: 1 }, { y0: 300, y1: 478, x0: 40, x1: 660, slots: 1 }], split: "de-two", fill: 0.86, condense: 0.9, tracking: 0.015, emboss: true, fixed: [{ kind: "hu", x: 475, y: 100, d: 118 }, { kind: "state", x: 475, y: 228, d: 128, fy: 190 }] },
   "germany:moto": { src: "/plates/germany/moto.png", w: 900, h: 1000, rows: [{ y0: 70, y1: 320, x0: 340, x1: 700, slots: 1 }, { y0: 670, y1: 940, x0: 60, x1: 840, slots: 1 }], split: "de-two", fill: 0.98, condense: 0.9, tracking: 0.015, emboss: true, fixed: [{ kind: "hu", x: 290, y: 530, d: 160 }, { kind: "state", x: 510, y: 520, d: 210 }] },
   "germany:moto-old": { src: "/plates/germany/moto-old.png", w: 1100, h: 1000, rows: [{ y0: 100, y1: 470, x0: 275, x1: 990, slots: 1 }, { y0: 530, y1: 930, x0: 280, x1: 990, slots: 1 }], split: "de-two", fill: 0.98, condense: 0.9, tracking: 0.015, emboss: true, fixed: [{ kind: "hu", x: 165, y: 560, d: 150 }, { kind: "state", x: 165, y: 770, d: 190 }] },
   // ── Germany, 5-day plates (Kurzzeitkennzeichen): DIN lettering, yellow strip with the expiry date (three small lines), blue seal ──
@@ -921,7 +921,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
         if (f.kind === "img") { seals.push({ cx: f.x * s, cy: f.y * s, d: f.d * s, h: f.d * s, src: f.src }); continue; }
         if (f.kind === "w") { seals.push({ cx: f.x * s, cy: f.y * s, d: f.d * s, h: f.d * s, src: "/plates/germany/w.png" }); continue; }
         const blue = `/plates/germany/seals/${DISTRICT_SEALS.has(district) ? "d-" + district : st ?? "XX"}${tempKind}.png`;
-        seals.push({ cx: f.x * s, cy: f.y * s, d: f.d * s, h: f.d * s, src: f.kind === "hu" ? huSrc : f.kind === "temp" ? (st || DISTRICT_SEALS.has(district) ? blue : "/plates/germany/seals/XX.png") : sealSrc });
+        seals.push({ cx: f.x * s, cy: (!yy && f.fy ? f.fy : f.y) * s, d: f.d * s, h: f.d * s, src: f.kind === "hu" ? huSrc : f.kind === "temp" ? (st || DISTRICT_SEALS.has(district) ? blue : "/plates/germany/seals/XX.png") : sealSrc });
       }
     }
     if (noSeals) {                                        // no seals, no stickers (the DIN dash stays)
