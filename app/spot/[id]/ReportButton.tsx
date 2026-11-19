@@ -55,12 +55,12 @@ export default function ReportButton({ uploadNumericId }: { uploadNumericId: num
       {/* Trigger */}
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950/50 px-3 py-2 text-sm text-zinc-300 transition-colors hover:border-red-900/60 hover:text-red-300"
       >
-        <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+        <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clipRule="evenodd" />
         </svg>
-        Report
+        Report a problem
       </button>
 
       {/* Modal backdrop */}

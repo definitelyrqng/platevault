@@ -389,6 +389,21 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                     </div>
                   </div>
 
+                  {/* what kind of plate it is, and what the code stands for (country of a diplomat, agency, district …) */}
+                  {(plateTypeName || germanyDiplomat || germanyFederal || germanyDistrict) && (
+                    <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5 text-xs">
+                      {plateTypeName && (
+                        <a href={`/c/${upload.country}?type=${encodeURIComponent(upload.plateType ?? "")}`}
+                          className="rounded-full border border-zinc-700 bg-zinc-800/60 px-2.5 py-0.5 font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white">
+                          {plateTypeName}
+                        </a>
+                      )}
+                      {[germanyDiplomat, germanyFederal, germanyDistrict].filter(Boolean).map((r) => (
+                        <span key={r as string} className="rounded-full border border-zinc-800 bg-zinc-900 px-2.5 py-0.5 text-zinc-400">{r}</span>
+                      ))}
+                    </div>
+                  )}
+
                   {/* One description under the plate: where it was spotted + whatever the spotter added */}
                   {(upload.description || upload.location) && (
                     <div className="mx-auto mt-4 max-w-xl text-center">
@@ -485,11 +500,22 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                     countryName={meta.name}
                     carLabel={carLabel}
                   />
-                  {currentUser && !isOwner && (
-                    <ReportButton uploadNumericId={upload.numericId} />
-                  )}
                 </div>
               </div>
+
+              {/* Report — visible to everyone; guests are sent to log in first */}
+              {!isOwner && (
+                <div className="mt-4">
+                  {currentUser ? (
+                    <ReportButton uploadNumericId={upload.numericId} />
+                  ) : (
+                    <a href={`/login?next=${encodeURIComponent("/spot/" + upload.numericId)}`}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950/50 px-3 py-2 text-sm text-zinc-400 transition-colors hover:border-zinc-600 hover:text-zinc-200">
+                      ⚑ Log in to report a problem
+                    </a>
+                  )}
+                </div>
+              )}
 
               {/* Quick links */}
               <ul className="mt-4 space-y-1.5 border-t border-zinc-800 pt-4 text-sm">
