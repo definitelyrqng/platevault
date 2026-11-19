@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import SidebarGate from "./components/SidebarGate";
 import ThemeProvider from "./components/ThemeProvider";
 import AnnouncementBanner from "./components/AnnouncementBanner";
@@ -92,6 +93,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           </footer>
           </AuthProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
