@@ -5,6 +5,7 @@ import { getCountryMeta } from "@/app/lib/countries";
 import { plateTypeLabel } from "@/app/lib/plateTypes";
 import { catalogPlateTypes } from "@/app/lib/countryPlateTypes";
 import { prisma } from "@/app/lib/prisma";
+import { GERMANY_REGIONS } from "@/app/lib/germanyData";
 import { cookies } from "next/headers";
 import LikeButton from "./LikeButton";
 
@@ -42,7 +43,7 @@ export default async function CountryPage({
   searchParams,
 }: {
   params: Promise<{ country: string }>;
-  searchParams: Promise<{ type?: string; page?: string; q?: string; brand?: string; user?: string; from?: string; to?: string }>;
+  searchParams: Promise<{ type?: string; region?: string; page?: string; q?: string; brand?: string; user?: string; from?: string; to?: string }>;
 }) {
   const [{ country: rawCountry }, sp] = await Promise.all([params, searchParams]);
   const country = rawCountry.toLowerCase();
@@ -59,9 +60,12 @@ export default async function CountryPage({
   const validDate = (v?: string) => (v && /^d{4}-d{2}-d{2}$/.test(v) && !isNaN(Date.parse(v)) ? new Date(v) : null);
   const fromD = validDate(sp.from);
   const toD = validDate(sp.to);
-  const lookupActive = !!(q || brandQ || userQ || fromD || toD);
+  const regionQ = (sp.region ?? "").trim().slice(0, 10).toUpperCase();
+  const regionName = regionQ && country === "germany" ? GERMANY_REGIONS.find((r) => r.code === regionQ)?.name ?? null : null;
+  const lookupActive = !!(q || brandQ || userQ || fromD || toD || regionQ);
   const where: Record<string, unknown> = { ...base };
   if (selectedTypes.length) where.plateType = { in: selectedTypes };
+  if (regionQ) where.plateRegion = { equals: regionQ, mode: "insensitive" };
   if (q) where.plateText = { contains: q, mode: "insensitive" };
   if (brandQ) where.brand = { contains: brandQ, mode: "insensitive" };
   if (userQ) where.user = { username: { contains: userQ, mode: "insensitive" } };
@@ -145,6 +149,7 @@ export default async function CountryPage({
     if (q) qs.set("q", q);
     if (brandQ) qs.set("brand", brandQ);
     if (userQ) qs.set("user", userQ);
+    if (regionQ) qs.set("region", regionQ);
     if (sp.from) qs.set("from", sp.from);
     if (sp.to) qs.set("to", sp.to);
     if (p.page && p.page > 1) qs.set("page", String(p.page));
@@ -176,6 +181,13 @@ export default async function CountryPage({
           ↑ Upload a spot
         </a>
       </div>
+
+      {regionQ && (
+        <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-4 py-3 text-sm text-indigo-200">
+          <span>📍 Plates from <strong className="text-white">{regionName ?? regionQ}</strong>{regionName ? ` (${regionQ})` : ""} · {filteredCount.toLocaleString()} spot{filteredCount === 1 ? "" : "s"}</span>
+          <a href={`/c/${country}`} className="ml-auto text-xs text-indigo-300 underline hover:text-white">Show all {meta.name} plates ✕</a>
+        </div>
+      )}
 
       {/* ─── Plate types: what is in the archive ─── */}
       {chips.length > 0 && (

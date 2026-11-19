@@ -322,7 +322,16 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                   <a href={`/c/${upload.country}`} className="inline-flex items-center gap-2 font-semibold text-zinc-100 transition-colors hover:text-indigo-300">
                     <Flag iso={meta.iso} /> {meta.name}
                   </a>
-                  {[albaniaRegion?.city, germanyDistrict, germanyFederal, germanyDiplomat, czechRegion].filter(Boolean).map((r) => (
+                  {/* the district / region links to every plate from there */}
+                  {[albaniaRegion?.city, germanyDistrict, czechRegion].filter(Boolean).map((r) => (
+                    upload.plateRegion ? (
+                      <a key={r as string} href={`/c/${upload.country}?region=${encodeURIComponent(upload.plateRegion)}`}
+                        className="text-zinc-500 underline-offset-2 transition-colors hover:text-indigo-300 hover:underline">· {r}</a>
+                    ) : (
+                      <span key={r as string} className="text-zinc-500">· {r}</span>
+                    )
+                  ))}
+                  {[germanyFederal, germanyDiplomat].filter(Boolean).map((r) => (
                     <span key={r as string} className="text-zinc-500">· {r}</span>
                   ))}
                 </div>
@@ -557,7 +566,14 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 <Detail label="Region" value={albaniaRegion.district} />
               )}
               {germanyDistrict && (
-                <Detail label="District" value={germanyDistrict} />
+                <div className="flex items-start justify-between gap-3 text-base">
+                  <span className="shrink-0 text-zinc-400">District</span>
+                  <span className="min-w-0 text-right text-zinc-200">
+                    {upload.plateRegion
+                      ? <a href={`/c/${upload.country}?region=${encodeURIComponent(upload.plateRegion)}`} className="underline-offset-2 hover:text-indigo-300 hover:underline">{germanyDistrict}</a>
+                      : germanyDistrict}
+                  </span>
+                </div>
               )}
               {germanyFederal && (
                 <Detail label="Federal" value={germanyFederal} />
