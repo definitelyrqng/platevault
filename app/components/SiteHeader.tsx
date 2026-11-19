@@ -30,7 +30,6 @@ function MoreMenu({ loggedIn }: { loggedIn: boolean }) {
       { href: "/feed",        label: "Feed",        emoji: "🌐" },
       { href: "/messages",    label: "Messages",    emoji: "💬" },
       { href: "/collections", label: "Collections", emoji: "🗂️" },
-      { href: "/roadtrips",   label: "Road Trips",  emoji: "🗺️" },
       { href: "/challenges",  label: "Challenges",  emoji: "🎯" },
       { href: "/polls",       label: "Polls",       emoji: "🗳️" },
     ] : []),

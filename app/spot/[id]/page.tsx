@@ -5,7 +5,6 @@ import SpotActions from "./SpotActions";
 import CommentSection from "./CommentSection";
 import SpotModPanel from "./SpotModPanel";
 import ReportButton from "./ReportButton";
-import SaveToCollection from "@/app/components/SaveToCollection";
 import ShareCardButton from "@/app/components/ShareCardButton";
 import TimeAgo from "@/app/components/TimeAgo";
 import GenerationLink from "@/app/components/GenerationLink";
@@ -13,8 +12,6 @@ import { codeSlug, platformOf } from "@/app/lib/chassis";
 import EditSpotDetails from "./EditSpotDetails";
 import { plateTextVariants } from "@/app/lib/plateText";
 import { DescriptionText } from "@/app/components/DescriptionInput";
-import PinButton from "@/app/components/PinButton";
-import AddToRoadTripButton from "./AddToRoadTripButton";
 import { tagById, withAutoTags } from "@/app/lib/tags";
 import { getAlbaniaRegion } from "@/app/lib/albaniaRegions";
 import { plateTypeLabel } from "@/app/lib/plateTypes";
@@ -473,15 +470,9 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                     isLoggedIn={!!currentUser}
                   />
                 </div>
-                <SaveToCollection spotNumericId={upload.numericId} />
+                {/* saving to collections is switched off for now */}
               </div>
-              {/* Owner actions row */}
-              {isOwner && (
-                <div className="flex gap-2 mt-2">
-                  <PinButton uploadId={upload.id} initialPinned={isCurrentlyPinned} pinnedCount={ownerPinnedIds.length} />
-                  <AddToRoadTripButton uploadId={upload.id} uploadNumericId={upload.numericId} />
-                </div>
-              )}
+              {/* pinning and road trips are switched off for now */}
               <div className="mt-3 flex items-center justify-between gap-4 text-xs text-zinc-500">
                 <div className="flex gap-4">
                   <span>{upload._count.likes} like{upload._count.likes !== 1 ? "s" : ""}</span>

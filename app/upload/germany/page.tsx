@@ -13,6 +13,7 @@ import MilestonePopup from "@/app/components/MilestonePopup";
 import OcrHint from "@/app/components/OcrHint";
 import { diplomaticCountry } from "@/app/lib/germanyDiplomatic";
 import PlateBadge from "@/app/components/PlateBadge";
+import Flag from "@/app/components/Flag";
 import DescriptionInput from "@/app/components/DescriptionInput";
 import {
   GERMANY_REGIONS,
@@ -162,6 +163,40 @@ const HU_TYPES = /^(de-(regular|electric|oldtimer|seasonal|seasonal-h|transferab
 const OLD_MOTO: string[] = ["regular"];                // the old motorcycle plate has no seasonal, historic (H), electric, transferable, 5-day or export versions
 const HU_YEARS = ["19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31"];
 const HU_COLORS = ["#1ab0ee", "#f5ef12", "#d85c4c", "#f7a0b8", "#18b082", "#e89000"];
+
+
+/** One real single-line plate per category, shown on the picker tiles. */
+const CATEGORY_TILE: Record<string, { type: string; text: string }> = {
+  regular:           { type: "de-regular-single-hu25",       text: "B-AB1234" },
+  din:               { type: "de-din-din-single-hu25",       text: "B-AB123" },
+  "transit-5day":    { type: "de-transit-5day-single",       text: "B-123456 23.06.26" },
+  export:            { type: "de-export-single",             text: "DGF-73B 01.01.27" },
+  transferable:      { type: "de-transferable-single-hu25",  text: "HER-H22-2" },
+  oldtimer:          { type: "de-oldtimer-single-hu25",      text: "B-AB123H" },
+  seasonal:          { type: "de-seasonal-single-hu25",      text: "B-AB123 04/10" },
+  "seasonal-h":      { type: "de-seasonal-h-single-hu25",    text: "B-AB12H 04/10" },
+  electric:          { type: "de-electric-single-hu25",      text: "B-AB123E" },
+  red:               { type: "de-red-06-single",             text: "B-06123" },
+  official:          { type: "de-official-single-hu25",      text: "B-1234" },
+  "state-authority": { type: "de-state-authority-single-hu25", text: "THL-12345" },
+  federal:           { type: "de-federal-bd-single-hu25",    text: "BD 5-12345" },
+  diplomatic:        { type: "de-diplomatic-single-hu25",    text: "0-73-14" },
+  military:          { type: "de-military-single",           text: "Y-123456" },
+};
+
+function StepTitle({ n, title, done, children }: { n: number; title: string; done?: boolean; children?: React.ReactNode }) {
+  return (
+    <div className="mb-4 flex items-baseline justify-between gap-3">
+      <h2 className="flex items-center gap-2.5 text-base font-semibold text-zinc-100">
+        <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold ${
+          done ? "bg-emerald-500/20 text-emerald-300" : "bg-indigo-600/20 text-indigo-300"
+        }`}>{done ? "✓" : n}</span>
+        {title}
+      </h2>
+      {children}
+    </div>
+  );
+}
 
 export default function GermanyUploadPage() {
   const router = useRouter();
@@ -468,18 +503,23 @@ export default function GermanyUploadPage() {
   return (
     <>
       <MilestonePopup data={milestoneData} onDone={() => { setMilestoneData(null); router.push(`/spot/${newSpotId}`); }} />
-      <main className="min-h-screen bg-zinc-950 text-zinc-100 px-4 py-10">
-        <div className="mx-auto max-w-5xl">
+      <main className="px-4 pb-16 pt-8 text-zinc-100 sm:px-6">
+        <div className="mx-auto max-w-6xl">
 
           {/* Header */}
-          <div>
-            <div className="flex items-center gap-2 text-xs text-zinc-500">
-              <a href="/upload" className="hover:text-zinc-300 transition-colors">Upload</a>
-              <span>›</span>
-              <span className="text-zinc-300">Germany 🇩🇪</span>
+          <div className="flex flex-wrap items-end justify-between gap-3 border-b border-zinc-800/60 pb-5">
+            <div>
+              <nav className="mb-2 text-xs text-zinc-500">
+                <a href="/upload" className="transition-colors hover:text-zinc-300">Upload</a>
+                <span className="mx-1.5">/</span>
+                <span className="text-zinc-300">Germany</span>
+              </nav>
+              <h1 className="flex items-center gap-3 text-2xl font-bold tracking-tight sm:text-3xl">
+                <span className="leading-none shadow ring-1 ring-black/30"><Flag iso="de" size="lg" /></span>
+                Upload a German plate
+              </h1>
             </div>
-            <h1 className="mt-2 text-2xl font-black">Upload — Germany</h1>
-            <p className="mt-1 text-sm text-zinc-400">All Kfz-Kennzeichen types — regular, historic, official, federal & diplomatic.</p>
+            <a href="/c/germany" className="text-sm text-zinc-400 transition-colors hover:text-white">Germany gallery →</a>
           </div>
 
           {/* Status banners */}
@@ -531,82 +571,54 @@ export default function GermanyUploadPage() {
             </div>
           )}
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
-            {/* ── Form ── */}
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="mt-6 grid gap-6 lg:grid-cols-[1fr_340px]">
+            <div className="min-w-0 space-y-6">
 
-              {/* ── Category selector ── */}
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-4">
-                <span className="text-sm font-medium text-zinc-200">Plate type</span>
-                {CATEGORY_GROUPS.map((group) => {
-                  const cats = GERMANY_CATEGORIES.filter((c) => c.group === group.id);
-                  if (!cats.length) return null;
-                  return (
-                    <div key={group.id}>
-                      <p className="text-xs font-semibold uppercase tracking-wider text-zinc-600 mb-2">{group.label}</p>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        {cats.map((cat) => (
-                          <button
-                            key={cat.id}
-                            type="button"
-                            onClick={() => setCategory(cat.id)}
-                            className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm transition-all ${
-                              category === cat.id
-                                ? "border-indigo-600 bg-indigo-950/50 text-indigo-200"
-                                : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
-                            }`}
-                          >
-                            <span className="text-base shrink-0">{cat.emoji}</span>
-                            <span className="font-medium leading-snug">{cat.label}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* ── Category description ── */}
-              <div className="rounded-xl border border-zinc-800/60 bg-zinc-900/20 px-4 py-3 text-sm text-zinc-400 leading-relaxed">
-                <span className="mr-2">{selectedCat.emoji}</span>
-                <strong className="text-zinc-200">{selectedCat.label}:</strong>{" "}
-                {selectedCat.desc}
-              </div>
-
-              {/* ── Main fields card ── */}
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 space-y-5">
-
-                {/* Photo */}
-                <div>
-                  <span className="block text-sm text-zinc-300 mb-2">Photo <span className="text-zinc-600 text-xs">(JPG or PNG, max 8 MB)</span></span>
-                  <label
-                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                    onDragLeave={() => setIsDragging(false)}
-                    onDrop={onDrop}
-                    className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden ${
-                      isDragging ? "border-zinc-400 bg-zinc-800/60" :
-                      fileError  ? "border-red-800 bg-red-950/20" :
-                      "border-zinc-700 bg-zinc-950/40 hover:border-zinc-500"
-                    }`}
-                    style={{ minHeight: preview ? "auto" : "150px" }}
-                  >
-                    {preview ? (
-                      <div className="relative w-full group">
-                        <ZoomImage src={preview} alt="Preview" className="rounded-xl" />
-                        <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/0 group-hover:bg-zinc-950/50 transition-colors rounded-xl pointer-events-none">
-                          <span className="opacity-0 group-hover:opacity-100 text-xs text-zinc-200 transition-opacity">Click to change</span>
+              {/* ── 1. Plate type — visual picker ── */}
+              <section className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-6">
+                <StepTitle n={1} title="Which plate is it?" done />
+                <div className="space-y-5">
+                  {CATEGORY_GROUPS.map((group) => {
+                    const cats = GERMANY_CATEGORIES.filter((c) => c.group === group.id);
+                    if (!cats.length) return null;
+                    return (
+                      <div key={group.id}>
+                        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-600">{group.label}</p>
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
+                          {cats.map((cat) => {
+                            const tile = CATEGORY_TILE[cat.id];
+                            const active = category === cat.id;
+                            return (
+                              <button key={cat.id} type="button" onClick={() => setCategory(cat.id)} aria-pressed={active}
+                                className={`group flex flex-col items-center gap-2 rounded-xl border p-3 text-center transition-all ${
+                                  active ? "border-indigo-500 bg-indigo-600/10 ring-1 ring-indigo-500/50" : "border-zinc-800 bg-zinc-950/50 hover:border-zinc-600"
+                                }`}>
+                                <span className="block h-[64px] w-full overflow-hidden text-center leading-[64px]">
+                                  {tile ? <PlateBadge country="germany" text={tile.text} plateType={tile.type} size="sm" /> : <span className="text-2xl">{cat.emoji}</span>}
+                                </span>
+                                <span>
+                                  <span className={`block text-sm font-medium ${active ? "text-white" : "text-zinc-300"}`}>{cat.label}</span>
+                                </span>
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
-                    ) : (
-                      <div className="py-8 text-center px-4">
-                        <div className="text-2xl mb-2">📷</div>
-                        <div className="text-sm text-zinc-400">Drag &amp; drop or <span className="text-zinc-200 underline">browse</span></div>
-                      </div>
-                    )}
-                    <input type="file" accept="image/jpeg,image/png" className="sr-only" onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)} />
-                  </label>
-                  {fileError && <p className="mt-1.5 text-xs text-red-400">{fileError}</p>}
-                  <OcrHint file={file} />
+                    );
+                  })}
+                </div>
+                <p className="mt-4 text-xs leading-relaxed text-zinc-500">
+                  <strong className="text-zinc-300">{selectedCat.label}:</strong> {selectedCat.desc}
+                </p>
+              </section>
+
+              {/* ── 2. Plate number + live preview ── */}
+              <section className="space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-6">
+                <StepTitle n={2} title="Plate details" done={plateText.trim().length >= 2} />
+                <div className="flex min-h-[110px] items-center justify-center rounded-xl bg-zinc-950/70 px-3 py-5">
+                  <div className={`max-w-full transition-opacity ${plateText.trim() ? "opacity-100" : "opacity-40"}`}>
+                    <PlateBadge country="germany" text={previewText} plateType={plateTypeStored} size="xl" />
+                  </div>
                 </div>
 
                 {/* ── Plate format (all categories) ── */}
@@ -1066,6 +1078,11 @@ export default function GermanyUploadPage() {
                   </div>
                 )}
 
+              </section>
+
+              {/* ── 4. Where & what ── */}
+              <section className="space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-6">
+                <StepTitle n={4} title="Where & what" done={location.trim().length >= 2 && !locationWarning} />
                 {/* ── Location ── */}
                 <DescriptionField value={location} onChange={setLocation} warning={locationWarning} />
 
@@ -1088,54 +1105,80 @@ export default function GermanyUploadPage() {
                   <TagPicker selected={tags} onChange={setTags} max={6} />
                 </div>
 
-                <div className="flex items-center gap-3 pt-1">
-                  <button type="submit" disabled={!canSubmit}
-                    className="group relative overflow-hidden rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 shadow-lg shadow-indigo-950/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-                    <span className="relative z-10">{status === "uploading" ? "Uploading image…" : status === "saving" ? "Saving…" : "Upload spot"}</span>
-                    {status === "idle" && canSubmit && <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700" />}
-                  </button>
-                  {status === "idle" && (
-                    <span className="text-xs text-zinc-500">
-                      {!file ? "Add a photo" : plateText.trim().length < 2 ? "Enter plate text" : location.trim().length < 2 ? "Add where you saw it" : "Ready"}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </form>
+              </section>
+            </div>
+
 
             {/* ── Sidebar ── */}
-            <aside className="space-y-4">
-              {/* Live preview */}
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-5">
-                <div className="text-xs uppercase tracking-wider text-zinc-500 mb-3">Live preview</div>
-                {drawn || transitDrawn || redDrawn ? (
-                  <div className="flex justify-center rounded-xl bg-zinc-900/60 px-3 py-5">
-                    <PlateBadge country="germany" text={previewText} plateType={plateTypeStored} size="xl" />
-                  </div>
-                ) : (
-                <div className={`rounded-xl border px-4 py-5 text-center ${previewBg}`}>
-                  {/* EU band for standard plates */}
-                  {["regular","electric","oldtimer","seasonal","seasonal-h","transferable"].includes(category) && (
-                    <div className="mb-2 flex items-center justify-center gap-1">
-                      <div className="h-4 w-5 rounded-sm bg-blue-800 flex items-center justify-center">
-                        <span className="text-[7px] text-yellow-300 font-bold">EU</span>
-                      </div>
-                      <span className="text-[10px] text-zinc-600 font-mono">DE</span>
-                    </div>
-                  )}
-                  {/* Yellow band for transit */}
-                  {category === "transit-5day" && (
-                    <div className="mb-2 flex items-center justify-center">
-                      <div className="h-4 px-2 rounded-sm bg-yellow-500 flex items-center justify-center">
-                        <span className="text-[7px] text-black font-bold">5 TAGE</span>
+            <aside className="space-y-4 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:self-start lg:overflow-y-auto">
+              {/* ── 3. Photo ── */}
+              <section className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-6">
+                <StepTitle n={3} title="Photo" done={!!file && !fileError}>
+                  <span className="text-xs text-zinc-500">JPG or PNG, max 8 MB</span>
+                </StepTitle>
+                <label
+                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={onDrop}
+                  className={`relative flex cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-colors ${
+                    isDragging ? "border-indigo-400 bg-indigo-950/30" : fileError ? "border-red-800 bg-red-950/20" : "border-zinc-700 bg-zinc-950/40 hover:border-zinc-500"
+                  }`}
+                  style={{ minHeight: preview ? "auto" : "170px" }}
+                >
+                  {preview ? (
+                    <div className="group relative w-full">
+                      <ZoomImage src={preview} alt="Preview" className="rounded-lg" />
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg bg-zinc-950/0 transition-colors group-hover:bg-zinc-950/50">
+                        <span className="text-xs text-zinc-200 opacity-0 transition-opacity group-hover:opacity-100">Click to change</span>
                       </div>
                     </div>
+                  ) : (
+                    <div className="px-4 py-8 text-center">
+                      <div className="mb-2 text-3xl">📷</div>
+                      <div className="text-sm text-zinc-300">Drop your photo here, or <span className="text-indigo-300 underline">browse</span></div>
+                      <div className="mt-1 text-xs text-zinc-500">Make sure the plate is readable</div>
+                    </div>
                   )}
-                  <div className={`font-mono text-xl font-bold tracking-widest ${previewTextColor}`}>
-                    {plateText.trim() || placeholderText}
-                  </div>
-                  <div className="mt-2 text-xs text-zinc-500">Germany 🇩🇪</div>
+                  <input type="file" accept="image/jpeg,image/png" className="sr-only" onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)} />
+                </label>
+                {fileError && <p className="mt-1.5 text-xs text-red-400">{fileError}</p>}
+                <OcrHint file={file} />
+              </section>
+
+              {/* ── Summary ── */}
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5">
+                <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Your spot</div>
+                <div className={`mt-3 flex justify-center ${plateText.trim() ? "" : "opacity-40"}`}>
+                  <PlateBadge country="germany" text={previewText} plateType={plateTypeStored} size="sm" />
                 </div>
+                <div className="mt-2 text-center text-sm text-zinc-300">
+                  {[brand, model].filter(Boolean).join(" ") || <span className="text-zinc-600">Vehicle (optional)</span>}
+                </div>
+                <div className="mt-0.5 text-center text-xs text-zinc-500">{selectedCat.label}{location.trim() && ` · ${locationOf(location)}`}</div>
+
+                <ul className="mt-4 space-y-1.5 border-t border-zinc-800 pt-4 text-sm">
+                  {[
+                    { ok: !!file && !fileError, label: "Photo" },
+                    { ok: plateText.trim().length >= 2, label: "Plate number" },
+                    { ok: location.trim().length >= 2 && !locationWarning, label: "Description" },
+                  ].map((c) => (
+                    <li key={c.label} className={`flex items-center gap-2 ${c.ok ? "text-zinc-300" : "text-zinc-500"}`}>
+                      <span className={`grid h-4 w-4 place-items-center rounded-full text-[10px] ${c.ok ? "bg-emerald-500/20 text-emerald-300" : "bg-zinc-800 text-zinc-600"}`}>
+                        {c.ok ? "✓" : ""}
+                      </span>
+                      {c.label}
+                    </li>
+                  ))}
+                </ul>
+
+                <button type="submit" disabled={!canSubmit}
+                  className="mt-4 w-full rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40">
+                  {status === "uploading" ? "Uploading image…" : status === "saving" ? "Saving…" : "Upload spot"}
+                </button>
+                {status === "idle" && !canSubmit && (
+                  <p className="mt-2 text-center text-xs text-zinc-500">
+                    {!file ? "Add a photo" : plateText.trim().length < 2 ? "Enter the plate number" : "Add where you saw it"} to upload.
+                  </p>
                 )}
               </div>
 
@@ -1228,7 +1271,7 @@ export default function GermanyUploadPage() {
                 </div>
               </div>
             </aside>
-          </div>
+          </form>
         </div>
       </main>
     </>

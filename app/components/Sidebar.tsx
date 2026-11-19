@@ -22,7 +22,6 @@ const MORE_ITEMS = [
   { href: "/polls",       label: "Polls",       icon: "chart-dots" },
   { href: "/challenges",  label: "Challenges",  icon: "target" },
   { href: "/quiz",        label: "Quiz",        icon: "question-mark" },
-  { href: "/roadtrips",   label: "Road Trips",  icon: "map-pin" },
   { href: "/rules",       label: "Rules",       icon: "books" },
 ];
 
@@ -30,7 +29,6 @@ const USER_ITEMS = [
   { href: "/stats",            label: "My stats",    icon: "chart-bar" },
   { href: "/collections",      label: "Collections", icon: "folders" },
   { href: "/messages",         label: "Messages",    icon: "message" },
-  { href: "/roadtrips",        label: "Road trips",  icon: "map-pin" },
   { href: "/settings/profile", label: "Settings",    icon: "cog" },
 ];
 
