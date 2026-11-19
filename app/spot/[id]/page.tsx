@@ -504,7 +504,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
               </div>
 
               {/* Report — visible to everyone; guests are sent to log in first */}
-              {!isOwner && (
+              {(
                 <div className="mt-4">
                   {currentUser ? (
                     <ReportButton uploadNumericId={upload.numericId} />
