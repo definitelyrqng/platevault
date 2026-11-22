@@ -212,6 +212,10 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
       numericId: true,
       imageUrl: true,
       createdAt: true,
+      plateText: true,
+      plateType: true,
+      brand: true,
+      model: true,
       user: { select: { username: true, numericId: true, avatarUrl: true } },
       _count: { select: { likes: true } },
     },
@@ -672,7 +676,7 @@ export default async function SpotPage({ params }: { params: Promise<{ id: strin
                 <SpotCard
                   key={s.numericId}
                   showFlag={false}
-                  spot={{ ...s, plateText: upload.plateText, plateType: upload.plateType, country: upload.country, brand: upload.brand, model: upload.model }}
+                  spot={{ ...s, country: upload.country }}
                 />
               ))}
             </div>
