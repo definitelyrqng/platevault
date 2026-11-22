@@ -32,7 +32,7 @@ export const ALL_TAGS: TagDef[] = [
 
   // Heavy & Work
   { id: "bus",                label: "Bus / coach",         group: "Heavy & Work" },
-  { id: "truck",              label: "Lorry / tractor unit",group: "Heavy & Work" },
+  { id: "truck",              label: "Truck / semi",       group: "Heavy & Work" },
   { id: "dump-truck",         label: "Tipper",              group: "Heavy & Work" },
   { id: "garbage-truck",      label: "Refuse truck",        group: "Heavy & Work" },
   { id: "trailer",            label: "Trailer",             group: "Heavy & Work" },
