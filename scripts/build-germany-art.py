@@ -195,7 +195,7 @@ im = Image.open(os.path.join(OUT, "two.png")).convert("RGBA")
 ImageDraw.Draw(im).rectangle([586, 142, 664, 152], fill=(17, 17, 17, 255))
 im.save(os.path.join(OUT, "season-two.png"))
 im = Image.open(os.path.join(OUT, "moto.png")).convert("RGBA")
-ImageDraw.Draw(im).rectangle([665, 538, 850, 553], fill=(17, 17, 17, 255))
+ImageDraw.Draw(im).rectangle([665, 492, 850, 506], fill=(17, 17, 17, 255))
 im.save(os.path.join(OUT, "season-moto.png"))
 print("season variants ok")
 
