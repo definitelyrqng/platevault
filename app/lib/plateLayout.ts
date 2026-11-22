@@ -814,7 +814,7 @@ export function plateLayout(country: string, rawText: string, height: number, pl
   // German plates are made as short as the registration allows: 7–8 characters 520 mm, 6 → 460, 5 → 400, 4 → 360, 3 → 340 (only for plates marked "-short")
   const seasonal = art === PLATE_ART["germany:season"];
   if (key === "germany" && (art === PLATE_ART["germany:single"] || seasonal) && /^de-(regular|electric|oldtimer|seasonal|seasonal-h|seasonal-electric)-single-short(-hu(\d\d|0))?$/.test(plateType ?? "")) {
-    const n = printed.replace(/\s\d\d\/\d\d$/, "").replace(/[^A-Z0-9ÄÖÜ]/g, "").length;      // the season months do not count
+    const n = printed.replace(/\s\d\d\/\d\d$/, "").replace(/[^A-Z0-9ÄÖÜ]/g, "").length + (seasonal && /\s\d\d\/\d\d$/.test(printed) ? 1 : 0);      // the stacked months count as one character
     const mm = n >= 7 ? 520 : n === 6 ? 460 : n === 5 ? 400 : n === 4 ? 360 : 340;
     if (mm < 520) art = PLATE_ART[`germany:${seasonal ? "season-" : ""}w${mm}`] ?? art;
   }
