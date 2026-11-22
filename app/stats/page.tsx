@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/app/lib/prisma";
 import { getCountryMeta } from "@/app/lib/countries";
 import Flag from "@/app/components/Flag";
+import { distinctVehicles } from "@/app/lib/vehicles";
 
 export const dynamic = "force-dynamic";
 
@@ -42,8 +43,9 @@ export default async function StatsPage() {
   const [uploads, likesAgg, archiveGroups] = await Promise.all([
     prisma.upload.findMany({
       where: { userId: user.id, deletedAt: null, hidden: false },
-      select: { country: true, brand: true, createdAt: true },
-    }),
+      orderBy: { createdAt: "asc" },
+      select: { id: true, plateText: true, tags: true, country: true, brand: true, createdAt: true },
+    }).then(distinctVehicles),   // a plate spotted several times counts once (unless it is a transferred plate)
     prisma.like.aggregate({
       where: { upload: { userId: user.id, deletedAt: null } },
       _count: { _all: true },

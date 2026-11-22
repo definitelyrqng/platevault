@@ -1,8 +1,15 @@
 import { prisma } from "@/app/lib/prisma";
 import { cookies } from "next/headers";
 import AddCompanyButton from "./AddCompanyButton";
+import CompanyDirectory, { type CompanyCard } from "./CompanyDirectory";
+import { distinctVehicles } from "@/app/lib/vehicles";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = {
+  title: "Transport Companies",
+  description: "Every transport company in the archive, with the vehicles spotted in its fleet.",
+};
 
 async function getSessionUser() {
   const cookieStore = await cookies();
@@ -16,42 +23,64 @@ async function getSessionUser() {
   return session.user;
 }
 
-async function getCompanies() {
-  return prisma.transportCompany.findMany({
+async function getCompanies(): Promise<CompanyCard[]> {
+  const rows = await prisma.transportCompany.findMany({
     orderBy: { name: "asc" },
     select: {
-      id: true, numericId: true, name: true, country: true, city: true,
-      _count: { select: { uploads: true } },
+      numericId: true, name: true, country: true, city: true,
+      uploads: {
+        where: { deletedAt: null, hidden: false },
+        orderBy: { createdAt: "desc" },
+        select: { id: true, country: true, plateText: true, tags: true, brand: true, imageUrl: true, createdAt: true },
+      },
     },
+  });
+  return rows.map((c) => {
+    const vehicles = distinctVehicles(c.uploads);              // a plate spotted several times is one vehicle
+    const brandCount = new Map<string, number>();
+    for (const v of vehicles) if (v.brand) brandCount.set(v.brand, (brandCount.get(v.brand) ?? 0) + 1);
+    return {
+      numericId: c.numericId, name: c.name, country: c.country, city: c.city,
+      vehicles: vehicles.length,
+      cover: c.uploads[0]?.imageUrl ?? null,
+      brands: [...brandCount].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([b]) => b),
+      lastSeen: c.uploads[0]?.createdAt.toISOString() ?? null,
+    };
   });
 }
 
 export default async function CompaniesPage() {
   const [companies, currentUser] = await Promise.all([getCompanies(), getSessionUser()]);
   const isSuperAdmin = currentUser?.role === "SUPERADMIN";
+  const totalVehicles = companies.reduce((n, c) => n + c.vehicles, 0);
+  const withFleet = companies.filter((c) => c.vehicles > 0).length;
+  const countries = new Set(companies.map((c) => c.country).filter(Boolean)).size;
 
-  const byLetter: Record<string, typeof companies> = {};
-  for (const c of companies) {
-    const letter = c.name[0].toUpperCase();
-    const key = /[A-Z]/.test(letter) ? letter : "#";
-    byLetter[key] = byLetter[key] ?? [];
-    byLetter[key].push(c);
-  }
-  const letters = Object.keys(byLetter).sort();
+  const stats = [
+    { label: "Companies", value: companies.length },
+    { label: "With vehicles", value: withFleet },
+    { label: "Vehicles", value: totalVehicles },
+    { label: "Countries", value: countries },
+  ];
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-12">
-      <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
+    <main className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6">
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-4 border-b border-zinc-800/60 pb-6">
         <div>
-          <div className="flex items-center gap-3 mb-1">
-                        <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400">Directory</p>
-          </div>
-          <h1 className="text-3xl font-black text-zinc-50">Transport Companies</h1>
-          <p className="mt-2 text-sm text-zinc-400">
-            {companies.length} compan{companies.length !== 1 ? "ies" : "y"} in the database
-          </p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-400">Directory</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-white sm:text-4xl">Transport companies</h1>
+          <p className="mt-2 max-w-xl text-sm text-zinc-400">Bus operators, haulers, taxis and fleets — and every vehicle we have spotted in them.</p>
         </div>
         {isSuperAdmin && <AddCompanyButton />}
+      </header>
+
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {stats.map((s) => (
+          <div key={s.label} className="rounded-2xl border border-zinc-800/70 bg-zinc-900/40 px-4 py-3">
+            <div className="text-2xl font-bold tabular-nums text-zinc-50">{s.value}</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">{s.label}</div>
+          </div>
+        ))}
       </div>
 
       {companies.length === 0 ? (
@@ -59,54 +88,7 @@ export default async function CompaniesPage() {
           <p className="text-sm text-zinc-600">No companies yet. They can be added when uploading a spot.</p>
         </div>
       ) : (
-        <>
-          {/* Letter jump links */}
-          <div className="flex flex-wrap gap-1.5 mb-8">
-            {letters.map((l) => (
-              <a key={l} href={"#letter-" + l}
-                className="rounded-lg border border-zinc-800 bg-zinc-900/60 px-2.5 py-1 text-xs font-mono text-zinc-400 hover:border-indigo-800/60 hover:bg-indigo-950/20 hover:text-indigo-300 transition-colors">
-                {l}
-              </a>
-            ))}
-          </div>
-
-          {/* Alphabetical sections */}
-          <div className="space-y-8">
-            {letters.map((letter) => (
-              <section key={letter} id={"letter-" + letter}>
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="text-base font-bold text-indigo-400 w-6">{letter}</span>
-                  <div className="flex-1 border-t border-zinc-800" />
-                </div>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {byLetter[letter].map((c) => (
-                    <a
-                      key={c.id}
-                      href={"/companies/" + c.numericId}
-                      className="group flex items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-900/40 px-4 py-3 hover:border-indigo-800/60 hover:bg-indigo-950/20 hover:shadow-sm hover:shadow-indigo-950/40 transition-all"
-                    >
-                      <div className="min-w-0">
-                        <div className="text-sm font-medium text-zinc-200 group-hover:text-indigo-200 truncate transition-colors">
-                          {c.name}
-                        </div>
-                        {(c.city || c.country) && (
-                          <div className="text-xs text-zinc-500 truncate mt-0.5">
-                            {[c.city, c.country].filter(Boolean).join(", ")}
-                          </div>
-                        )}
-                      </div>
-                      {c._count.uploads > 0 && (
-                        <span className="shrink-0 rounded-full border border-indigo-900/40 bg-indigo-950/20 px-2 py-0.5 text-xs text-indigo-400 tabular-nums">
-                          {c._count.uploads} spot{c._count.uploads !== 1 ? "s" : ""}
-                        </span>
-                      )}
-                    </a>
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-        </>
+        <CompanyDirectory companies={companies} />
       )}
     </main>
   );

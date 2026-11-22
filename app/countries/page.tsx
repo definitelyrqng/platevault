@@ -2,6 +2,7 @@ import { prisma } from "@/app/lib/prisma";
 import Flag from "@/app/components/Flag";
 import CountryTile from "@/app/components/CountryTile";
 import { COUNTRY_META } from "@/app/lib/countries";
+import { countVehiclesBy } from "@/app/lib/vehicles";
 
 export const dynamic = "force-dynamic";
 
@@ -13,13 +14,8 @@ export const metadata = {
 
 async function getCountriesData() {
   const visible = { deletedAt: null, hidden: false };
-  const [countryGroups, pairs, covers, leaderboard] = await Promise.all([
-    prisma.upload.groupBy({
-      by: ["country"],
-      where: visible,
-      _count: { id: true },
-      orderBy: { _count: { id: "desc" } },
-    }),
+  const [countryRows, pairs, covers, leaderboard] = await Promise.all([
+    prisma.upload.findMany({ where: visible, select: { id: true, country: true, plateText: true, tags: true } }),
     // one row per (country, spotter) → count spotters per country without N+1 queries
     prisma.upload.groupBy({ by: ["country", "userId"], where: visible }),
     prisma.upload.findMany({
@@ -40,6 +36,10 @@ async function getCountriesData() {
     }),
   ]);
 
+  // vehicles per country (a plate spotted several times counts once), biggest first
+  const countryGroups = [...countVehiclesBy(countryRows, (r) => r.country)]
+    .map(([country, n]) => ({ country, _count: { id: n } }))
+    .sort((a, b) => b._count.id - a._count.id);
   const spotters: Record<string, number> = {};
   for (const p of pairs) spotters[p.country] = (spotters[p.country] ?? 0) + 1;
   const coverMap = Object.fromEntries(covers.map((c) => [c.country, c.imageUrl]));

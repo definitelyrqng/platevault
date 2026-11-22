@@ -2,6 +2,7 @@ import { prisma } from "@/app/lib/prisma";
 import { getSessionUser } from "@/app/lib/session";
 import { notFound } from "next/navigation";
 import { toSlug, yearSpan } from "@/app/lib/chassis";
+import { countVehiclesBy } from "@/app/lib/vehicles";
 import { AddModelButton, DeleteBrandButton, DeleteModelButton, RenameBrandButton, RenameModelButton } from "../CatalogAdminControls";
 
 export const dynamic = "force-dynamic";
@@ -36,7 +37,7 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
 
   const visible = { brand: brand.name, deletedAt: null, hidden: false };
   const [modelCounts, covers] = await Promise.all([
-    prisma.upload.groupBy({ by: ["model"], where: { ...visible, model: { not: null } }, _count: { id: true } }),
+    prisma.upload.findMany({ where: { ...visible, model: { not: null } }, select: { id: true, country: true, plateText: true, tags: true, model: true } }),
     prisma.upload.findMany({
       where: { ...visible, model: { not: null } },
       orderBy: { createdAt: "desc" },
@@ -44,7 +45,7 @@ export default async function BrandPage({ params }: { params: Promise<{ brand: s
       select: { model: true, imageUrl: true },
     }),
   ]);
-  const countByModel = new Map(modelCounts.map((r) => [r.model ?? "", r._count.id]));
+  const countByModel = countVehiclesBy(modelCounts, (r) => r.model);   // vehicles, not photos
   const coverByModel = new Map(covers.map((r) => [r.model ?? "", r.imageUrl]));
   const totalSpots = [...countByModel.values()].reduce((a, b) => a + b, 0);
   const totalGens = brand.models.reduce((n, m) => n + m.generations.length, 0);

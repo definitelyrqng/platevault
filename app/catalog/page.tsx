@@ -1,6 +1,7 @@
 import { prisma } from "@/app/lib/prisma";
 import { getSessionUser } from "@/app/lib/session";
 import { toSlug } from "@/app/lib/chassis";
+import { countVehiclesBy } from "@/app/lib/vehicles";
 import { AddBrandButton } from "./CatalogAdminControls";
 
 export const dynamic = "force-dynamic";
@@ -21,12 +22,12 @@ export default async function CatalogPage() {
       orderBy: { name: "asc" },
       include: { models: { orderBy: { name: "asc" }, include: { generations: { select: { id: true } } } } },
     }) as Promise<BrandRow[]>,
-    prisma.upload.groupBy({ by: ["brand"], where: visible, _count: { id: true } }),
+    prisma.upload.findMany({ where: visible, select: { id: true, country: true, plateText: true, tags: true, brand: true } }),
     prisma.upload.findMany({ where: visible, orderBy: { createdAt: "desc" }, distinct: ["brand"], select: { brand: true, imageUrl: true } }),
   ]);
 
   const isSuperAdmin = currentUser?.role === "SUPERADMIN";
-  const countByBrand = new Map(spotCounts.map((r) => [r.brand ?? "", r._count.id]));
+  const countByBrand = countVehiclesBy(spotCounts, (r) => r.brand);   // vehicles, not photos
   const coverByBrand = new Map(covers.map((r) => [r.brand ?? "", r.imageUrl]));
 
   // A–Z: every make under the letter it starts with ("#" for names that start with a digit)

@@ -2,6 +2,7 @@ import { prisma } from "@/app/lib/prisma";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import CompanyAdmin from "./CompanyAdmin";
+import { distinctVehicles } from "@/app/lib/vehicles";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +48,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
           orderBy: { createdAt: "desc" },
           take: 100,
           select: {
-            id: true, numericId: true, plateText: true, imageUrl: true, country: true,
+            id: true, numericId: true, plateText: true, imageUrl: true, country: true, tags: true,
             brand: true, model: true, generation: true, createdAt: true,
             user: { select: { username: true, numericId: true } },
             _count: { select: { likes: true, comments: true } },
@@ -63,10 +64,12 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
   const adminAccess = currentUser && isAdmin(currentUser.role);
   const spots = company.uploads;
 
-  // Stats
+  // Stats count vehicles: a plate spotted several times is one vehicle (unless it is a transferred plate)
+  const vehicles = distinctVehicles([...spots].reverse());
+  const lastSpotted = spots[0]?.createdAt;
   const brandCounts: Record<string, number> = {};
   const modelCounts: Record<string, number> = {};
-  for (const s of spots) {
+  for (const s of vehicles) {
     if (s.brand) brandCounts[s.brand] = (brandCounts[s.brand] ?? 0) + 1;
     const mk = [s.brand, s.model].filter(Boolean).join(" ");
     if (mk) modelCounts[mk] = (modelCounts[mk] ?? 0) + 1;
@@ -75,7 +78,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
   const topModels = Object.entries(modelCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12">
+    <main className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6">
       <div className="mb-1 text-xs text-zinc-500">
         <a href="/companies" className="hover:text-indigo-400 transition-colors">Companies</a>
         <span className="mx-1.5 text-zinc-700">&#8250;</span>
@@ -108,17 +111,19 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <span className="rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-2 text-sm text-zinc-400">
-            {spots.length} spot{spots.length !== 1 ? "s" : ""}
+            <span className="font-semibold text-zinc-100">{vehicles.length}</span> vehicle{vehicles.length !== 1 ? "s" : ""}
+            {spots.length !== vehicles.length && <span className="text-zinc-600"> · {spots.length} photos</span>}
+            {lastSpotted && <span className="text-zinc-600"> · last {relativeDays(lastSpotted)}</span>}
           </span>
         </div>
       </div>
 
       {/* Stats */}
-      {spots.length > 0 && (topBrands.length > 0 || topModels.length > 0) && (
+      {vehicles.length > 0 && (topBrands.length > 0 || topModels.length > 0) && (
         <div className="grid gap-4 sm:grid-cols-2 mb-10">
           {topBrands.length > 0 && (
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-3">By brand</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-3">By brand <span className="normal-case tracking-normal text-zinc-600">· vehicles</span></p>
               <div className="space-y-2">
                 {topBrands.map(([brand, count]) => (
                   <div key={brand} className="flex items-center gap-2">
@@ -129,7 +134,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
                       </div>
                       <div className="h-1 rounded-full bg-zinc-800 overflow-hidden">
                         <div className="h-full rounded-full bg-indigo-500 transition-all"
-                          style={{ width: (count / spots.length * 100) + "%" }} />
+                          style={{ width: (count / vehicles.length * 100) + "%" }} />
                       </div>
                     </div>
                   </div>
@@ -139,7 +144,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
           )}
           {topModels.length > 0 && (
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-3">By model</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-3">By model <span className="normal-case tracking-normal text-zinc-600">· vehicles</span></p>
               <div className="space-y-2">
                 {topModels.map(([model, count]) => (
                   <div key={model} className="flex items-center gap-2">
@@ -150,7 +155,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
                       </div>
                       <div className="h-1 rounded-full bg-zinc-800 overflow-hidden">
                         <div className="h-full rounded-full bg-indigo-400 transition-all"
-                          style={{ width: (count / spots.length * 100) + "%" }} />
+                          style={{ width: (count / vehicles.length * 100) + "%" }} />
                       </div>
                     </div>
                   </div>
@@ -178,7 +183,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
       {/* Spots grid */}
       <div>
         <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-4">
-          Spotted plates ({spots.length})
+          Spotted plates ({spots.length} photo{spots.length !== 1 ? "s" : ""})
         </p>
         {spots.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-zinc-800 py-12 text-center">

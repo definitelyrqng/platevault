@@ -5,6 +5,7 @@ import PlateBadge, { formatPlateText } from "@/app/components/PlateBadge";
 import SpotCard, { PhotoPill } from "@/app/components/SpotCard";
 import CountryTile from "@/app/components/CountryTile";
 import { getCountryMeta } from "@/app/lib/countries";
+import { countVehicles, countVehiclesBy } from "@/app/lib/vehicles";
 
 export const dynamic = "force-dynamic";
 
@@ -30,15 +31,10 @@ const spotSelect = {
 
 async function getHomeData() {
   const visible = { deletedAt: null, hidden: false };
-  const [totalUploads, totalUsers, countryGroups, covers, recent, hotSpots] = await Promise.all([
-    prisma.upload.count({ where: visible }),
+  const [vehicleRows, totalUsers, , covers, recent, hotSpots] = await Promise.all([
+    prisma.upload.findMany({ where: visible, select: { id: true, country: true, plateText: true, tags: true } }),
     prisma.user.count(),
-    prisma.upload.groupBy({
-      by: ["country"],
-      where: visible,
-      _count: { id: true },
-      orderBy: { _count: { id: "desc" } },
-    }),
+    Promise.resolve(null),
     // Latest photo per country — used as the country tile cover
     prisma.upload.findMany({
       where: visible,
@@ -61,6 +57,11 @@ async function getHomeData() {
     }),
   ]);
 
+  // vehicles, not photos: a plate spotted several times counts once (unless it is a transferred plate)
+  const totalUploads = countVehicles(vehicleRows);
+  const countryGroups = [...countVehiclesBy(vehicleRows, (r) => r.country)]
+    .map(([country, n]) => ({ country, _count: { id: n } }))
+    .sort((a, b) => b._count.id - a._count.id);
   const coverMap = Object.fromEntries(covers.map((c) => [c.country, c.imageUrl]));
   return {
     totalUploads,
