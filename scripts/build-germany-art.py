@@ -68,6 +68,9 @@ for L in (480, 460, 440, 420, 400, 380, 360, 340):
     short.paste(face.crop((0, 0, c0, H)), (0, 0))
     short.paste(face.crop((c1, 0, W, H)), (c0, 0))
     short.save(os.path.join(OUT, f"short-{L}.png"))
+    sshort = short.copy()                                           # seasonal: the same shortened plate with the line between the months at the right end
+    ImageDraw.Draw(sshort).rectangle([1745 - cut, 185, 1880 - cut, 194], fill=(17, 17, 17, 255))
+    sshort.save(os.path.join(OUT, f"season-short-{L}.png"))
 
 # seals: sticker (centre 647,112 r67) over seal (centre 647,285 r79)
 def circle_crop(cx, cy, r):

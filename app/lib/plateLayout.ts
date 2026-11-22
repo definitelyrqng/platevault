@@ -396,6 +396,8 @@ for (const mm of [480, 460, 440, 420, 400, 380, 360, 340]) {
   const base = PLATE_ART["germany:single"];
   const cut = Math.round(((520 - mm) * base.w) / 520);
   PLATE_ART[`germany:w${mm}`] = { ...base, src: `/plates/germany/short-${mm}.png`, w: base.w - cut, rows: base.rows.map((r) => ({ ...r, x1: r.x1 - cut })) };
+  const se = PLATE_ART["germany:season"];                                          // seasonal plates keep their months at the right end
+  PLATE_ART[`germany:season-w${mm}`] = { ...se, src: `/plates/germany/season-short-${mm}.png`, w: se.w - cut, rows: se.rows.map((r) => (r.own ? { ...r, x0: r.x0 - cut, x1: r.x1 - cut } : { ...r, x1: r.x1 - cut })) };
 }
 
 /**
@@ -504,7 +506,7 @@ export function plateArtFor(country: string, plateType?: string | null): PlateAr
     const reg = (plateType ?? "").match(/^de-(regular|electric|oldtimer|seasonal|seasonal-h|seasonal-electric|transferable|official|state-authority|diplomatic)-(double|us|moto|moto-old)(-hu(\d\d|0))?$/);      // two-row, US-size and motorcycle plates
     if (reg && /^seasonal/.test(reg[1])) return PLATE_ART[`germany:${reg[2] === "double" ? "two" : reg[2]}-season`] ?? null;
     if (reg) return PLATE_ART[reg[2] === "double" ? "germany:two" : reg[2] === "us" ? "germany:us" : reg[2] === "moto" ? "germany:moto" : "germany:moto-old"] ?? null;
-    if (/^de-seasonal(-h|-electric)?(-single)?(-hu(\d\d|0))?$/.test(plateType ?? "")) return PLATE_ART["germany:season"] ?? null;
+    if (/^de-seasonal(-h|-electric)?(-single)?(-short)?(-hu(\d\d|0))?$/.test(plateType ?? "")) return PLATE_ART["germany:season"] ?? null;
     return !plateType || /^de-(regular|electric|oldtimer|seasonal|seasonal-h|seasonal-electric|transferable|official|state-authority|diplomatic)(-single)?(-short)?(-hu(\d\d|0))?$/.test(plateType) ? PLATE_ART["germany:single"] ?? null : null;
   }
   if (key === "austria") {
@@ -810,10 +812,11 @@ export function plateLayout(country: string, rawText: string, height: number, pl
   let art = plateArtFor(key, plateType);
   const capH = CAP_BOTTOM - CAP_TOP; // em
   // German plates are made as short as the registration allows: 7–8 characters 520 mm, 6 → 460, 5 → 400, 4 → 360, 3 → 340 (only for plates marked "-short")
-  if (key === "germany" && art === PLATE_ART["germany:single"] && /^de-(regular|electric|oldtimer)-single-short(-hu(\d\d|0))?$/.test(plateType ?? "")) {
-    const n = printed.replace(/[^A-Z0-9ÄÖÜ]/g, "").length;
+  const seasonal = art === PLATE_ART["germany:season"];
+  if (key === "germany" && (art === PLATE_ART["germany:single"] || seasonal) && /^de-(regular|electric|oldtimer|seasonal|seasonal-h|seasonal-electric)-single-short(-hu(\d\d|0))?$/.test(plateType ?? "")) {
+    const n = printed.replace(/\s\d\d\/\d\d$/, "").replace(/[^A-Z0-9ÄÖÜ]/g, "").length;      // the season months do not count
     const mm = n >= 7 ? 520 : n === 6 ? 460 : n === 5 ? 400 : n === 4 ? 360 : 340;
-    if (mm < 520) art = PLATE_ART[`germany:w${mm}`] ?? art;
+    if (mm < 520) art = PLATE_ART[`germany:${seasonal ? "season-" : ""}w${mm}`] ?? art;
   }
 
   if (art) {

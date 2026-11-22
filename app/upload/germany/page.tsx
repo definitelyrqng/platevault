@@ -343,7 +343,7 @@ export default function GermanyUploadPage() {
     if (category === "military") return `de-military${militaryPrefix === "X" ? "-nato" : ""}-${["single", "double", "us", "moto"].includes(plateFormat) ? plateFormat : "single"}${noSeals ? "-ns" : ""}`;
     const base = category === "federal" ? `de-federal-${federalSub}-${plateFormat}` : `de-${category}-${plateFormat}`;
     const stripPlate = (category === "transit-5day" || category === "export") && ["single", "double", "us"].includes(plateFormat);
-    const t = HU_TYPES.test(category === "federal" ? `de-official-${plateFormat}` : base) ? `${base}${shortPlate && /^de-(regular|electric|oldtimer)-single$/.test(base) ? "-short" : ""}-hu${frontPlate ? "0" : huYear}` : base;
+    const t = HU_TYPES.test(category === "federal" ? `de-official-${plateFormat}` : base) ? `${base}${shortPlate && /^de-(regular|electric|oldtimer|seasonal|seasonal-h|seasonal-electric)-single$/.test(base) ? "-short" : ""}-hu${frontPlate ? "0" : huYear}` : base;
     return noSeals && (HU_TYPES.test(category === "federal" ? `de-official-${plateFormat}` : base) || stripPlate) ? `${t}-ns` : t;                // "-ns": no seals or stickers
   }, [category, plateFormat, redCode, federalSub, huYear, frontPlate, shortPlate, noSeals, militaryPrefix]);
   const drawn = HU_TYPES.test(category === "federal" ? `de-official-${plateFormat}` : `de-${category}-${plateFormat}`);
@@ -659,7 +659,7 @@ export default function GermanyUploadPage() {
                 {/* ── Inspection sticker (HU) ── */}
                 {drawn && (
                   <div>
-                    {["regular", "electric", "oldtimer"].includes(category) && plateFormat === "single" && (
+                    {["regular", "electric", "oldtimer", "seasonal", "seasonal-h", "seasonal-electric"].includes(category) && plateFormat === "single" && (
                       <label className="mb-3 flex items-center gap-2 text-sm text-zinc-300">
                         <input type="checkbox" checked={shortPlate} onChange={(e) => setShortPlate(e.target.checked)} className="accent-indigo-500" />
                         Shortened plate <span className="text-xs text-zinc-500">(as short as the registration allows, 340–520 mm)</span>

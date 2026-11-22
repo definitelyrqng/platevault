@@ -57,7 +57,7 @@ export default function PlateEditor({ value, onChange, canMove }: {
   const isDeHu = value.country === "germany" && DE_HU.test(base);
   const huVal = huMatch ? huMatch[2] : "25";
   const isShort = !!shortMatch;
-  const SHORTABLE = /^de-(regular|electric|oldtimer)-single$/;
+  const SHORTABLE = /^de-(regular|electric|oldtimer|seasonal|seasonal-h|seasonal-electric)-single$/;
   const deType = (short: boolean, hu: string) => `${base}${short && SHORTABLE.test(base) ? "-short" : ""}-hu${hu}${isNs ? "-ns" : ""}`;
   const mask = split.mask;
   const art = plateArtFor(value.country, base);
