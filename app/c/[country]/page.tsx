@@ -9,6 +9,8 @@ import { isRegionMapCountry, REGION_FROM_TEXT, regionCodeOf } from "@/app/lib/re
 import { regionNamesOf } from "@/app/lib/regionMapsServer";
 import { cookies } from "next/headers";
 import LikeButton from "./LikeButton";
+import PlateTypeSection from "./PlateTypeSection";
+import { countVehicles, countVehiclesBy } from "@/app/lib/vehicles";
 
 const PAGE_SIZE = 48;
 // Countries that have a dedicated upload form under /upload/<country>
@@ -78,7 +80,7 @@ export default async function CountryPage({
   if (userQ) where.user = { username: { contains: userQ, mode: "insensitive" } };
   if (fromD || toD) where.createdAt = { ...(fromD ? { gte: fromD } : {}), ...(toD ? { lt: new Date(toD.getTime() + 86_400_000) } : {}) };
 
-  const [uploads, filteredCount, totalCount, typeGroups, spotterGroups, currentUser, typeSamples, popular] = await Promise.all([
+  const [uploads, filteredCount, totalCount, typeGroups, spotterGroups, currentUser, typeSamples, popular, allRows] = await Promise.all([
     prisma.upload.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -124,7 +126,10 @@ export default async function CountryPage({
           select: { id: true, numericId: true, plateText: true, plateType: true, country: true, imageUrl: true, createdAt: true, userId: true, brand: true, model: true, user: { select: { username: true } }, _count: { select: { likes: true, comments: true } } },
         })
       : Promise.resolve([]),
+    prisma.upload.findMany({ where: base, select: { id: true, country: true, plateText: true, tags: true, brand: true } }),
   ]);
+  const vehicleTotal = countVehicles(allRows);                                    // a plate spotted several times counts once
+  const topBrands = [...countVehiclesBy(allRows, (r) => r.brand)].sort((a, b) => b[1] - a[1]).slice(0, 12);
   const sampleOf = new Map(typeSamples.map((t) => [t.plateType as string, t.plateText]));
 
   // Merge stored type IDs that share a display name into one filter chip
@@ -173,28 +178,52 @@ export default async function CountryPage({
         <span className="mx-1.5">/</span>
         <span className="text-zinc-300">{meta.name}</span>
       </nav>
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-zinc-800/60 pb-6">
-        <div className="flex items-center gap-4">
-          <span className="leading-none shadow-md ring-1 ring-black/30"><Flag iso={meta.iso} size="lg" /></span>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">{meta.name}</h1>
-            <p className="mt-1 text-sm text-zinc-400 tabular-nums">
-              {totalCount.toLocaleString()} photo{totalCount === 1 ? "" : "s"} · {spotterGroups.length} spotter{spotterGroups.length === 1 ? "" : "s"}
-            </p>
+      <div className="overflow-hidden rounded-3xl border border-zinc-800/70 bg-gradient-to-br from-indigo-950/30 via-zinc-900/60 to-zinc-950 p-5 sm:p-7">
+        <div className="flex flex-wrap items-start justify-between gap-5">
+          <div className="flex items-center gap-4">
+            <span className="leading-none shadow-md ring-1 ring-black/30"><Flag iso={meta.iso} size="lg" /></span>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">{meta.name}</h1>
+              <p className="mt-1 text-sm text-zinc-400">License plates spotted in {meta.name}, by the community.</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {isRegionMapCountry(country) && (
+              <a href={`/c/${country}/map`}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-zinc-100 transition-colors hover:border-indigo-500 hover:text-white">
+                🗺 Map view
+              </a>
+            )}
+            <a href={uploadHref}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-500">
+              ↑ Upload a spot
+            </a>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {isRegionMapCountry(country) && (
-            <a href={`/c/${country}/map`}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-zinc-100 transition-colors hover:border-indigo-500 hover:text-white">
-              🗺 Map view
-            </a>
-          )}
-          <a href={uploadHref}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-500">
-            ↑ Upload a spot
-          </a>
-        </div>
+        <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            { v: vehicleTotal, l: "vehicles" },
+            { v: totalCount, l: "photos" },
+            { v: spotterGroups.length, l: "spotters" },
+            { v: chips.filter((c) => c.count > 0).length, l: "plate types seen" },
+          ].map((x) => (
+            <div key={x.l} className="rounded-2xl border border-zinc-800/60 bg-zinc-950/40 px-4 py-3">
+              <dd className="text-2xl font-bold tabular-nums text-white">{x.v.toLocaleString()}</dd>
+              <dt className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">{x.l}</dt>
+            </div>
+          ))}
+        </dl>
+        {topBrands.length > 0 && !lookupActive && (
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Popular brands</span>
+            {topBrands.map(([b, n]) => (
+              <a key={b} href={`/c/${country}?brand=${encodeURIComponent(b)}`}
+                className="rounded-full border border-zinc-800 bg-zinc-950/60 px-2.5 py-1 text-xs text-zinc-300 transition-colors hover:border-indigo-600 hover:text-white">
+                {b} <span className="tabular-nums text-zinc-500">{n}</span>
+              </a>
+            ))}
+          </div>
+        )}
       </div>
 
       {regionQ && (
@@ -204,31 +233,26 @@ export default async function CountryPage({
         </div>
       )}
 
-      {/* ─── Plate types: what is in the archive ─── */}
+      {/* ─── Plate types: what is in the archive (collapsed, expandable) ─── */}
       {chips.length > 0 && (
-        <section className="mt-6">
-          <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-zinc-500">Plate types</h2>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-            {chips.map((c) => (
-              <a key={c.label} href={href({ type: chipActive(c) ? null : c.types.join(","), page: 1 })}
-                className={`flex flex-col items-center gap-2 rounded-xl border p-3 text-center transition-all ${
-                  chipActive(c) ? "border-indigo-500 bg-indigo-600/10 ring-1 ring-indigo-500/50" : "border-zinc-800 bg-zinc-900/40 hover:border-zinc-600"
-                }`}>
-                <span className="flex h-[68px] w-full items-center justify-center overflow-hidden">
-                  {c.sample && <PlateBadge country={country} text={c.sample} plateType={c.types[0]} size="md" />}
-                </span>
-                <span className="text-sm font-medium text-zinc-200">{c.label}</span>
-                <span className={`text-xs tabular-nums ${c.count ? "text-zinc-500" : "text-zinc-600"}`}>{c.count ? `${c.count.toLocaleString()} photo${c.count === 1 ? "" : "s"}` : "not spotted yet"}</span>
-              </a>
-            ))}
-          </div>
-          {type && <a href={href({ type: null })} className="mt-3 inline-block text-xs text-indigo-300 hover:text-indigo-200">× Show all plate types</a>}
-        </section>
+        <PlateTypeSection
+          anyActive={!!type}
+          clearHref={href({ type: null })}
+          tiles={chips.map((c) => ({
+            key: c.label, label: c.label, count: c.count, active: chipActive(c),
+            href: href({ type: chipActive(c) ? null : c.types.join(","), page: 1 }),
+            plate: c.sample ? <PlateBadge country={country} text={c.sample} plateType={c.types[0]} size="md" /> : null,
+          }))}
+        />
       )}
 
       {/* ─── Lookup ─── */}
-      <form method="get" className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4">
-        <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-zinc-500">Lookup in {meta.name}</h2>
+      <details open={lookupActive} className="group mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/40 [&_summary::-webkit-details-marker]:hidden">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-zinc-500">Lookup in {meta.name} <span className="ml-1 normal-case tracking-normal text-zinc-600">plate, brand, spotter, date</span></h2>
+        <span className="text-xs text-zinc-500 transition-transform group-open:rotate-180">▾</span>
+      </summary>
+      <form method="get" className="border-t border-zinc-800/70 p-4">
         {type && <input type="hidden" name="type" value={type} />}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {([["q", "Plate number", q], ["brand", "Brand", brandQ], ["user", "Spotter", userQ]] as const).map(([name, label, val]) => (
@@ -249,6 +273,7 @@ export default async function CountryPage({
           {(lookupActive || type) && <span className="text-xs tabular-nums text-zinc-500">{filteredCount.toLocaleString()} result{filteredCount === 1 ? "" : "s"}</span>}
         </div>
       </form>
+      </details>
 
       {/* ─── Popular ─── */}
       {popular.length > 0 && (
