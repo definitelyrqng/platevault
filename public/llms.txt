@@ -1,0 +1,20 @@
+# PlateVault
+
+> PlateVault (https://www.platevault.app) is a free community archive for license plate spotting and car spotting in Europe. Members upload photos of number plates, tag the car brand, model and generation, and browse a searchable database by country, brand and model.
+
+## What it is
+- A plate spotting / platespotting / carspotting community and number plate database, similar in spirit to PlatesMania.
+- Country archives with accurate plate rendering (Germany incl. seasonal, electric, oldtimer, red, diplomatic, military and state plates; Austria; Czechia; Croatia; Bulgaria; Albania; Belgium; Bosnia).
+- Interactive region maps (districts, Bezirke, regions) showing where plates were spotted.
+- Multi Spots: the same plate spotted by several members; vehicle statistics count each plate once.
+- Vehicle catalog by brand, model and generation; transport company directory; weekly challenges; leaderboard; quiz.
+- Free to use, no ads.
+
+## Key pages
+- [Home](https://www.platevault.app/)
+- [Countries](https://www.platevault.app/countries)
+- [Vehicle catalog](https://www.platevault.app/catalog)
+- [Transport companies](https://www.platevault.app/companies)
+- [Leaderboard](https://www.platevault.app/leaderboard)
+- [Rules](https://www.platevault.app/rules)
+- [Sitemap](https://www.platevault.app/sitemap.xml)

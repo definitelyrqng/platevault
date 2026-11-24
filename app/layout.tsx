@@ -99,7 +99,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           </AuthProvider>
         </ThemeProvider>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-          "@context": "https://schema.org", "@type": "WebSite", name: "PlateVault", url: "https://www.platevault.app/",
+          "@context": "https://schema.org", "@type": "WebSite", name: "PlateVault", alternateName: ["Plate Vault", "PlateVault.app"], url: "https://www.platevault.app/",
           description: "The license plate archive for Europe.",
           potentialAction: { "@type": "SearchAction", target: "https://www.platevault.app/search?q={search_term_string}", "query-input": "required name=search_term_string" },
         }) }} />

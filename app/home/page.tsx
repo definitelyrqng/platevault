@@ -30,6 +30,12 @@ const spotSelect = {
   _count: { select: { likes: true, comments: true } },
 } as const;
 
+const FAQ = [
+  { q: "What is PlateVault?", a: "PlateVault is a free license plate spotting and car spotting archive for Europe. Members upload photos of number plates, tag the car, and browse the database by country, brand and model." },
+  { q: "What is plate spotting?", a: "Plate spotting (platespotting) is the hobby of photographing and collecting vehicle license plates, often alongside car spotting. PlateVault lets you archive and search the plates you find." },
+  { q: "Which countries does PlateVault cover?", a: "Germany, Austria, Czechia, Croatia, Bulgaria, Albania, Belgium and Bosnia, with plates drawn in each country's real format, including German seasonal, electric, oldtimer, diplomatic and military plates." },
+];
+
 async function getHomeData() {
   const visible = { deletedAt: null, hidden: false };
   const [vehicleRows, totalUsers, , covers, recent, hotSpots] = await Promise.all([
@@ -279,6 +285,18 @@ export default async function HomePage() {
               discover rare plates such as seasonal, oldtimer, electric, diplomatic and military plates.
             </p>
           </div>
+          <div className="mt-6 grid gap-4 border-t border-zinc-800/70 pt-5 text-sm md:grid-cols-3">
+            {FAQ.map((f) => (
+              <div key={f.q}>
+                <h3 className="font-semibold text-zinc-200">{f.q}</h3>
+                <p className="mt-1 leading-relaxed text-zinc-400">{f.a}</p>
+              </div>
+            ))}
+          </div>
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            "@context": "https://schema.org", "@type": "FAQPage",
+            mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+          }) }} />
         </div>
       </section>
     </div>
