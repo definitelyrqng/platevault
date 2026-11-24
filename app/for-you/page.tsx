@@ -16,6 +16,7 @@ type Spot = {
   model: string | null;
   user: { username: string; numericId: number; avatarUrl: string | null };
   _count: { likes: number; comments: number };
+  reason?: string | null;
 };
 
 function relativeDays(d: string) {
@@ -86,7 +87,7 @@ export default function ForYouPage() {
       {/* Country chips (if personalised) */}
       {personalised && topCountries.length > 0 && (
         <div className="mb-6 flex flex-wrap gap-2">
-          <span className="text-xs text-zinc-600 self-center">Based on your likes:</span>
+          <span className="text-xs text-zinc-600 self-center">Your taste:</span>
           {topCountries.map((c) => {
             const meta = getCountryMeta(c);
             return (
@@ -107,7 +108,7 @@ export default function ForYouPage() {
         <div className="mb-6 rounded-2xl border border-zinc-800/60 bg-zinc-900/30 px-5 py-4 text-sm text-zinc-400 flex items-center gap-3">
           <span className="text-2xl">👋</span>
           {loggedIn
-            ? <span>Like some spots and your feed will personalise itself based on your favourite countries and car brands.</span>
+            ? <span>Like or follow a few spots and spotters and your feed will tune itself to your favourite countries, brands and models. Until then it shows what is fresh and popular.</span>
             : <span>Sign in and start liking spots to get a personalised feed based on your favourite countries and car brands.</span>
           }
         </div>
@@ -133,6 +134,7 @@ export default function ForYouPage() {
                   <img src={u.imageUrl} alt={u.plateText} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]" loading="lazy" />
                   <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="absolute top-2 right-2"><Flag iso={meta.iso} /></div>
+                  {u.reason && <span className="absolute bottom-2 left-2 max-w-[85%] truncate rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-medium text-zinc-200 backdrop-blur">{u.reason}</span>}
                 </div>
                 <div className="px-3 py-2.5">
                   <div className="flex items-center justify-between gap-2">
