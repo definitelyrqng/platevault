@@ -109,11 +109,11 @@ export default async function HomePage() {
       <section className="border-b border-zinc-800/60">
         <div className="mx-auto grid max-w-6xl items-end gap-8 px-4 pb-8 pt-10 sm:px-6 sm:pt-14 lg:grid-cols-[1fr_auto]">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-400">The licence plate archive</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-400">License plate spotting &amp; car spotting archive</div>
             <h1 className="mt-3 text-4xl font-bold tracking-tight text-white sm:text-5xl">Spot. Tag. Archive.</h1>
             <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-zinc-400">
-              Photos of vehicles and their plates from across Europe, shared by the community.
-              Look up any plate, or add the one you just saw.
+              The community archive for license plate spotting and car spotting: photos of vehicles and their number plates
+              from across Europe. Look up any plate, or add the one you just saw.
             </p>
 
             <form action="/search" method="GET" role="search" className="mt-6 flex max-w-xl overflow-hidden rounded-xl border border-zinc-700/80 bg-zinc-900 transition-colors focus-within:border-indigo-500">
@@ -262,6 +262,25 @@ export default async function HomePage() {
           </section>
         )}
       </div>
+
+      {/* ─── About (plain text for search engines and new visitors) ─── */}
+      <section aria-labelledby="about-pv" className="mx-auto mt-12 max-w-6xl px-4 sm:px-6">
+        <div className="rounded-2xl border border-zinc-800/70 bg-zinc-900/30 p-6 sm:p-8">
+          <h2 id="about-pv" className="text-lg font-semibold tracking-tight text-zinc-100">PlateVault: the license plate spotting archive</h2>
+          <div className="mt-3 grid gap-6 text-sm leading-relaxed text-zinc-400 md:grid-cols-2">
+            <p>
+              PlateVault is a free plate spotting community and number plate database. Plate spotters and car spotters upload photos of
+              license plates, tag the car, model and generation, and build a searchable archive of European number plates,
+              from German, Austrian, Czech and Croatian plates to Bulgarian, Albanian and more.
+            </p>
+            <p>
+              Whether you are into carspotting, platespotting, collecting plate photos or just looking up the car behind a registration,
+              you can browse by country, brand and model, follow spotters, find Multi Spots, climb the leaderboard and
+              discover rare plates such as seasonal, oldtimer, electric, diplomatic and military plates.
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
