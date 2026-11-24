@@ -5,8 +5,8 @@ import HomePage from "./home/page";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: { absolute: "PlateVault — License Plate Archive & Plate Spotting Community" },
-  description: "The license plate archive for Europe: browse and spot number plates from Germany, Austria, Czechia, Croatia and more, tag them by car and model, and build your collection. Free.",
+  title: { absolute: "PlateVault — License Plate Spotting & Car Spotting Archive" },
+  description: "PlateVault is the free license plate spotting & car spotting archive for Europe: browse and upload number plates from Germany, Austria, Czechia, Croatia and more, tag cars and models, and build your plate collection.",
   alternates: { canonical: "/" },
 };
 

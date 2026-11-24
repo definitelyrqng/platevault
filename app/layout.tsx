@@ -24,10 +24,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.platevault.app"),
   title: { default: "PlateVault", template: "%s · PlateVault" },
-  description: "The internet\'s license plate archive. Spot plates from across Europe, tag them, and build your collection. Free, forever.",
+  description: "PlateVault is the free license plate spotting archive for Europe. Car spotting & plate spotting: upload number plates, tag the car and model, browse by country and build your collection.",
   alternates: { canonical: "/" },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large" } },
-  keywords: ["license plates", "number plates", "plate spotting", "car plates", "plate archive", "Europe"],
+  keywords: ["license plate spotting", "plate spotting", "platespotting", "car spotting", "carspotting", "number plate spotting", "license plate database", "number plate archive", "european license plates", "car plates", "plate collection", "PlateVault"],
   openGraph: {
     type: "website",
     url: "https://www.platevault.app",
