@@ -10,6 +10,8 @@ import NavProgress from "./components/NavProgress";
 import { statusInfo } from "./status-config";
 import { getMaintenanceSettings } from "@/app/lib/maintenance";
 import { getAnnouncement } from "@/app/lib/announcement";
+import { getDirectNotice } from "@/app/lib/directNotice";
+import DirectVisitNotice from "./components/DirectVisitNotice";
 import { getSessionUser, getUnreadCount } from "@/app/lib/session";
 import { AuthProvider } from "./components/AuthProvider";
 
@@ -23,6 +25,8 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://www.platevault.app"),
   title: { default: "PlateVault", template: "%s · PlateVault" },
   description: "The internet\'s license plate archive. Spot plates from across Europe, tag them, and build your collection. Free, forever.",
+  alternates: { canonical: "/" },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large" } },
   keywords: ["license plates", "number plates", "plate spotting", "car plates", "plate archive", "Europe"],
   openGraph: {
     type: "website",
@@ -49,7 +53,7 @@ const FOOTER_LINKS = [
 ];
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [{ maintenanceMode }, me, announcement] = await Promise.all([getMaintenanceSettings(), getSessionUser(), getAnnouncement()]);
+  const [{ maintenanceMode }, me, announcement, directNotice] = await Promise.all([getMaintenanceSettings(), getSessionUser(), getAnnouncement(), getDirectNotice()]);
   const unread = me ? await getUnreadCount(me.id) : 0;
   const info = statusInfo[maintenanceMode ? "maintenance" : "online"];
   return (
@@ -67,6 +71,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           <MaintenanceBanner />
           <AnnouncementBanner {...announcement} />
           <NavProgress />
+          <DirectVisitNotice {...directNotice} />
           <SidebarGate />
           <div className="min-h-[70vh]">{children}</div>
           <footer className="mb-20 border-t border-zinc-800/60 md:mb-0">
@@ -93,6 +98,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           </footer>
           </AuthProvider>
         </ThemeProvider>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org", "@type": "WebSite", name: "PlateVault", url: "https://www.platevault.app/",
+          description: "The license plate archive for Europe.",
+          potentialAction: { "@type": "SearchAction", target: "https://www.platevault.app/search?q={search_term_string}", "query-input": "required name=search_term_string" },
+        }) }} />
         <Analytics />
       </body>
     </html>

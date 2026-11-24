@@ -1,3 +1,12 @@
 User-agent: *
-Disallow: /home
+Allow: /
+Disallow: /api/
 Disallow: /upload
+Disallow: /admin
+Disallow: /settings
+Disallow: /login
+Disallow: /signup
+Disallow: /messages
+Disallow: /notifications
+
+Sitemap: https://www.platevault.app/sitemap.xml

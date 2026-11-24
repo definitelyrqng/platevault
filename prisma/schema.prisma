@@ -414,6 +414,13 @@ model SiteSettings {
   announcementDays     Int     @default(14)
   announcementVersion  Int     @default(1)
 
+  // Notice for people who open the site directly (typed URL / bookmark, no referrer)
+  directNoticeEnabled  Boolean @default(true)
+  directNoticeTitle    String  @default("Heads up") @db.VarChar(60)
+  directNoticeText     String  @default("PlateVault is still being built — things may change or break while we work on it.") @db.VarChar(400)
+  directNoticeLink     String  @default("") @db.VarChar(200)
+  directNoticeLinkText String  @default("") @db.VarChar(40)
+
   updatedAt         DateTime @updatedAt
 }
 

@@ -5,6 +5,8 @@ import { getMaintenanceSettings } from "@/app/lib/maintenance";
 import { getCountryMeta } from "@/app/lib/countries";
 import MaintenanceToggle from "./MaintenanceToggle";
 import AnnouncementSettings from "./AnnouncementSettings";
+import DirectNoticeSettings from "./DirectNoticeSettings";
+import { getDirectNotice } from "@/app/lib/directNotice";
 import { getAnnouncement } from "@/app/lib/announcement";
 import HiddenSpotActions from "./HiddenSpotActions";
 import UserAdminPanel from "@/app/u/[id]/UserAdminPanel";
@@ -233,7 +235,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   }
 
   if (tab === "site" && isSuper) {
-    const [{ maintenanceMode, maintenanceMsg }, announcement] = await Promise.all([getMaintenanceSettings(), getAnnouncement()]);
+    const [{ maintenanceMode, maintenanceMsg }, announcement, directNotice] = await Promise.all([getMaintenanceSettings(), getAnnouncement(), getDirectNotice()]);
     body = (
       <div className="space-y-10">
         <section className="max-w-2xl space-y-3">
@@ -241,6 +243,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           <MaintenanceToggle initialMode={maintenanceMode} initialMsg={maintenanceMsg} />
         </section>
         <AnnouncementSettings initial={announcement} />
+        <DirectNoticeSettings initial={directNotice} />
       </div>
     );
   }

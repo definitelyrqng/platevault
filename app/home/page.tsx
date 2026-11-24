@@ -10,6 +10,7 @@ import { countVehicles, countVehiclesBy } from "@/app/lib/vehicles";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
+  alternates: { canonical: "/" },
   title: "Home",
   description: "Discover freshly spotted license plates from across Europe. Browse by country, follow spotters, and build your archive.",
   openGraph: { title: "PlateVault — Home", description: "Fresh plates from across Europe. Browse, follow, collect." },
